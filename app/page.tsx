@@ -25,7 +25,7 @@ export default async function DashboardPage() {
 
       <StatCards balance={stats.balance} given={stats.given} got={stats.got} orgRecognitions={stats.orgRecognitions} />
 
-      <p className="mb-3 mt-6 text-[11px] font-extrabold font-mono uppercase tracking-[0.2em] text-brand">Team highlights</p>
+      <p className="mb-3 mt-6 -mx-2.5 lg:-mx-[30px] text-[11px] font-extrabold font-mono uppercase tracking-[0.2em] text-brand">Team highlights</p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 items-stretch gap-4 -mx-2.5 lg:-mx-[30px]">
         <div className="flex flex-1 flex-col [&>*]:flex [&>*]:h-full [&>*]:min-h-0">
