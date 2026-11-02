@@ -1,7 +1,6 @@
-# Quality gate — runs before every commit from D:\review\frontend
-# formatter -> linter -> SCA -> unit tests
-npx lint-staged || exit 1
-
+# Quality gate — runs before every commit (hooksPath = frontend/.husky, so cd first)
+npx lint-staged
+cd frontend || exit 1
 npm run scan:sca --silent
 
 # unit tests stay fast: they gate every commit; full coverage + e2e run in CI / npm run test:coverage
