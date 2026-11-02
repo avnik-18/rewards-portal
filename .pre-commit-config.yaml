@@ -1,0 +1,38 @@
+# Python-ecosystem equivalent of the "husky" ask: same gate set, every commit.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (strict)
+        entry: mypy app
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: bandit
+        name: bandit (SAST)
+        entry: bandit -r app
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      - id: tests
+        name: pytest
+        entry: pytest -q
+        language: system
+        pass_filenames: false
+
+      # Runs only if trivy is installed locally; CI runs it unconditionally.
+      - id: trivy
+        name: trivy (SCA)
+        entry: trivy fs .
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
