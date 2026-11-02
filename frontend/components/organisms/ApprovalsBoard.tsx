@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, createElement } from 'react'
 import { CheckCircle2, UserCheck } from 'lucide-react'
 import { Avatar, Card } from '@/components/atoms'
 import ApprovalListItem from '@/components/molecules/ApprovalListItem'
@@ -115,12 +115,10 @@ export default function ApprovalsBoard({ items, viewerId = 'me' }: ApprovalsBoar
 }
 
 function BodyEmpty({ title, sub }: { title: string; sub: string }) {
-  const Icon = title === 'Select an item' ? UserCheck : CheckCircle2
+  const iconNode = title === 'Select an item' ? UserCheck : CheckCircle2
   return (
     <div className="flex flex-col items-center gap-2 rounded-2xl border border-line bg-white px-6 py-10 text-center">
-      <span className="text-brand">
-        <Icon size={26} aria-hidden />
-      </span>
+      <span className="text-brand">{createElement(iconNode, { size: 26, 'aria-hidden': true })}</span>
       <p className="text-[14px] font-extrabold text-navy">{title}</p>
       <p className="max-w-[260px] text-[12.5px] text-muted">{sub}</p>
     </div>

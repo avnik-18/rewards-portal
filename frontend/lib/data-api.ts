@@ -77,8 +77,8 @@ export interface RecognitionTreeData {
   members: TreeMember[]
 }
 
-const ptsOf = (id: string) => TEAM_LEADERBOARD.find((r) => r.id === id)?.pts ?? 0
-const teamOf = (id: string): 'humana' | 'dev' => (TEAM_STATS.humana.some((t) => t.id === id) ? 'humana' : 'dev')
+const leaderboardPointsOf = (memberId: string) => TEAM_LEADERBOARD.find((leaderRow) => leaderRow.id === memberId)?.pts ?? 0
+const teamMembershipOf = (memberId: string): "humana" | "dev" => (TEAM_STATS.humana.some((team) => team.id === memberId) ? "humana" : "dev")
 
 /** The subtree under the signed-in user in ORG_TREE. */
 function mySubtreeMembers(): string[] {
@@ -86,8 +86,8 @@ function mySubtreeMembers(): string[] {
     const walk = (n: TreeNode): TreeNode | null => {
       if (n.id === 'me') return n
       for (const c of n.children ?? []) {
-        const r = walk(c)
-        if (r) return r
+        const foundNode = walk(c)
+        if (foundNode) return foundNode
       }
       return null
     }
@@ -99,24 +99,24 @@ function mySubtreeMembers(): string[] {
 export async function getRecognitionTree(): Promise<RecognitionTreeData> {
   const ids = mySubtreeMembers()
   const members: TreeMember[] = ids.map((id) => {
-    const p = person(id)
-    const teamId = teamOf(id)
+    const teamMember = person(id)
+    const teamId = teamMembershipOf(id)
     return {
       id,
-      name: p.name,
-      title: p.title,
+      name: teamMember.name,
+      title: teamMember.title,
       teamId,
       teamName: TEAMS.find((t) => t.id === teamId)?.name ?? '',
-      pts: ptsOf(id),
+      pts: leaderboardPointsOf(id),
     }
   })
-  return { me: { name: person('me').name, pts: ptsOf('me') }, members }
+  return { me: { name: person('me').name, pts: leaderboardPointsOf('me') }, members }
 }
 
 /** Recognizable teammates (everyone except the signed-in user), sorted by name. */
 export async function getPeople(): Promise<Person[]> {
   return Object.values(PEOPLE)
-    .filter((p) => p.id !== 'me')
+    .filter((teamMember) => teamMember.id !== "me")
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
@@ -148,17 +148,17 @@ export interface ProfilePayload {
 }
 
 export async function getProfile(id: string): Promise<ProfilePayload> {
-  const p = person(id)
+  const teamMember = person(id)
   const received = POSTS.filter((x) => x.toIds.includes(id))
   const given = POSTS.filter((x) => x.fromId === id)
   return {
-    id: p.id,
-    name: p.name,
-    title: p.title,
-    dept: p.dept,
-    office: p.office,
-    tenure: p.tenure,
-    managerName: p.managerId ? person(p.managerId).name : null,
+    id: teamMember.id,
+    name: teamMember.name,
+    title: teamMember.title,
+    dept: teamMember.dept,
+    office: teamMember.office,
+    tenure: teamMember.tenure,
+    managerName: teamMember.managerId ? person(teamMember.managerId).name : null,
     received,
     given,
   }

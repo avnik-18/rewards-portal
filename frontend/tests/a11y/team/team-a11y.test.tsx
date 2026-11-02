@@ -25,8 +25,8 @@ async function scan(element: HTMLElement) {
 
 describe('accessibility (axe-core) — team page', () => {
   it('team table tab has no a11y violations', async () => {
-    const Page = await TeamPage()
-    const { container } = renderWithRouter(Page as never)
+    const pageElement = await TeamPage()
+    const { container } = renderWithRouter(pageElement as never)
     expect(await scan(container)).toHaveLength(0)
   })
 })

@@ -10,8 +10,8 @@ async function scan(element: HTMLElement) {
 
 describe('accessibility (axe-core) — profile page', () => {
   it('the profile screen has no a11y violations', async () => {
-    const Page = await ProfilePage({ searchParams: Promise.resolve({ id: 'p1' }) as never })
-    const { container } = render(Page as never)
+    const pageElement = await ProfilePage({ searchParams: Promise.resolve({ id: 'p1' }) as never })
+    const { container } = render(pageElement as never)
     expect(await scan(container)).toHaveLength(0)
   })
 })

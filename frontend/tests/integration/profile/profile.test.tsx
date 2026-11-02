@@ -4,10 +4,10 @@ import ProfilePage, { type ProfilePageProps } from '@/app/profile/page'
 
 async function renderProfile(id?: string) {
   const searchParams = Promise.resolve<{ id?: string }>({}) as ProfilePageProps['searchParams']
-  const Page = await ProfilePage({
+  const pageElement = await ProfilePage({
     searchParams: id ? (Promise.resolve({ id }) as unknown as ProfilePageProps['searchParams']) : searchParams,
   })
-  return render(Page as never)
+  return render(pageElement as never)
 }
 
 describe('ProfilePage — ditto of the old profile screen', () => {

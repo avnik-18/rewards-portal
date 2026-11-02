@@ -19,8 +19,8 @@ function renderWithRouter(ui: ReactElement) {
 }
 
 async function renderTeamPage() {
-  const Page = await TeamPage()
-  renderWithRouter(Page as never)
+  const pageElement = await TeamPage()
+  renderWithRouter(pageElement as never)
 }
 
 describe('TeamPage — ditto of the old team screen', () => {
