@@ -15,8 +15,8 @@ export default function EoQShowcase({ slides }: { slides: Slide[] }) {
 
   // auto-advance every 5.5s; each change re-arms the timer, so manual clicks reset the countdown
   useEffect(() => {
-    const t = setTimeout(() => setOnScreen((s) => (s + 1) % slides.length), 5500)
-    return () => clearTimeout(t)
+    const slideTimer = setTimeout(() => setOnScreen((screenIndex) => (screenIndex + 1) % slides.length), 5500)
+    return () => clearTimeout(slideTimer)
   }, [onScreen, slides.length])
 
   return (

@@ -49,21 +49,20 @@ export function useComposeForm(people: ComposePerson[]) {
   )
 
   function pickResults(query: string): ComposePerson[] {
-    const s = query.trim().toLowerCase()
-    if (!s) return []
+    const needle = query.trim().toLowerCase()
+    if (!needle) return []
     return people
-      .filter(
-        (p) =>
-          !toSel.includes(p.id) &&
-          !ccSel.includes(p.id) &&
-          (p.name.toLowerCase().includes(s) || p.title.toLowerCase().includes(s) || p.email.toLowerCase().includes(s)),
+      .filter((candidate) =>
+          !toSel.includes(candidate.id) &&
+          !ccSel.includes(candidate.id) &&
+          (candidate.name.toLowerCase().includes(needle) || candidate.title.toLowerCase().includes(needle) || candidate.email.toLowerCase().includes(needle)),
       )
       .slice(0, 6)
   }
 
   function emailCandidate(query: string): string | null {
     const value = query.trim().toLowerCase()
-    return EMAIL_RE.test(value) && !people.some((p) => p.email === value) ? value : null
+    return EMAIL_RE.test(value) && !people.some((attached) => attached.email === value) ? value : null
   }
 
   function addToSel(id: string) {
@@ -85,31 +84,31 @@ export function useComposeForm(people: ComposePerson[]) {
   }
 
   function removeFromToSel(id: string) {
-    setToSel((sel) => sel.filter((x) => x !== id))
+    setToSel((selected) => selected.filter((candidate) => candidate !== id))
   }
 
   function removeFromCcSel(id: string) {
-    setCcSel((sel) => sel.filter((x) => x !== id))
+    setCcSel((selected) => selected.filter((candidate) => candidate !== id))
   }
 
   function addEmailToTo(email: string, id = nextEmailId()) {
-    setLabels((l) => ({ ...l, [id]: email }))
+    setLabels((current) => ({ ...current, [id]: email }))
     setToSel((sel) => [...sel, id])
   }
 
   function addEmailToCc(email: string, id = nextEmailId()) {
-    setLabels((l) => ({ ...l, [id]: email }))
+    setLabels((current) => ({ ...current, [id]: email }))
     setCcSel((sel) => [...sel, id])
   }
 
-  function chooseValue(k: ValueKey) {
-    const t = VALUE_TEMPLATES[k]?.[0] ?? null
+  function chooseValue(valueKey: ValueKey) {
+    const template = VALUE_TEMPLATES[valueKey]?.[0] ?? null
     const prev = activeTemplateFor(valueKey, tplId)
-    setTplId(t?.id ?? null)
-    setValueKey(k)
+    setTplId(template?.id ?? null)
+    setValueKey(valueKey)
     setVariantIdx(0)
     const first = toSel[0] ? personLabel(toSel[0], labels) : null
-    setMessage((m) => prefillUpdate({ message: m, prevTemplate: prev, nextTemplate: t, firstName: first }))
+    setMessage((m) => prefillUpdate({ message: m, prevTemplate: prev, nextTemplate: template, firstName: first }))
   }
 
   async function aiDraft() {
@@ -209,3 +208,6 @@ export function useComposeForm(people: ComposePerson[]) {
     POINT_PRESETS,
   }
 }
+
+
+export type ComposeFormApi = ReturnType<typeof useComposeForm>

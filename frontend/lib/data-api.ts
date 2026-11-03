@@ -106,7 +106,7 @@ export async function getRecognitionTree(): Promise<RecognitionTreeData> {
       name: teamMember.name,
       title: teamMember.title,
       teamId,
-      teamName: TEAMS.find((t) => t.id === teamId)?.name ?? '',
+      teamName: TEAMS.find((team) => team.id === teamId)?.name ?? '',
       pts: leaderboardPointsOf(id),
     }
   })

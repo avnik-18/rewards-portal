@@ -24,8 +24,8 @@ const HERO_LINES = [
 function HeroSlide() {
   const [idx, setIdx] = useState(0)
   useEffect(() => {
-    const t = setInterval(() => setIdx((v) => (v + 1) % HERO_LINES.length), 4200)
-    return () => clearInterval(t)
+    const rotateTimer = setInterval(() => setIdx((lineIndex) => (lineIndex + 1) % HERO_LINES.length), 4200)
+    return () => clearInterval(rotateTimer)
   }, [])
   const line = HERO_LINES[idx]
   return (
@@ -66,8 +66,8 @@ function HeroSlide() {
 function RecognizeCycle({ className = '' }: { className?: string }) {
   const [idx, setIdx] = useState(0)
   useEffect(() => {
-    const t = setInterval(() => setIdx((v) => (v + 1) % RECOGNIZE_PHRASES.length), 3200)
-    return () => clearInterval(t)
+    const phraseTimer = setInterval(() => setIdx((phraseIndex) => (phraseIndex + 1) % RECOGNIZE_PHRASES.length), 3200)
+    return () => clearInterval(phraseTimer)
   }, [])
   return (
     <span aria-live="polite" className="block overflow-hidden">

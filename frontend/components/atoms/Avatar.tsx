@@ -11,24 +11,24 @@ const GRADIENTS = [
   'from-[#ec4899] to-[#f97316]',
 ]
 
-function hashStr(s: string) {
-  let h = 0
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
-  return h
+function hashStr(text: string) {
+  let hash = 0
+  for (let charIndex = 0; charIndex < text.length; charIndex++) hash = (hash * 31 + text.charCodeAt(charIndex)) >>> 0
+  return hash
 }
 
 export function Avatar({ id, size = 36, ring = false }: { id: string; size?: number; ring?: boolean }) {
-  const p = person(id)
-  const g = GRADIENTS[hashStr(p.name) % GRADIENTS.length]
+  const profile = person(id)
+  const gradient = GRADIENTS[hashStr(profile.name) % GRADIENTS.length]
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <div
-        className={`flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white select-none ${g}`}
+        className={`flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white select-none ${gradient}`}
         style={{ fontSize: size * 0.38 }}
       >
-        {initials(p.name)}
+        {initials(profile.name)}
       </div>
-      {p.status === 'online' && size >= 32 && (
+      {profile.status === 'online' && size >= 32 && (
         <span
           className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-mint"
           role="img"

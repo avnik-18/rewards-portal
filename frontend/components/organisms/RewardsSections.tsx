@@ -23,55 +23,55 @@ export default function RecognitionsReceived({ items }: RecognitionsReceivedProp
     <div>
       <h2 className="mb-3 text-xl font-extrabold tracking-tight text-navy">Recognitions received</h2>
       <div className="space-y-3">
-        {items.map((p) =>
-          p.artUrl && p.template ? (
-            <Card key={p.id} className="overflow-hidden p-0">
+        {items.map((recognition) =>
+          recognition.artUrl && recognition.template ? (
+            <Card key={recognition.id} className="overflow-hidden p-0">
               {/* collapsed — the one-line row (Aarav style) */}
               <button
-                onClick={() => setExpandedId(expandedId === p.id ? null : p.id)}
-                aria-expanded={expandedId === p.id}
+                onClick={() => setExpandedId(expandedId === recognition.id ? null : recognition.id)}
+                aria-expanded={expandedId === recognition.id}
                 className="flex w-full items-center gap-3.5 p-4 text-left transition hover:bg-slate-50"
               >
-                <Avatar id={p.fromId} size={40} />
+                <Avatar id={recognition.fromId} size={40} />
                 <div className="min-w-0 flex-1">
                   <p className="text-[13.5px]">
-                    <span className="font-extrabold text-navy">{person(p.fromId).name}</span>
-                    <span className="text-muted"> · {p.when}</span>
+                    <span className="font-extrabold text-navy">{person(recognition.fromId).name}</span>
+                    <span className="text-muted"> · {recognition.when}</span>
                   </p>
-                  <p className="mt-0.5 line-clamp-1 text-[12.5px] text-muted">{p.message}</p>
+                  <p className="mt-0.5 line-clamp-1 text-[12.5px] text-muted">{recognition.message}</p>
                 </div>
-                {p.value && (
+                {recognition.value && (
                   <span className="shrink-0 rounded-full bg-brand-soft px-2.5 py-1 text-[10.5px] font-extrabold text-brand">
-                    {p.value}
+                    {recognition.value}
                   </span>
                 )}
                 <ChevronDown
                   size={18}
                   aria-hidden
-                  className={`shrink-0 text-muted transition-transform duration-200 ${expandedId === p.id ? 'rotate-180 text-brand' : ''}`}
+                  className={`shrink-0 text-muted transition-transform duration-200 ${expandedId === recognition.id ? 'rotate-180 text-brand' : ''}`}
                 />
               </button>
-              {expandedId === p.id && (
+              {expandedId === recognition.id && (
                 <>
                   {/* expanded — the full template postcard for the LinkedIn share */}
                   <div className="p-3 pt-0">
                     <TemplateCard
-                      tpl={p.template}
-                      url={p.artUrl}
+                      tpl={recognition.template}
+                      url={recognition.artUrl}
                       previewValue={null}
                       recipients={[{ id: 'me', label: 'Ayan' }]}
-                      points={p.points ?? 0}
-                      msg={p.message}
+                      points={recognition.points ?? 0}
+                      msg={recognition.message}
                     />
                   </div>
-                  {p.shareable !== false && (
+                  {recognition.shareable !== false && (
                     <div className="flex justify-end pb-3 pr-3">
                       <LinkedInShareButton
-                        recognitionId={p.id}
-                        giver={person(p.fromId).name}
-                        message={p.message}
-                        valueLabel={p.value}
-                        artUrl={p.artUrl}
+                        recognitionId={recognition.id}
+                        giver={person(recognition.fromId).name}
+                        message={recognition.message}
+                        valueLabel={recognition.value}
+                        artUrl={recognition.artUrl}
                       />
                     </div>
                   )}
@@ -79,26 +79,26 @@ export default function RecognitionsReceived({ items }: RecognitionsReceivedProp
               )}
             </Card>
           ) : (
-            <Card key={p.id} className="flex items-center gap-3.5 p-4 transition hover:shadow-lift">
-              <Avatar id={p.fromId} size={40} />
+            <Card key={recognition.id} className="flex items-center gap-3.5 p-4 transition hover:shadow-lift">
+              <Avatar id={recognition.fromId} size={40} />
               <div className="min-w-0 flex-1">
                 <p className="text-[13.5px]">
-                  <span className="font-extrabold text-navy">{person(p.fromId).name}</span>
-                  <span className="text-muted"> · {p.when}</span>
+                  <span className="font-extrabold text-navy">{person(recognition.fromId).name}</span>
+                  <span className="text-muted"> · {recognition.when}</span>
                 </p>
-                <p className="mt-0.5 line-clamp-1 text-[12.5px] text-muted">{p.message}</p>
+                <p className="mt-0.5 line-clamp-1 text-[12.5px] text-muted">{recognition.message}</p>
               </div>
-              {p.value && (
+              {recognition.value && (
                 <span className="shrink-0 rounded-full bg-brand-soft px-2.5 py-1 text-[10.5px] font-extrabold text-brand">
-                  {p.value}
+                  {recognition.value}
                 </span>
               )}
-              {p.shareable !== false && (
+              {recognition.shareable !== false && (
                 <LinkedInShareButton
-                  recognitionId={p.id}
-                  giver={person(p.fromId).name}
-                  message={p.message}
-                  valueLabel={p.value}
+                  recognitionId={recognition.id}
+                  giver={person(recognition.fromId).name}
+                  message={recognition.message}
+                  valueLabel={recognition.value}
                 />
               )}
             </Card>
@@ -119,17 +119,17 @@ export function MyEoQAwards({ awards }: MyEoQAwardsProps) {
     <div>
       <h2 className="mb-3 text-xl font-extrabold tracking-tight text-navy">My EoQ awards</h2>
       <div className="space-y-2.5">
-        {awards.map((a) => (
-          <Card key={a.id} className="flex items-center gap-3.5 p-4">
+        {awards.map((award) => (
+          <Card key={award.id} className="flex items-center gap-3.5 p-4">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-soft text-gold-ink">
               <Trophy size={17} aria-hidden />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13.5px] font-extrabold text-navy">{a.category}</p>
-              <p className="truncate text-[12px] text-muted">nominated {a.nominee} · jury pipeline</p>
+              <p className="truncate text-[13.5px] font-extrabold text-navy">{award.category}</p>
+              <p className="truncate text-[12px] text-muted">nominated {award.nominee} · jury pipeline</p>
             </div>
-            {a.status === 'result' ? (
-              <span className="tnum shrink-0 rounded-full bg-gold px-3 py-1 text-[11.5px] font-extrabold text-[#3d2b00]">{a.result}</span>
+            {award.status === 'result' ? (
+              <span className="tnum shrink-0 rounded-full bg-gold px-3 py-1 text-[11.5px] font-extrabold text-[#3d2b00]">{award.result}</span>
             ) : (
               <span className="shrink-0 rounded-full bg-brand-soft px-3 py-1 text-[11.5px] font-extrabold text-brand-deep">In review</span>
             )}
@@ -145,23 +145,23 @@ export interface ValuesYouLiveProps {
 }
 
 export function ValuesYouLive({ values }: ValuesYouLiveProps) {
-  const max = Math.max(...values.map((v) => v.count), 1)
+  const max = Math.max(...values.map((lived) => lived.count), 1)
   const sorted = [...values].sort((a, b) => b.count - a.count)
   return (
     <div>
       <h2 className="mb-3 text-xl font-extrabold tracking-tight text-navy">Values you live</h2>
       <Card className="p-5">
         <div className="space-y-3">
-          {sorted.map((v) => {
-            const core = CORE_VALUES[v.key]
+          {sorted.map((livedValue) => {
+            const core = CORE_VALUES[livedValue.key]
             return (
-              <div key={v.key}>
+              <div key={livedValue.key}>
                 <div className="flex items-center justify-between text-[12.5px]">
                   <span className={`font-bold ${core.ink}`}>{core.label}</span>
-                  <span className="tnum font-extrabold text-muted">{v.count}</span>
+                  <span className="tnum font-extrabold text-muted">{livedValue.count}</span>
                 </div>
                 <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-[#E9EEF7]">
-                  <div className="h-full rounded-full" style={{ width: `${(v.count / max) * 100}%`, background: core.solid }} />
+                  <div className="h-full rounded-full" style={{ width: `${(livedValue.count / max) * 100}%`, background: core.solid }} />
                 </div>
               </div>
             )
@@ -184,8 +184,8 @@ export function RewardsLedger({ entries }: RewardsLedgerProps) {
         <h2 className="text-xl font-extrabold tracking-tight text-navy">Points ledger</h2>
       </div>
       <Card className="divide-y divide-line p-0">
-        {entries.map((e) => (
-          <LedgerItem key={e.id} entry={e} />
+        {entries.map((entry) => (
+          <LedgerItem key={entry.id} entry={entry} />
         ))}
         {entries.length === 0 && (
           <div className="flex items-center gap-3 px-4 py-8">

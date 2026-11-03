@@ -5,7 +5,7 @@ import { AppRouterContext as AppRouterContextProvider } from 'next/dist/shared/l
 import { ComposeForm } from '@/app/recognize/compose-form'
 import { PEOPLE } from '@/lib/mock-data'
 
-const people = Object.values(PEOPLE).filter((p) => p.id !== 'me')
+const people = Object.values(PEOPLE).filter((person) => person.id !== 'me')
 
 const mockRouter = { back: vi.fn(), push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }
 

@@ -11,9 +11,9 @@ export function useCountUp(target: number, durationMs = 1100): number {
     const start = performance.now()
     const tick = () => {
       // self-measured time — some environments (jsdom) give rAF callbacks an unreliable timestamp
-      const t = Math.min(1, (performance.now() - start) / durationMs)
-      setValue(Math.round(target * (1 - Math.pow(1 - t, 3))))
-      if (t < 1) raf = requestAnimationFrame(tick)
+      const progress = Math.min(1, (performance.now() - start) / durationMs)
+      setValue(Math.round(target * (1 - Math.pow(1 - progress, 3))))
+      if (progress < 1) raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)

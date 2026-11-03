@@ -11,12 +11,12 @@ describe('profile data', () => {
   })
 
   it('getProfile splits received vs given and names the manager', async () => {
-    const p = await getProfile('p1')
-    expect(p.name).toBe('Aarav Sharma')
-    expect(p.received).toHaveLength(1) // q1 is addressed to p1
-    expect(p.given).toHaveLength(0) // p1 gave none in the seed feed
-    expect(p.managerName).toBe('Ayan')
-    expect(p.office).toBe('Bengaluru')
+    const profile = await getProfile('p1')
+    expect(profile.name).toBe('Aarav Sharma')
+    expect(profile.received).toHaveLength(1) // q1 is addressed to p1
+    expect(profile.given).toHaveLength(0) // p1 gave none in the seed feed
+    expect(profile.managerName).toBe('Ayan')
+    expect(profile.office).toBe('Bengaluru')
   })
 
   it('profiles without a manager report none', async () => {

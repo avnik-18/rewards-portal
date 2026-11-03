@@ -23,30 +23,30 @@ export default function Leaderboard({ rows }: LeaderboardProps) {
           <span className="flex-1">Team member</span>
           <span className="text-right">Points</span>
         </div>
-        {top.map((r, i) => {
+        {top.map((teamRow, rowIndex) => {
           const parts =
-            r.name.split(' ').length > 1 ? `${r.name.split(' ')[0]} ${r.name.split(' ').at(-1)![0]}.` : r.name
+            teamRow.name.split(' ').length > 1 ? `${teamRow.name.split(' ')[0]} ${teamRow.name.split(' ').at(-1)![0]}.` : teamRow.name
           return (
             <div
-              key={r.id}
-              className={`flex w-full items-center gap-2.5 border-b border-line px-3 py-2.5 text-left transition last:border-b-0 hover:bg-brand-soft/60 ${i % 2 === 0 ? 'bg-white' : 'bg-[#ecf6f4]'} ${r.id === 'me' ? 'bg-brand-soft/60' : ''}`}
+              key={teamRow.id}
+              className={`flex w-full items-center gap-2.5 border-b border-line px-3 py-2.5 text-left transition last:border-b-0 hover:bg-brand-soft/60 ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-[#ecf6f4]'} ${teamRow.id === 'me' ? 'bg-brand-soft/60' : ''}`}
             >
               <span
-                className={`tnum flex h-6 w-12 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold ${i % 2 === 0 ? 'bg-violet-soft text-violet-ink' : 'bg-gold-soft text-gold-ink'}`}
+                className={`tnum flex h-6 w-12 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold ${rowIndex % 2 === 0 ? 'bg-violet-soft text-violet-ink' : 'bg-gold-soft text-gold-ink'}`}
               >
-                {i + 1}
+                {rowIndex + 1}
               </span>
-              <Avatar id={r.id} size={28} />
+              <Avatar id={teamRow.id} size={28} />
               <span className="min-w-0 flex-1 truncate text-[12.5px] font-bold text-navy">
                 {parts}
-                {r.id === 'me' && (
+                {teamRow.id === 'me' && (
                   <span className="ml-1.5 rounded-full bg-brand px-1.5 py-0.5 text-[9px] font-extrabold text-white">
                     You
                   </span>
                 )}
               </span>
               <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-[11.5px] font-extrabold text-sky-700">
-                {fmtNum(r.pts)}
+                {fmtNum(teamRow.pts)}
               </span>
             </div>
           )

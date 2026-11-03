@@ -34,14 +34,14 @@ export default function TemplateCard({ url, previewValue, recipients, points, ms
         {recipients.length > 0 && (
           <>
             <div className="flex -space-x-2">
-              {recipients.slice(0, 3).map((r) => (
-                <span key={r.id} className="rounded-full ring-2 ring-white">
-                  <Avatar id={r.id} size={20} />
+              {recipients.slice(0, 3).map((recipient) => (
+                <span key={recipient.id} className="rounded-full ring-2 ring-white">
+                  <Avatar id={recipient.id} size={20} />
                 </span>
               ))}
             </div>
             <span className="truncate text-[11px] font-bold text-navy">
-              {recipients.map((r) => r.label).join(', ')}
+              {recipients.map((recipient) => recipient.label).join(', ')}
             </span>
           </>
         )}

@@ -19,7 +19,7 @@ export const TEAM_LEADERBOARD: LeaderRow[] = [
   { id: 'p13', pts: 60 },
   { id: 'p14', pts: 45 },
   { id: 'p9', pts: 25 },
-].map((r) => ({ ...r, name: person(r.id).name }))
+].map((row) => ({ ...row, name: person(row.id).name }))
 
 /* ---------- Team slice (Recognition Tree + team stats) ---------- */
 

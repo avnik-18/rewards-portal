@@ -17,9 +17,11 @@ const GOLD_BTN =
 
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const { id } = await searchParams
-  const p = await getProfile(id ?? 'me')
-  const isMe = p.id === 'me'
-  const pointsEarned = p.received.filter((x) => x.points).reduce((s, x) => s + (x.points ?? 0), 0) + (isMe ? 1240 : 0)
+  const profile = await getProfile(id ?? 'me')
+  const isMe = profile.id === 'me'
+  const pointsEarned =
+    profile.received.filter((credit) => credit.points).reduce((sum, credit) => sum + (credit.points ?? 0), 0) +
+    (isMe ? 1240 : 0)
 
   return (
     <div>
@@ -27,22 +29,22 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
       <Card className="hero-room relative overflow-hidden p-0 text-white">
         <div className="dotgrid px-6 py-7 md:px-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-            <Avatar id={p.id} size={86} />
+            <Avatar id={profile.id} size={86} />
             <div className="min-w-0 flex-1">
-              <h1 className="text-3xl font-extrabold tracking-tight md:text-[34px]">{p.name}</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight md:text-[34px]">{profile.name}</h1>
               <p className="mt-1 text-[15px] font-semibold text-white/80">
-                {p.title} · {p.dept}
+                {profile.title} · {profile.dept}
               </p>
               <div className="mt-2.5 flex flex-wrap gap-x-5 gap-y-1.5 text-[12.5px] text-white/60">
                 <span className="flex items-center gap-1.5">
-                  <MapPin size={13} /> {p.office}
+                  <MapPin size={13} /> {profile.office}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Landmark size={13} /> {p.tenure}
+                  <Landmark size={13} /> {profile.tenure}
                 </span>
-                {p.managerName && (
+                {profile.managerName && (
                   <span className="flex items-center gap-1.5">
-                    <Building2 size={13} /> Reports to {p.managerName}
+                    <Building2 size={13} /> Reports to {profile.managerName}
                   </span>
                 )}
               </div>
@@ -52,7 +54,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 You
               </Chip>
             ) : (
-              <Link href={`/recognize?to=${p.id}`} className={`${GOLD_BTN} shrink-0 self-start sm:self-center`}>
+              <Link href={`/recognize?to=${profile.id}`} className={`${GOLD_BTN} shrink-0 self-start sm:self-center`}>
                 <Send size={15} /> Recognize
               </Link>
             )}
@@ -61,19 +63,19 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
           <div className="mt-7 grid max-w-xl grid-cols-3 gap-3">
             {[
               ['Points earned', fmtNum(pointsEarned)],
-              ['Received', String(p.received.length)],
-              ['Given', String(p.given.length)],
-            ].map(([l, v]) => (
-              <div key={l} className="rounded-xl bg-white/10 px-4 py-3.5 backdrop-blur-sm">
-                <p className="tnum text-[20px] font-extrabold text-gold">{v}</p>
-                <p className="mt-0.5 text-[10px] font-bold font-mono uppercase tracking-wider text-white/60">{l}</p>
+              ['Received', String(profile.received.length)],
+              ['Given', String(profile.given.length)],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-xl bg-white/10 px-4 py-3.5 backdrop-blur-sm">
+                <p className="tnum text-[20px] font-extrabold text-gold">{value}</p>
+                <p className="mt-0.5 text-[10px] font-bold font-mono uppercase tracking-wider text-white/60">{label}</p>
               </div>
             ))}
           </div>
         </div>
       </Card>
 
-      <ProfileJourney received={p.received} given={p.given} />
+      <ProfileJourney received={profile.received} given={profile.given} />
     </div>
   )
 }
