@@ -23,9 +23,12 @@ psycopg2 exposes it on `.diag.message_primary`, asyncpg on `.message`.
 from typing import Any
 from uuid import UUID
 
+import structlog
 from sqlalchemy.exc import DBAPIError
 
 from app.repositories.applause_repository import ApplauseRepository
+
+log = structlog.get_logger(__name__)
 
 
 class RecognitionDomainError(Exception):
@@ -103,11 +106,16 @@ class RecognitionService:
     async def submit_recognition(
         self, actor_id: UUID, to_user_ids: list[UUID], cc_user_ids: list[UUID],
         value_id: UUID | None, message: str, points: int,
-    ) -> UUID:
-        rid = await self._repo.submit_recognition(
-            actor_id, to_user_ids, cc_user_ids, value_id, message, points
+        idempotency_key: UUID | None = None,
+    ) -> tuple[UUID, bool]:
+        """Returns (recognition_id, replayed). replayed=True when an idempotent
+        retry resolved to the ORIGINAL recognition (the retry never double-
+        spends — the repository owns the conflict/rollback)."""
+        rid, replayed = await self._repo.submit_recognition(
+            actor_id, to_user_ids, cc_user_ids, value_id, message, points,
+            idempotency_key,
         )
-        return UUID(str(rid))
+        return UUID(rid), replayed
 
     async def _translating(self, awaitable: Any) -> Any:
         """Wraps a DB call: DBAPIError → RecognitionDomainError with the
@@ -125,21 +133,27 @@ class RecognitionService:
         value_id: UUID | None,
         points: int,
         message: str,
+        idempotency_key: UUID | None = None,
     ) -> tuple[UUID, str, int, UUID | None]:
         """Returns (recognition_id, status, pending_step_count, approval_item_id|None).
 
         actor_id is the RESOLVED caller (never body-supplied — see the router's
-        get_actor_id dependency)."""
+        get_actor_id dependency). idempotency_key dedupes client retries:
+        the replay branch returns the original recognition."""
         if points != 0 and actor_id in to_user_ids:
             raise RecognitionDomainError(
                 "self_recognition_blocked", "the giver cannot also be a recipient"
             )
         try:
-            rid = await self.submit_recognition(
-                actor_id, to_user_ids, cc_user_ids, value_id, message, points
+            rid, replayed = await self.submit_recognition(
+                actor_id, to_user_ids, cc_user_ids, value_id, message, points,
+                idempotency_key,
             )
         except DBAPIError as e:
             raise RecognitionDomainError(_error_code(e), _pg_message(e.orig)) from e
+        if replayed:
+            log.info("recognition.replayed_by_key",
+                     actor_id=str(actor_id), recognition_id=str(rid))
 
         # status + routing depth: pending means the chain is frozen and waiting;
         # routed_to = how many steps await; item id matches the pending approval

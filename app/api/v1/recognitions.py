@@ -29,7 +29,7 @@ from typing import Annotated
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Header, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -97,6 +97,7 @@ async def recognize(
     body: RecognizeRequest,
     actor_id: Annotated[UUID, Depends(get_actor_id)],
     service: Annotated[RecognitionService, Depends(_service)],
+    idempotency_key: Annotated[UUID | None, Header(alias="Idempotency-Key")] = None,
 ) -> RecognizeResponse:
     rid, status_text, routed, item = await service.recognize(
         actor_id=actor_id,
@@ -105,6 +106,7 @@ async def recognize(
         value_id=body.value_id,
         points=body.points,
         message=body.message,
+        idempotency_key=idempotency_key,
     )
     return RecognizeResponse(
         recognition_id=rid,

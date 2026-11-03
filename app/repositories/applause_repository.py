@@ -17,7 +17,9 @@ from collections.abc import AsyncIterator
 from typing import Any
 
 from sqlalchemy import text
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
+
 
 class ApplauseRepository:
     """Applause repo pattern methods: SQL only, no HTTP/HTTPException."""
@@ -33,30 +35,51 @@ class ApplauseRepository:
         value_id: Any,
         message: str,
         points: int,
-    ) -> str:
+        idempotency_key: Any = None,
+    ) -> Any:
         """Call fn_submit_recognition; on success returns the recognition id.
 
         DB failures propagate as raised (DBAPIError) — the service layer
         translates them to domain errors with the stable business code (see
-        recognition_service._error_code)."""
-        result = await self._session.execute(
-            text(
-                "SELECT fn_submit_recognition("
-                ":from_user, :to_users, :cc_users, :value_id, NULL, "
-                ":message, :points, NULL, 'praise'::recognition_kind, "
-                "NULL) AS id"
-            ),
-            dict(
-                from_user=from_user,
-                to_users=to_users,
-                cc_users=cc_users,
-                value_id=value_id,
-                message=message,
-                points=points,
-            ),
-        )
+        recognition_service._error_code). Except: a unique violation on the
+        idempotency key (a client retry behind the driver's 23505) is
+        resolved HERE — the aborted transaction is rolled back and the
+        ORIGINAL recognition id is returned — returns (id, replayed).
+        """
+        try:
+            result = await self._session.execute(
+                text(
+                    "SELECT fn_submit_recognition("
+                    ":from_user, :to_users, :cc_users, :value_id, NULL, "
+                    ":message, :points, NULL, 'praise'::recognition_kind, "
+                    ":idempotency_key) AS id"
+                ),
+                dict(
+                    from_user=from_user,
+                    to_users=to_users,
+                    cc_users=cc_users,
+                    value_id=value_id,
+                    message=message,
+                    points=points,
+                    idempotency_key=idempotency_key,
+                ),
+            )
+        except DBAPIError as e:
+            if (str(getattr(e.orig, "sqlstate", None) or "") == "23505"
+                    and idempotency_key is not None):
+                await self._session.rollback()  # clear the aborted transaction
+                original = await self._session.execute(
+                    text("SELECT id FROM recognition_history WHERE idempotency_key = :key"),
+                    dict(key=idempotency_key),
+                )
+                await self._session.commit()
+                original_id = original.scalar()
+                if original_id is None:
+                    raise  # conflict without a row would contradict the key — surface it
+                return (str(original_id), True)
+            raise
         await self._session.commit()  # fn is atomic; nothing further can roll it back
-        return str(result.scalar())
+        return (str(result.scalar()), False)
 
     async def user_id_by_code(self, employee_code: str) -> Any:
         """Resolve an employee_code to a users.id (the dev-mode X-Demo-User path)."""
