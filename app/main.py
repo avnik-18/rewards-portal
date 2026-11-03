@@ -1,5 +1,6 @@
 """App factory — the single mount point for all routers."""
 
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -11,8 +12,6 @@ from app.core.logging import configure_logging
 from app.core.otel import setup_tracing
 from app.core.security import require_identity_configured
 from app.services.recognition_service import RecognitionDomainError
-
-import structlog
 
 log = structlog.get_logger(__name__)
 

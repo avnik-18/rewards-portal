@@ -21,7 +21,7 @@ from app.core.config import get_settings
 
 log = structlog.get_logger(__name__)
 
-_GRAPH_TOKEN_URL = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
+_GRAPH_TOKEN_URL = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"  # noqa: S105 — oauth endpoint, not a secret
 _GRAPH_SEND_URL = "https://graph.microsoft.com/v1.0/users/{mailbox}/sendMail"
 _GRAPH_SCOPE = "https://graph.microsoft.com/.default"
 _PII_HASH_LEN = 8

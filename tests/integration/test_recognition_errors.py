@@ -90,7 +90,6 @@ def test_recognition_replay_missing_row_is_integrity_error() -> None:
     import uuid
 
     async def run() -> None:
-        from uuid import UUID as UU
 
         from app.db.session import get_session_factory
         from app.repositories.applause_repository import ApplauseRepository
