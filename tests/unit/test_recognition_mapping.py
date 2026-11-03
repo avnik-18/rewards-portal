@@ -12,8 +12,9 @@ import os
 
 os.environ.setdefault("ENVIRONMENT", "local")  # imports read settings
 
-from app.api.v1.recognitions import _code_status  # noqa: E402
 from fastapi import status  # noqa: E402
+
+from app.api.v1.recognitions import _code_status  # noqa: E402
 
 
 def test_not_pending_for_decider_is_403() -> None:
@@ -44,6 +45,28 @@ def test_known_business_codes_map() -> None:
     assert _code_status("no_allowance_for_period") == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert _code_status("allocation_below_spent") == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert _code_status("prize_pool_empty") == status.HTTP_404_NOT_FOUND
+
+
+def test_every_sqlstate_code_maps_to_http() -> None:
+    """Every code raised in the fns (all of _SQLSTATE_TO_CODE's values) maps
+    to an HTTP status above 400 — the router table can never drift into a
+    silent 500 for a mapped business failure (reviewer ask)."""
+    from app.services.recognition_service import _SQLSTATE_TO_CODE
+    for code in _SQLSTATE_TO_CODE.values():
+        assert _code_status(code) != status.HTTP_500_INTERNAL_SERVER_ERROR, code
+        assert _code_status(code) in {
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status.HTTP_404_NOT_FOUND,
+        }, code
+
+
+def test_review_flagged_codes_no_longer_500() -> None:
+    assert _code_status("points_out_of_range") == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert _code_status("recipient_not_found") == status.HTTP_404_NOT_FOUND
+    assert _code_status("item_not_found") == status.HTTP_404_NOT_FOUND
+    assert _code_status("person_not_found") == status.HTTP_404_NOT_FOUND
 
 
 def test_unmapped_code_falls_to_500() -> None:

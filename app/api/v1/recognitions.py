@@ -12,18 +12,11 @@ Identity: the actor is NEVER taken from the request body.
   inert the moment Entra is configured.
 
 Domain errors: fn_* failures surface as RecognitionDomainError and are
-translated ONCE by the app-level handler (see recognition_domain_handler +
-main.py). Mapping order lives in ONE table of prefix sets per status class:
-- CONFLICT set                → 409
-- UNPROCESSABLE set           → 422
-- NOT_FOUND set               → 404 (includes the approver_unresolvable_at_step_N
-                                 family)
-- not_pending_for_decider     → **403** (the caller is authenticated but is
-                                 not an approver on this item)
-- everything else             → 500 (see `any_other_domain_code`) — no
-                                 unmapped code, connection issue or check
-                                 violation can degrade into a 404
-"""
+translated ONCE by the app-level handler (recognition_domain_handler +
+main.py). Logging discipline (reviewer security note): only the RESOLVED
+actor (stashed on request.state in get_actor_id) is logged — the raw
+X-Demo-User header is attacker-controlled and never logged; the business
+code goes to WARNING, raw DB detail stays at DEBUG."""
 
 from typing import Annotated
 from uuid import UUID
@@ -52,16 +45,14 @@ log = structlog.get_logger(__name__)
 CONFLICT = {"insufficient_points", "person_inactive", "double_refund_blocked",
             "self_recognition_blocked"}
 UNPROCESSABLE = {"no_approval_route", "decline_note_required", "recipient_total_mismatch",
-                 "guest_cannot_receive", "no_allowance_for_period", "allocation_below_spent"}
-NOT_FOUND = {"approver_unresolvable", "prize_pool_empty"}
-UNAUTHORIZED = {"item_state_mismatch", "invalid_state"}
+                 "guest_cannot_receive", "no_allowance_for_period", "allocation_below_spent",
+                 "points_out_of_range"}
+NOT_FOUND = {"recipient_not_found", "item_not_found", "person_not_found", "prize_pool_empty"}
 
 
 def _code_status(code: str) -> int:
     if code == "not_pending_for_decider":
         return status.HTTP_403_FORBIDDEN
-    if code == "item_state_mismatch":
-        return status.HTTP_409_CONFLICT
     if any(code.startswith(prefix) for prefix in ("approver_unresolvable",)):
         return status.HTTP_404_NOT_FOUND
     if any(code.startswith(prefix) for prefix in ("item_already_",)):
@@ -77,14 +68,16 @@ def _code_status(code: str) -> int:
 
 def recognition_domain_handler(request: Request, exc: Exception) -> JSONResponse:
     """App-level mapping: fn_* business codes → HTTP semantics, in one place."""
-    if not isinstance(exc, RecognitionDomainError):  # never reached; satisfies the handler protocol
+    if not isinstance(exc, RecognitionDomainError):
         raise exc
-    log.warning("recognition.domain_error", code=exc.code, detail=exc.detail,
-                path=request.url.path,
-                actor=str(request.headers.get("x-demo-user", "")))
+    actor_id = getattr(request.state, "actor_id", None)  # resolved, never the raw header
     status_code = _code_status(exc.code)
     if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
-        log.error("recognition.unmapped_domain_code", code=exc.code)
+        log.error("recognition.unmapped_domain_code", code=exc.code,
+                  path=request.url.path, actor_id=str(actor_id) if actor_id else None)
+    else:
+        log.warning("recognition.domain_error", code=exc.code,
+                    path=request.url.path, actor_id=str(actor_id) if actor_id else None)
     return JSONResponse(status_code=status_code, content={"detail": exc.code})
 
 
@@ -97,8 +90,10 @@ async def recognize(
     body: RecognizeRequest,
     actor_id: Annotated[UUID, Depends(get_actor_id)],
     service: Annotated[RecognitionService, Depends(_service)],
+    request: Request,
     idempotency_key: Annotated[UUID | None, Header(alias="Idempotency-Key")] = None,
 ) -> RecognizeResponse:
+    request.state.actor_id = actor_id
     rid, status_text, routed, item = await service.recognize(
         actor_id=actor_id,
         to_user_ids=body.to_user_ids,
@@ -122,7 +117,9 @@ async def decide(
     body: DecideRequest,
     actor_id: Annotated[UUID, Depends(get_actor_id)],
     service: Annotated[RecognitionService, Depends(_service)],
+    request: Request,
 ) -> DecisionResponse:
+    request.state.actor_id = actor_id
     result = await service.decide(item_id, actor_id, body.approve, body.note)
     return DecisionResponse(approval_item_id=item_id, status=result)
 

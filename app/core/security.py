@@ -1,6 +1,6 @@
 """Identity preflight gate + Entra JWT verification.
 
-Design contract (per the reviewer's auth comment):
+Design contract (reviewer auth comments 17e11a3 + 314e687 follow-ups):
 - ONE dependency resolves identity for every route: app.core.actor.get_actor_id,
   always returning the resolved users.id (UUID). The X-Demo-User dev fallback
   only exists when ENVIRONMENT == "local"; production routes resolve via the
@@ -11,9 +11,14 @@ Design contract (per the reviewer's auth comment):
   variable) no longer silently enables dev impersonation in deployment.
 
 Entra verification is implemented (not a 501 stub):
-- the tenant's OpenID configuration is fetched once and its JWKS cached/refreshed
+- the tenant's OpenID configuration and JWKS are fetched asynchronously
+  (never blocking the event loop) and cached/refreshed
 - signature (RS256 via the JWKS), iss, aud, exp/nbf are verified with PyJWT
-- the actor dependency maps the token's oid claim to users.external_id (users.id)
+- failures return a GENERIC 401 ("authentication failed") to the caller —
+  the specific reason is logged server-side only (no token-error leakage in
+  responses, reviewer follow-up)
+- the actor dependency maps the token's oid claim to users.external_id
+  (users.id)
 """
 
 import time
@@ -32,6 +37,8 @@ _JWKS_MAX_AGE = 900  # seconds
 _OIDC_CONFIG: dict[str, Any] | None = None
 _JWKS: dict[str, Any] | None = None
 _JWKS_FETCHED_AT: float = 0.0
+
+_GENERIC_AUTH_FAIL = "authentication failed"
 
 
 class IdentityConfigError(RuntimeError):
@@ -60,53 +67,62 @@ def require_identity_configured() -> None:
         )
 
 
-def _load_oidc_config() -> dict[str, Any]:
-    """Fetch the tenant's OpenID configuration once (cached for the process)."""
+async def _load_oidc_config() -> dict[str, Any]:
+    """Fetch the tenant's OpenID configuration once (cached for the process).
+
+    Async on purpose: a sync network call inside the event loop would block
+    every request until this request's fetch completes (reviewer follow-up)."""
     global _OIDC_CONFIG
     settings = get_settings()
     if _OIDC_CONFIG is None:
         base = settings.entra_authority.rstrip("/")
-        response = httpx.get(f"{base}/.well-known/openid-configuration", timeout=15.0)
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(f"{base}/.well-known/openid-configuration")
         response.raise_for_status()
         _OIDC_CONFIG = response.json()
         log.info("entra.oidc_config_loaded", authority=settings.entra_authority)
     return _OIDC_CONFIG
 
 
-def _load_jwks() -> dict[str, Any]:
+async def _load_jwks() -> dict[str, Any]:
     """Fetch the tenant's signing keys; refresh when older than the max age."""
     global _JWKS, _JWKS_FETCHED_AT
     now = time.monotonic()
     if _JWKS is None or now - _JWKS_FETCHED_AT > _JWKS_MAX_AGE:
-        jwks_uri = _load_oidc_config()["jwks_uri"]
-        response = httpx.get(jwks_uri, timeout=15.0)
+        jwks_uri = (await _load_oidc_config())["jwks_uri"]
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.get(jwks_uri)
         response.raise_for_status()
         _JWKS = response.json()
         _JWKS_FETCHED_AT = now
     return _JWKS
 
 
-def _validate_entra_jwt(token: str) -> str:
+async def validate_entra_jwt(token: str) -> str:
     """Verify an Entra token and return its oid claim — the value mapped to
     users.external_id (and users.id downstream) by the actor dependency.
-    Raises HTTPException(401) with the verification reason on any failure."""
+
+    Failure detail policy (reviewer follow-up): clients get the GENERIC
+    "authentication failed" — the precise reason (bad signature, unknown key,
+    wrong issuer/audience, expired) is logged server-side via structlog to
+    avoid leaking verification internals to callers."""
     if not get_settings().entra_authority:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             "authentication is not configured for this environment",
         )
-    oidc = _load_oidc_config()
-    jwks = _load_jwks()
+    oidc = await _load_oidc_config()
+    jwks = await _load_jwks()
     try:
         header = jwt.get_unverified_header(token)
     except jwt.PyJWTError as e:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"malformed token: {e}") from e
+        log.warning("entra.token_rejected", reason="malformed token", detail=str(e))
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, _GENERIC_AUTH_FAIL) from e
     kid = header.get("kid")
     jwk_by_kid = {jwk_key.get("kid"): jwk_key for jwk_key in jwks.get("keys", [])}
     if kid not in jwk_by_kid:
-        raise HTTPException(
-            status.HTTP_401_UNAUTHORIZED, "token signed with a key not in the tenant JWKS"
-        )
+        log.warning("entra.token_rejected", reason="kid not in tenant JWKS", kid=kid)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, _GENERIC_AUTH_FAIL)
     key = jwt.PyJWK.from_dict(jwk_by_kid[kid]).key
     try:
         claims = jwt.decode(
@@ -120,8 +136,9 @@ def _validate_entra_jwt(token: str) -> str:
         )
     except jwt.PyJWTError as e:
         log.warning("entra.token_rejected", reason=str(e))
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"invalid token: {e}") from e
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, _GENERIC_AUTH_FAIL) from e
     oid = claims.get("oid")
     if not oid:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "token carries no oid claim")
+        log.warning("entra.token_rejected", reason="token carries no oid claim")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, _GENERIC_AUTH_FAIL)
     return str(oid)

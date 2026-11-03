@@ -42,24 +42,32 @@ def _token(oid: str = "sso-oid-123", aud: str = AUD, iss: str = ISSUER) -> str:
     )
 
 
+async def _fake_oidc() -> dict:
+    return {"issuer": ISSUER, "jwks_uri": "x"}
+
+
+async def _fake_jwks() -> dict:
+    return _JWKS
+
+
 @pytest.fixture
 def entra_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ENVIRONMENT", "production")
     monkeypatch.setenv("ENTRA_TENANT_ID", _TENANT_ID)
     monkeypatch.setenv("ENTRA_CLIENT_ID", AUD)
     monkeypatch.setenv("ENTRA_AUTHORITY", ISSUER)
-    monkeypatch.setattr(sec, "_load_oidc_config", lambda: {"issuer": ISSUER, "jwks_uri": "x"})
-    monkeypatch.setattr(sec, "_load_jwks", lambda: _JWKS)
+    monkeypatch.setattr(sec, "_load_oidc_config", _fake_oidc)
+    monkeypatch.setattr(sec, "_load_jwks", _fake_jwks)
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
 
 
-def test_validate_jwt_returns_oid(entra_env: None) -> None:
-    assert sec._validate_entra_jwt(_token(oid="sso-oid-123")) == "sso-oid-123"
+async def test_validate_jwt_returns_oid(entra_env: None) -> None:
+    assert (await sec.validate_entra_jwt(_token(oid="sso-oid-123"))) == "sso-oid-123"
 
 
-def test_validate_jwt_rejects_forged_signature(entra_env: None) -> None:
+async def test_validate_jwt_rejects_forged_signature(entra_env: None) -> None:
     forged_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     token = pyjwt.encode(
         {"sub": "x", "oid": "sso-oid-evil", "aud": AUD, "iss": ISSUER},
@@ -68,19 +76,23 @@ def test_validate_jwt_rejects_forged_signature(entra_env: None) -> None:
         headers={"kid": _KID},
     )
     with pytest.raises(HTTPException) as err:
-        sec._validate_entra_jwt(token)
+        await sec.validate_entra_jwt(token)
+    # generic detail only — the reason goes to logs, not to the caller
     assert err.value.status_code == 401
+    assert err.value.detail == "authentication failed"
 
 
-def test_validate_jwt_rejects_wrong_issuer(entra_env: None) -> None:
+async def test_validate_jwt_rejects_wrong_issuer(entra_env: None) -> None:
     token = _token(iss="https://login.microsoftonline.com/other-tenant/v2.0")
     with pytest.raises(HTTPException) as err:
-        sec._validate_entra_jwt(token)
+        await sec.validate_entra_jwt(token)
     assert err.value.status_code == 401
+    assert err.value.detail == "authentication failed"
 
 
-def test_validate_jwt_rejects_wrong_audience(entra_env: None) -> None:
+async def test_validate_jwt_rejects_wrong_audience(entra_env: None) -> None:
     token = _token(aud="urn-someone-else")
     with pytest.raises(HTTPException) as err:
-        sec._validate_entra_jwt(token)
+        await sec.validate_entra_jwt(token)
     assert err.value.status_code == 401
+    assert err.value.detail == "authentication failed"

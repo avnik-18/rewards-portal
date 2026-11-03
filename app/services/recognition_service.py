@@ -117,14 +117,6 @@ class RecognitionService:
         )
         return UUID(rid), replayed
 
-    async def _translating(self, awaitable: Any) -> Any:
-        """Wraps a DB call: DBAPIError → RecognitionDomainError with the
-        stable code + the pg primary message as the detail."""
-        try:
-            return await awaitable
-        except DBAPIError as e:
-            raise RecognitionDomainError(_error_code(e), _pg_message(e.orig)) from e
-
     async def recognize(
         self,
         actor_id: UUID,
