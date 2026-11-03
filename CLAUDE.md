@@ -69,7 +69,10 @@ Consequences for daily work:
 - **Scripts hygiene (post-review policy)** — anything committed to `scripts/` must run on
   any machine: never absolute personal paths (use `cd "$(dirname "$0")/.."`), never
   destructive git operations (`push --force`, `reset --hard`) against shared branches,
-  never secrets. One-off operator commands are run OUTSIDE the repo and deleted, not
+  never secrets. One-off operator commands are run OUTSIDE the repo and deleted, not committed.
+  **Never `git add -A`/`git add .`** — stage named paths only (the junk-sweep that committed
+  30+ scratch scripts twice came from exactly this). Before every commit, review what's staged:
+  `git status --short` + `git diff --cached --stat`.
   committed. Branch history is the only place a mistake may live — never shared state.
 - **Descriptive names, enforced by linters** — pylint's naming gate runs in
   pre-commit on every file: `snake_case` functions/variables, `CapWords`
