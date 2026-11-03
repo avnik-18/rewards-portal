@@ -152,12 +152,16 @@ class ApplauseRepository:
         return dict(row)
 
     async def pending_approvals(self, referent: Any) -> AsyncIterator[dict[str, Any]]:
-        """Approvals currently pending on a person's inbox — actioned or projected?"""
+        """Approvals currently pending on a person's inbox, shaped exactly as
+        the PendingApprovalRow DTO expects (alias ai.id -> approval_item_id;
+        snapshot.base_points may be absent for items whose approval snapshot
+        carries no pricing — COALESCE to 0 so the DTO's non-optional points
+        field can never blow up on a NULL cast)."""
         rows = await self._session.execute(
             text(
-                "SELECT ai.id, ai.kind::text, s.seq, s.level::text AS level, "
+                "SELECT ai.id AS approval_item_id, ai.kind::text, s.seq, s.level::text AS level, "
                 "s.mode::text, s.owner_id, sub.full_name AS submitter_name, "
-                "(ai.snapshot->>'base_points')::int AS points, s.note "
+                "COALESCE((ai.snapshot->>'base_points')::int, 0) AS points, s.note "
                 "FROM approval_item_step s JOIN approval_item ai ON ai.id = s.approval_item_id "
                 "JOIN users sub ON sub.id = ai.submitter_id "
                 "WHERE s.owner_id = :referent AND s.status = 'pending' AND ai.status = 'pending' "

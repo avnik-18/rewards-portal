@@ -80,3 +80,54 @@ def test_recognize_insufficient_points_is_409() -> None:
         })
         assert r.status_code == 409, r.text
         assert r.json()["detail"] == "insufficient_points"
+
+
+DTO_KEYS = {"approval_item_id", "kind", "seq", "level", "mode", "owner_id",
+            "submitter_name", "points", "note"}
+
+
+@pytest.mark.skipif(not DB_READY, reason="no live applause DB (set DATABASE_URL)")
+def test_pending_approvals_inbox_shapes_without_500() -> None:
+    """Reviewer regression: GET /recognitions/approvals used to 500 whenever
+    the inbox had rows (aliased ai.id vs approval_item_id, NULL base_points
+    cast) and no test had ever called it. Now: routed recognition creates a
+    pending item; the pending owner's inbox call must come back 200 with
+    rows that validate against the DTO shape exactly."""
+    _seed_demo_if_missing()
+    recipient_id = _psql("SELECT id FROM users WHERE employee_code='E-BR'")
+    # deterministic allowance headroom for the 0-approval-band recognition
+    assert _psql("UPDATE to_recog_points SET balance = allocated") is not None
+    with TestClient(create_app()) as client:
+        r = client.post("/api/v1/recognitions", headers={"X-Demo-User": "E-PR"}, json={
+            "to_user_ids": [recipient_id], "points": 150,
+            "message": "inbox fixture — routed band"})
+        assert r.status_code == 200, r.text
+        item_id = r.json().get("approval_item_id")
+        assert item_id, "routed band must produce a pending approval item"
+
+        # the pending step's owner id comes from the DB — no demo-org guessing
+        owner_id = _psql(
+            "SELECT s.owner_id FROM approval_item_step s "
+            "WHERE s.approval_item_id = '" + item_id + "' AND s.status = 'pending'")
+
+        found = None
+        code = None
+        for cand in ("E-L1", "E-L2", "E-L3", "E-AJ"):
+            resp = client.get("/api/v1/recognitions/approvals",
+                              headers={"X-Demo-User": cand})
+            assert resp.status_code == 200, (cand, resp.text)
+            rows = resp.json()
+            assert isinstance(rows, list)
+            for row in rows:
+                # structural: every row matches the DTO keys exactly
+                assert set(row) == DTO_KEYS, row
+                assert isinstance(row["seq"], int) and isinstance(row["points"], int)
+                if row["owner_id"] == owner_id and row["approval_item_id"] == item_id:
+                    found = row
+                    code = cand
+        assert found is not None, "pending item owner's inbox must contain the item"
+        assert found["points"] == 150
+        assert found["submitter_name"].strip() != ""
+        # and with rows present, a second pull stays clean (no 500s later)
+        resp = client.get("/api/v1/recognitions/approvals", headers={"X-Demo-User": code})
+        assert resp.status_code == 200
