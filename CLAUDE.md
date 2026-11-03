@@ -2,7 +2,7 @@
 
 Instructions for any Claude Code session working in this repository.
 
-**GitHub:** `EMIDS-Data-AI-Engineering/rewards-portal-api` (formerly `recog-api`).
+**GitHub:** `EMIDS-Data-AI-Engineering/rewards-portal-api`.
 Working branches: PRs → `develop` → `main` as release. Do not push directly to `develop`.
 
 ## What this is

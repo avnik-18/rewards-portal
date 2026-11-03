@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One command to verify the whole recog-api scaffold, end to end.
+# One command to verify the whole rewards-portal-api scaffold, end to end.
 #
 #   wsl --cd <repo-root> -- bash scripts/verify.sh
 #   (plain: bash scripts/verify.sh  — from the repo root or anywhere)
@@ -23,7 +23,7 @@ curl_contains() { # url, needle
   [[ "$body" == *"$needle"* ]]
 }
 
-echo "== recog-api verification =="
+echo "== rewards-portal-api verification =="
 
 echo "[1/6] containers"
 if docker compose up -d >/dev/null 2>&1; then

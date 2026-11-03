@@ -1,8 +1,8 @@
 {
-  "name": "recog-api-e2e",
+  "name": "rewards-portal-api-e2e",
   "private": true,
   "version": "0.1.0",
-  "description": "Playwright integration tests for recog-api (and, later, the full portal)",
+  "description": "Playwright integration tests for rewards-portal-api (and, later, the full portal)",
   "devDependencies": {
     "@playwright/test": "^1.49.0"
   },

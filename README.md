@@ -1,7 +1,7 @@
 # rewards-portal-api
 
 FastAPI backend for the emids rewards & recognition portal.
-**GitHub:** `EMIDS-Data-AI-Engineering/rewards-portal-api` (formerly `recog-api`).
+**GitHub:** `EMIDS-Data-AI-Engineering/rewards-portal-api`.
 Front-end: `rewards_recog` (Vite PoC) migrating to Next.js; the approved database
 schema ships in this repo as Alembic revisions.
 

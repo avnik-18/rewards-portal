@@ -1,6 +1,7 @@
 # Two containers, always: the API never bundles Postgres inside itself.
 services:
   db:
+    container_name: recog-api-db-1
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: postgres
@@ -17,6 +18,7 @@ services:
       retries: 10
 
   api:
+    container_name: recog-api-api
     build: .
     environment:
       ENVIRONMENT: local

@@ -1,5 +1,5 @@
 [project]
-name = "recog-api"
+name = "rewards-portal-api"
 version = "0.1.0"
 description = "Rewards & Recognition portal backend (FastAPI)"
 readme = "README.md"

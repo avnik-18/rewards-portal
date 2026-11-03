@@ -1,7 +1,7 @@
 # Migration versions
 
 The Alembic revisions in this folder are the **canonical schema owner** for the
-recog-api database — `alembic upgrade head` is the only way the schema is
+rewards-portal-api database — `alembic upgrade head` is the only way the schema is
 built or changed. `docs/db/design-source/` is the historical design workspace
 (from which these revisions were converted once); it is reference material
 only — never apply the design copy to a database.

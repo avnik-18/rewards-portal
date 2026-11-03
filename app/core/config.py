@@ -10,7 +10,7 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
-    app_name: str = "recog-api"
+    app_name: str = "rewards-portal-api"
     version: str = "0.1.0"
     api_prefix: str = "/api/v1"
     environment: str = "local"
