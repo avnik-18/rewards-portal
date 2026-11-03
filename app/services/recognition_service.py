@@ -51,19 +51,42 @@ def _pg_message(orig: Any) -> str:
     return str(orig)
 
 
+_SQLSTATE_TO_CODE = {
+    "C54901": "insufficient_points",
+    "C54902": "person_inactive",
+    "C54903": "double_refund_blocked",
+    "C54904": "self_recognition_blocked",
+    "C54905": "item_already_pending",
+    "C54906": "points_out_of_range",
+    "C54910": "recipient_not_found",
+    "C54911": "guest_cannot_receive",
+    "C54912": "recipient_total_mismatch",
+    "C54913": "no_allowance_for_period",
+    "C54914": "allocation_below_spent",
+    "C54915": "no_approval_route",
+    "C54916": "approver_unresolvable_at_step",
+    "C54917": "not_pending_for_decider",
+    "C54918": "prize_pool_empty",
+    "C54919": "decline_note_required",
+    "C54920": "item_not_found",
+    "C54921": "person_not_found",
+}
+
+
 def _error_code(exc: DBAPIError) -> str:
     """Derive the machine-stable business code from a fn_ failure.
 
-    1. e.orig.sqlstate — the intended key once FNs raise WITH a custom
-       ERRCODE (see the DB contract block in the module docstring).
-    2. Transitional bridge for pre-ERRCODE raises (sqlstate P0001, the
-       PL/pgSQL default): the business code is the first word of the
-       primary message ("insufficient_points: ..."). Deletes when the
-       recognition_db workstream lands its ERRCODE migration. This parses
-       the DB-authored message, never a SQLAlchemy render.
+    1. e.orig.sqlstate — the sole mapping key: every FN raises WITH a custom
+       ERRCODE (0019_fn_errcodes) and the mapping above resolves the code.
+    2. Transitional bridge for pre-ERRCODE databases (existing dev/staging
+       environments where the head state predates 0019): the business code is
+       the first word of the primary message ("insufficient_points: ...").
+       Deletes when all deployed environments have 0019 applied.
     Anything unrecognised returns the empty string → the caller maps to 500."""
     orig = exc.orig
     sqlstate = str(getattr(orig, "sqlstate", None) or "P0001")
+    if sqlstate in _SQLSTATE_TO_CODE:
+        return _SQLSTATE_TO_CODE[sqlstate]
     if sqlstate != "P0001":
         return sqlstate
     message = _pg_message(orig)
