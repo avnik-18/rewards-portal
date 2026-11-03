@@ -23,9 +23,13 @@ export interface ComposeFormProps {
 export function ComposeForm({ people, initialToId }: ComposeFormProps) {
   const form: ComposeFormApi = useComposeForm(people)
 
-  // Preset recipient once (Praise buttons land here with ?to=<id>)
+  // Preset recipient once (Praise buttons land here with ?to=<id>) — but only
+  // when the id exists in the directory, sir's review said validate before
+  // preselecting (garbage ?to= must not create a ghost recipient chip)
   useEffect(() => {
-    if (initialToId) form.addToSel(initialToId)
+    // sir's review: validate the preset against the directory — but keep the UI
+    // silent when the link is stale (the picker below invites a fresh pick)
+    if (initialToId && people.some((candidate) => candidate.id === initialToId)) form.addToSel(initialToId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

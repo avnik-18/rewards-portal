@@ -23,14 +23,14 @@ export default function CcRecipientField({ form }: { form: ComposeFormApi }) {
           >
             <Avatar id={id} size={20} />
             <span className="text-[12px] font-semibold text-navy">
-              {person(id).name.split(' ')[0] ?? 'Manager'}
+              {person(id)?.name.split(' ')[0] ?? 'Manager'}
             </span>
             <span className="text-[10px] font-bold font-mono uppercase tracking-wide text-muted">· manager</span>
           </span>
         ))}
         {form.ccSel.map((id) => {
           const isEmail = EMAIL_RE.test((form.labels[id] ?? '').trim())
-          const label = form.labels[id] ?? (isEmail ? id : person(id).name.split(' ')[0])
+          const label = form.labels[id] ?? (isEmail ? id : person(id)?.name.split(' ')[0] ?? id)
           return (
             <span
               key={id}
@@ -91,7 +91,7 @@ export default function CcRecipientField({ form }: { form: ComposeFormApi }) {
               <span className="text-[12px] text-muted">{recipient.title}</span>
               {recipient.managerId && (
                 <span className="ml-auto text-[10.5px] font-bold text-muted font-mono uppercase tracking-wide">
-                  manager: {person(recipient.managerId).name.split(' ')[0]}
+                  manager: {person(recipient.managerId)?.name.split(' ')[0]}
                 </span>
               )}
             </button>

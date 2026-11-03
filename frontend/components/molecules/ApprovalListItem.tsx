@@ -26,7 +26,7 @@ export default function ApprovalListItem({ item, selected, onSelect }: ApprovalL
         <div className="min-w-0 flex-1">
           <p className="line-clamp-2 text-[13px] font-semibold leading-tight text-navy">{item.title}</p>
           <p className="mt-1 truncate text-[12px] text-muted">
-            {person(item.fromId).name} · {item.when}
+            {person(item.fromId)?.name ?? 'Unknown teammate'} · {item.when}
           </p>
         </div>
       </div>

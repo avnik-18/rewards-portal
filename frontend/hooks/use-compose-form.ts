@@ -44,7 +44,7 @@ export function useComposeForm(people: ComposePerson[]) {
   const previewValue = valueKey ? CORE_VALUES[valueKey] : null
   const recipients = toSel.map((id) => ({ id, label: personLabel(id, labels) }))
   const ccManagers = useMemo(
-    () => [...new Set(toSel.map((id) => person(id).managerId).filter(Boolean))] as string[],
+    () => [...new Set(toSel.map((id) => person(id)?.managerId).filter(Boolean))] as string[],
     [toSel],
   )
 
@@ -135,7 +135,6 @@ export function useComposeForm(people: ComposePerson[]) {
   }
 
   async function submit(): Promise<boolean> {
-    console.debug('[compose-bebug] submit called', { toSel, valueKey, msgLen: message.trim().length, points })
     if (!toSel.length) {
       setErrors({ ...errors, toIds: 'Pick a teammate to recognize.' })
       return false
@@ -155,13 +154,18 @@ export function useComposeForm(people: ComposePerson[]) {
         artUrl: url,
         tplId: tplId ?? undefined,
       })
-      console.debug('[compose-bebug] send ok', createdRel.id)
       setCreated(createdRel)
       setStatus('sent')
       return true
-    } catch (e) {
-      console.debug('[compose-bebug] send failed', e)
-      throw e
+    } catch {
+      // sir's review: a failed send must NOT leave the button stuck on
+      // 'sending' — surface an error state the user can see and retry from
+      setErrors({
+        ...errors,
+        message: 'Sending failed. Please check your connection and try again.',
+      })
+      setStatus('idle')
+      return false
     }
   }
 

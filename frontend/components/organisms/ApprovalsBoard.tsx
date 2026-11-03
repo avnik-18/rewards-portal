@@ -99,8 +99,8 @@ export default function ApprovalsBoard({ items, viewerId = 'me' }: ApprovalsBoar
             <ApprovalDetail
               key={selected.id}
               item={selected}
-              verdict={decided[selected.id]}
-              onDecide={(verdict) => decideItem(selected, verdict)}
+              verdict={decided[selected.id]?.verdict}
+              onDecide={(verdict, note) => decideItem(selected, verdict, note)}
               viewerId={viewerId}
             />
           ) : (

@@ -19,9 +19,10 @@ describe('atoms', () => {
     expect(screen.getByText('DC')).toBeTruthy()
   })
 
-  it('Avatar falls back to the signed-in persona for unknown ids', () => {
+  it('Avatar renders a neutral unknown persona for unknown ids (never the signed-in user)', () => {
     render(<Avatar id="ghost" size={36} />)
-    expect(screen.getByText('A')).toBeTruthy()
+    expect(screen.getByText('?')).toBeTruthy()
+    expect(screen.queryByText('A')).toBeNull() // sir's review: no silent person() fallback
   })
 
   it('Card renders a wrapper with classes and children', () => {

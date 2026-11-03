@@ -10,8 +10,12 @@ describe('profile data', () => {
     }
   })
 
+  it('returns null for unknown ids so pages can 404 (never another profile)', async () => {
+    expect(await getProfile('the-ghost-id')).toBeNull()
+  })
+
   it('getProfile splits received vs given and names the manager', async () => {
-    const profile = await getProfile('p1')
+    const profile = (await getProfile('p1'))!
     expect(profile.name).toBe('Aarav Sharma')
     expect(profile.received).toHaveLength(1) // q1 is addressed to p1
     expect(profile.given).toHaveLength(0) // p1 gave none in the seed feed
@@ -20,7 +24,7 @@ describe('profile data', () => {
   })
 
   it('profiles without a manager report none', async () => {
-    const ceo = await getProfile('ceo')
+    const ceo = (await getProfile('ceo'))!
     expect(ceo.managerName).toBeNull()
   })
 })

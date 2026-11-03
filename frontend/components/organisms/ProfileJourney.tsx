@@ -41,8 +41,10 @@ export default function ProfileJourney({ received, given }: ProfileJourneyProps)
       </div>
       <div className="space-y-3">
         {entries.map((post) => {
-          const other = tab === 'received' ? person(post.fromId) : person(post.toIds[0])
+          const otherId = tab === 'received' ? post.fromId : post.toIds[0]
+          const other = person(otherId)
           const v = post.valueKey ? CORE_VALUES[post.valueKey] : null
+          if (!other) return null
           return (
             <Card key={post.id} className="flex items-center gap-3.5 p-4 transition hover:shadow-lift">
               <Avatar id={other.id} size={40} />

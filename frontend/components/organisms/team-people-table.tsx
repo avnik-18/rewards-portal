@@ -53,7 +53,15 @@ export default function TeamPeopleTable({
       <div ref={bodyRef} onScroll={onBodyScroll} className="rail-scroll rounded-b-2xl overflow-x-auto">
         <div className="min-w-[780px]">
           {visible.map((row, index) => {
-            const memberProfile = person(row.id)
+            const memberProfile = person(row.id) ?? {
+              id: row.id,
+              name: row.id,
+              title: 'Unknown',
+              dept: '',
+              office: '',
+              tenure: '',
+              status: 'offline' as const,
+            }
             const memberValue = CORE_VALUES[row.valuesTop as keyof typeof CORE_VALUES]
             return (
               <div

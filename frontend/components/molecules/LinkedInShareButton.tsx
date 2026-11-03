@@ -16,6 +16,8 @@ export interface LinkedInShareButtonProps {
   /** Template banner picked by the sender — pre-selects it among the value's
    * six variants in the composer. */
   artUrl?: string
+  /** Receiver's real name for the card (defaults to a generic honoree). */
+  receiverName?: string
 }
 
 const TIP = 'Share this recognition on LinkedIn.'
@@ -27,6 +29,7 @@ export default function LinkedInShareButton({
   message,
   valueLabel,
   artUrl,
+  receiverName = 'the honoree',
 }: LinkedInShareButtonProps) {
   const [failed, setFailed] = useState(false)
   const [composerOpen, setComposerOpen] = useState(false)
@@ -66,7 +69,7 @@ export default function LinkedInShareButton({
       {composerOpen && (
         <ShareComposer
           recognitionId={recognitionId}
-          receiverName="you"
+          receiverName={receiverName}
           giverNames={giver ?? 'a teammate'}
           valueLabel={valueLabel}
           message={message ?? 'Recognized in the emids Awards and Recognition portal.'}

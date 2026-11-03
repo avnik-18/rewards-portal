@@ -92,7 +92,7 @@ export default function PreviewColumn({ form, sendDisabled }: PreviewColumnProps
         >
           Recognition sent to{' '}
           {form.created.toIds
-            .map((id) => (EMAIL_RE.test(form.labels[id] ?? '') ? form.labels[id] : person(id).name.split(' ')[0]))
+            .map((id) => (EMAIL_RE.test(form.labels[id] ?? '') ? form.labels[id] : person(id)?.name.split(' ')[0]))
             .join(', ')}
           !{form.created.points > 0 && <span className="text-brand"> +{form.created.points} pts</span>}
         </p>

@@ -18,7 +18,7 @@ export default function ToRecipientField({ form }: { form: ComposeFormApi }) {
         <span className="text-[13px] font-bold text-muted">To</span>
         {form.toSel.map((id) => {
           const isEmail = EMAIL_RE.test((form.labels[id] ?? '').trim())
-          const label = form.labels[id] ?? (isEmail ? id : person(id).name.split(' ')[0])
+          const label = form.labels[id] ?? (isEmail ? id : person(id)?.name.split(' ')[0] ?? id)
           return (
             <span
               key={id}

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { Building2, Landmark, MapPin, Send } from 'lucide-react'
 import { Avatar, Card, Chip } from '@/components/atoms'
 import ProfileJourney from '@/components/organisms/ProfileJourney'
@@ -17,7 +18,9 @@ const GOLD_BTN =
 
 export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const { id } = await searchParams
+  // sir's PR review: unknown ids render 404, never another person's profile
   const profile = await getProfile(id ?? 'me')
+  if (!profile) notFound()
   const isMe = profile.id === 'me'
   const pointsEarned =
     profile.received.filter((credit) => credit.points).reduce((sum, credit) => sum + (credit.points ?? 0), 0) +

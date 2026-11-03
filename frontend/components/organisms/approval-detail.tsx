@@ -7,11 +7,24 @@ import { kindLabel, type ApprovalVerdict } from '@/lib/approval'
 import { CORE_VALUES, person } from '@/lib/mock-data'
 import type { ApprovalItem } from '@/lib/mock-data'
 
+const VERDICT_LABEL: Record<ApprovalVerdict, string> = {
+  approved: 'Approved',
+  declined: 'Next time',
+  returned: 'Returned',
+}
+
+const VERDICT_CLASS: Record<ApprovalVerdict, string> = {
+  approved: 'bg-mint text-white',
+  declined: 'bg-warn text-navy-deep',
+  returned: 'bg-warn text-navy-deep',
+}
+
 export interface ApprovalDetailProps {
   item: ApprovalItem
   /** Set once this viewer decides; shows the status pill instead of actions. */
   verdict?: ApprovalVerdict
-  onDecide: (verdict: ApprovalVerdict) => void
+  /** The typed comment travels with the verdict — it is NOT dropped. */
+  onDecide: (verdict: ApprovalVerdict, note: string) => void
   /** Person id the action buttons act on behalf of. */
   viewerId: string
 }
@@ -33,19 +46,19 @@ export default function ApprovalDetail({ item, verdict, onDecide, viewerId }: Ap
           </p>
           {verdict && (
             <span
-              className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${
-                verdict === 'approved' ? 'bg-mint text-white' : 'bg-warn text-navy-deep'
-              }`}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${VERDICT_CLASS[verdict]}`}
             >
-              {verdict === 'approved' ? 'Approved' : verdict === 'declined' ? 'Next time' : 'Returned'}
+              {VERDICT_LABEL[verdict]}
             </span>
           )}
         </div>
         <div className="mt-2 flex items-center gap-3">
           <Avatar id={item.fromId} size={42} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-extrabold">{person(item.fromId).name}</p>
-            <p className="truncate text-[12px] text-white/65">{person(item.fromId).title}</p>
+            <p className="truncate text-[15px] font-extrabold">
+              {person(item.fromId)?.name ?? 'Unknown teammate'}
+            </p>
+            <p className="truncate text-[12px] text-white/65">{person(item.fromId)?.title}</p>
           </div>
         </div>
       </div>
@@ -60,7 +73,10 @@ export default function ApprovalDetail({ item, verdict, onDecide, viewerId }: Ap
                 tpl={item.template}
                 url={item.artUrl}
                 previewValue={item.value ? CORE_VALUES[item.value as keyof typeof CORE_VALUES] : null}
-                recipients={(item.toIds ?? [item.fromId]).map((id) => ({ id, label: person(id).name.split(' ')[0] }))}
+                recipients={(item.toIds ?? [item.fromId]).map((id) => ({
+                  id,
+                  label: person(id)?.name.split(' ')[0] ?? 'Unknown teammate',
+                }))}
                 points={item.points ?? 0}
                 msg={item.detail.replace(/^"|"$/g, '')}
               />
@@ -84,13 +100,19 @@ export default function ApprovalDetail({ item, verdict, onDecide, viewerId }: Ap
               />
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <button
-                  onClick={() => onDecide('approved')}
+                  onClick={() => {
+                    onDecide('approved', comment.trim())
+                    setComment('')
+                  }}
                   className="rounded-xl bg-mint px-4 py-2 text-[13px] font-extrabold text-white transition hover:brightness-105"
                 >
                   Approve
                 </button>
                 <button
-                  onClick={() => onDecide('declined')}
+                  onClick={() => {
+                    onDecide('declined', comment.trim())
+                    setComment('')
+                  }}
                   className="rounded-xl border border-line px-4 py-2 text-[13px] font-extrabold text-navy transition hover:bg-slate-50"
                 >
                   Next time

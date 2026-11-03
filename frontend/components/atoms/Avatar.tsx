@@ -19,6 +19,19 @@ function hashStr(text: string) {
 
 export function Avatar({ id, size = 36, ring = false }: { id: string; size?: number; ring?: boolean }) {
   const profile = person(id)
+  // unknown ids render a neutral avatar — they must NOT silently resolve
+  // to the signed-in user (PR review: people.ts fallback comment)
+  if (!profile) {
+    return (
+      <div
+        className="flex shrink-0 items-center justify-center rounded-full bg-slate-300 font-semibold text-slate-500"
+        style={{ width: size, height: size, fontSize: size * 0.38 }}
+        aria-hidden
+      >
+        ?
+      </div>
+    )
+  }
   const gradient = GRADIENTS[hashStr(profile.name) % GRADIENTS.length]
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>

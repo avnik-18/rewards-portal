@@ -8,7 +8,16 @@ import type { Person } from './people-records'
 
 export * from './people-records'
 
-export const person = (id: string): Person => PEOPLE[id] ?? PEOPLE.me
+/** Directory lookup. Returns undefined for unknown ids — callers must handle
+ *  unknown ids instead of silently resolving to the signed-in user. */
+export const person = (id: string): Person | undefined => PEOPLE[id]
+
+/** Display fallback for safe call sites that only need a human label
+ *  (avatar rows, share strips) — URL-supplied ids never render a real name. */
+export const personDisplayName = (id: string): string => {
+  const directoryPerson = PEOPLE[id]
+  return directoryPerson ? directoryPerson.name : 'Unknown teammate'
+}
 
 export const initials = (name: string) =>
   name

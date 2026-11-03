@@ -6,7 +6,7 @@ import { Avatar, Card } from '@/components/atoms'
 import LedgerItem from '@/components/molecules/LedgerItem'
 import LinkedInShareButton from '@/components/molecules/LinkedInShareButton'
 import TemplateCard from '@/components/molecules/TemplateCard'
-import { CORE_VALUES, person } from '@/lib/mock-data'
+import { CORE_VALUES, personDisplayName } from '@/lib/mock-data'
 import type { RecognitionReceived, LedgerEntry, ValueLived, EoQAward } from '@/lib/mock-data'
 
 export interface RecognitionsReceivedProps {
@@ -35,7 +35,7 @@ export default function RecognitionsReceived({ items }: RecognitionsReceivedProp
                 <Avatar id={recognition.fromId} size={40} />
                 <div className="min-w-0 flex-1">
                   <p className="text-[13.5px]">
-                    <span className="font-extrabold text-navy">{person(recognition.fromId).name}</span>
+                    <span className="font-extrabold text-navy">{personDisplayName(recognition.fromId)}</span>
                     <span className="text-muted"> · {recognition.when}</span>
                   </p>
                   <p className="mt-0.5 line-clamp-1 text-[12.5px] text-muted">{recognition.message}</p>
@@ -68,10 +68,11 @@ export default function RecognitionsReceived({ items }: RecognitionsReceivedProp
                     <div className="flex justify-end pb-3 pr-3">
                       <LinkedInShareButton
                         recognitionId={recognition.id}
-                        giver={person(recognition.fromId).name}
+                        giver={personDisplayName(recognition.fromId)}
                         message={recognition.message}
                         valueLabel={recognition.value}
                         artUrl={recognition.artUrl}
+                        receiverName={personDisplayName("me")}
                       />
                     </div>
                   )}
@@ -83,7 +84,7 @@ export default function RecognitionsReceived({ items }: RecognitionsReceivedProp
               <Avatar id={recognition.fromId} size={40} />
               <div className="min-w-0 flex-1">
                 <p className="text-[13.5px]">
-                  <span className="font-extrabold text-navy">{person(recognition.fromId).name}</span>
+                  <span className="font-extrabold text-navy">{personDisplayName(recognition.fromId)}</span>
                   <span className="text-muted"> · {recognition.when}</span>
                 </p>
                 <p className="mt-0.5 line-clamp-1 text-[12.5px] text-muted">{recognition.message}</p>
@@ -96,9 +97,10 @@ export default function RecognitionsReceived({ items }: RecognitionsReceivedProp
               {recognition.shareable !== false && (
                 <LinkedInShareButton
                   recognitionId={recognition.id}
-                  giver={person(recognition.fromId).name}
+                  giver={personDisplayName(recognition.fromId)}
                   message={recognition.message}
                   valueLabel={recognition.value}
+                  receiverName={personDisplayName("me")}
                 />
               )}
             </Card>

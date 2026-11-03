@@ -35,7 +35,7 @@ describe('isActionable', () => {
 })
 
 describe('filterForTab', () => {
-  const decided = { ap4: 'approved' as const }
+  const decided = { ap4: { verdict: 'approved' as const, note: 'great work' } }
   it('inbox shows undecided non-endorsements', () => {
     expect(filterForTab(APPROVALS, 'inbox', decided).map((a) => a.id)).toEqual(['ap2', 'ap1'])
   })

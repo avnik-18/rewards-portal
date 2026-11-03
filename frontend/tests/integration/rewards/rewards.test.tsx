@@ -47,7 +47,7 @@ describe('RecognitionsReceived', () => {
     render(<RecognitionsReceived items={RECEIVED} />)
 
     for (const rc of RECEIVED) {
-      expect(screen.getByText(person(rc.fromId).name)).toBeTruthy()
+      expect(screen.getByText(person(rc.fromId)?.name ?? 'Unknown')).toBeTruthy()
       expect(screen.getByText(rc.message)).toBeTruthy()
     }
     // rc3's plain card shows its badge; valueless rc2 stays badge-free

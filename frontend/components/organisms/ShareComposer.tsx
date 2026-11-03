@@ -26,15 +26,15 @@ export interface ShareComposerProps {
 /** Step 1 of the 2-step share: polish in OUR app, then LinkedIn review + their Post. */
 export default function ShareComposer({
   recognitionId,
+  receiverName: receiverNameRaw,
   valueLabel,
   message,
   giverNames,
   artUrl,
   onClose,
 }: ShareComposerProps) {
-  // the card recipient is the receiver (the signed-in user sharing their own
-  // earned recognition) — the perspective name is simply "you"
-  const receiverName = 'you'
+  // the card recipient name comes from the caller prop — no shadowing
+  const receiverName = receiverNameRaw || 'the honored teammate'
   const receiverInitials = receiverName
     .split(' ')
     .map((namePart) => namePart[0])

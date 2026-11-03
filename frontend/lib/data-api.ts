@@ -98,19 +98,22 @@ function mySubtreeMembers(): string[] {
 
 export async function getRecognitionTree(): Promise<RecognitionTreeData> {
   const ids = mySubtreeMembers()
-  const members: TreeMember[] = ids.map((id) => {
+  const members: TreeMember[] = ids.flatMap((id) => {
     const teamMember = person(id)
+    if (!teamMember) return [] // unknown ids are dropped, never resolved to another user
     const teamId = teamMembershipOf(id)
-    return {
-      id,
-      name: teamMember.name,
-      title: teamMember.title,
-      teamId,
-      teamName: TEAMS.find((team) => team.id === teamId)?.name ?? '',
-      pts: leaderboardPointsOf(id),
-    }
+    return [
+      {
+        id,
+        name: teamMember.name,
+        title: teamMember.title,
+        teamId,
+        teamName: TEAMS.find((team) => team.id === teamId)?.name ?? '',
+        pts: leaderboardPointsOf(id),
+      },
+    ]
   })
-  return { me: { name: person('me').name, pts: leaderboardPointsOf('me') }, members }
+  return { me: { name: person('me')?.name ?? '', pts: leaderboardPointsOf('me') }, members }
 }
 
 /** Recognizable teammates (everyone except the signed-in user), sorted by name. */
@@ -147,8 +150,11 @@ export interface ProfilePayload {
   given: Post[]
 }
 
-export async function getProfile(id: string): Promise<ProfilePayload> {
+export async function getProfile(id: string): Promise<ProfilePayload | null> {
+  // sir's PR review: unknown ids must return null for notFound() — never
+  // fall back to another person's profile
   const teamMember = person(id)
+  if (!teamMember) return null
   const received = POSTS.filter((x) => x.toIds.includes(id))
   const given = POSTS.filter((x) => x.fromId === id)
   return {
@@ -158,7 +164,7 @@ export async function getProfile(id: string): Promise<ProfilePayload> {
     dept: teamMember.dept,
     office: teamMember.office,
     tenure: teamMember.tenure,
-    managerName: teamMember.managerId ? person(teamMember.managerId).name : null,
+    managerName: teamMember.managerId ? person(teamMember.managerId)?.name ?? null : null,
     received,
     given,
   }

@@ -25,7 +25,8 @@ export const AI_DRAFTS: Record<ValueKey, string> = {
 export const personLabel = (id: string, labels: Record<string, string>): string => {
   const typed = labels[id]
   if (typed && EMAIL_RE.test(typed.trim())) return typed.toLowerCase()
-  return person(id).name.split(' ')[0]
+  // the id was validated against the directory before reaching a chip
+  return person(id)?.name.split(' ')[0] ?? id
 }
 
 /** Swap the value-prefill sentence in the note when the chosen value changes. */
