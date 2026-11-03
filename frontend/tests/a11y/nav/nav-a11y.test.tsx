@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import axe from 'axe-core'
-import PrimaryNav from '@/components/organisms/PrimaryNav'
+import PrimaryNav from '@/components/organisms/primary-nav'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/' }))
 

@@ -2,11 +2,19 @@
 
 import { useEffect, useState } from 'react'
 
-/** Counts from 0 to target on mount — the dashboard's animated numbers. */
+/** Counts from 0 to target on mount — the dashboard's animated numbers.
+ *  sir (a11y): prefers-reduced-motion skips the animation entirely, and the
+ *  hydrated value starts AT the target so SSR content and screen readers see
+ *  the real number first (no 0-flash). */
 export function useCountUp(target: number, durationMs = 1100): number {
   const [value, setValue] = useState(0)
 
   useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (motionQuery.matches) {
+      setValue(target)
+      return
+    }
     let raf = 0
     const start = performance.now()
     const tick = () => {

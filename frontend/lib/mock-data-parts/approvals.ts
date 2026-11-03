@@ -48,7 +48,7 @@ export const APPROVALS: ApprovalItem[] = [
     toIds: ['p3'],
     value: 'customerFirst',
     template: { name: 'Service Star', emoji: '⭐' },
-    artUrl: '/xoxo/customer_first_01.jpg',
+    artUrl: '/xoxo/customer_first_01.webp',
     route: [
       { step: 'Direct manager (you)', owner: 'me', done: false },
       { step: 'Cost-centre head', owner: 'Kavita Nair', done: false },
@@ -79,7 +79,7 @@ export const APPROVALS: ApprovalItem[] = [
     toIds: ['p6'],
     value: 'collaboration',
     template: { name: 'One Team', emoji: '🤝' },
-    artUrl: '/xoxo/collaboration_illu_01.jpg',
+    artUrl: '/xoxo/collaboration_illu_01.webp',
     route: [{ step: 'Endorser (you)', owner: 'me', done: false }],
     budget: 'Endorsement only — no points move',
   }),
@@ -94,7 +94,7 @@ export const APPROVALS: ApprovalItem[] = [
     toIds: ['p2'],
     value: 'winningMindset',
     template: { name: 'Winning Drive', emoji: '🏆' },
-    artUrl: '/xoxo/winning_mindset_01.jpg',
+    artUrl: '/xoxo/winning_mindset_01.webp',
     route: [
       { step: 'Direct manager (you)', owner: 'me', done: true },
       { step: 'Cost-centre head', owner: 'Kavita Nair', done: false },
@@ -106,7 +106,7 @@ export const APPROVALS: ApprovalItem[] = [
 export const SHOWCASE_SLIDES: Slide[] = [
   {
     key: 'eoq',
-    img: '/img2.jpg',
+    img: '/img2.webp',
     title: 'EoQ window · Q4',
     headline: 'Nominations close in 19 days',
     blurb: '4 categories open · jury voting starts Nov 3',
@@ -115,7 +115,7 @@ export const SHOWCASE_SLIDES: Slide[] = [
   },
   {
     key: 'awards',
-    img: '/img1.png',
+    img: '/img1.webp',
     title: 'Quarterly Awards',
     headline: 'Awards worth 7,500 pts this quarter',
     blurb: 'Nominate the teammate who shipped, saved, and showed up. The jury reads every word.',
@@ -123,7 +123,7 @@ export const SHOWCASE_SLIDES: Slide[] = [
   },
   {
     key: 'jury',
-    img: '/img2.jpg',
+    img: '/img2.webp',
     title: 'Jury Dashboard',
     headline: 'Your jury ballot is half-cast',
     blurb: 'Round 1 voting is underway — your ballot locks Nov 14, 5 PM IST.',

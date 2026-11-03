@@ -12,3 +12,8 @@ coverage/
 playwright-report/
 test-results/
 /tmp/
+
+# sir's review #1: build artifacts were committed at the repo root — keep the
+# outer workspace's caches out of the repo, wherever it is opened from
+node_modules/.vite/
+.last-run.json

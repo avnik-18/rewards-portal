@@ -2,7 +2,7 @@
 
 import { Check, Maximize2, Send, X } from 'lucide-react'
 import TemplateCard from '@/components/molecules/TemplateCard'
-import { Card } from '@/components/atoms'
+import { Card, Modal } from '@/components/atoms'
 import { EMAIL_RE } from '@/lib/compose'
 import { VALUE_TEMPLATES } from '@/lib/mock-data'
 import type { ComposeFormApi } from '@/hooks/use-compose-form'
@@ -101,20 +101,13 @@ export default function PreviewColumn({ form, sendDisabled }: PreviewColumnProps
   )
 }
 
-/** The full-screen preview the maximize button opens. */
+/** The full-screen preview the maximize button opens — built on the shared
+ *  Modal atom (focus trap, initial focus, focus return, Escape already there. */
 export function ExpandedPreviewModal({ form }: { form: ComposeFormApi }) {
   if (!form.expanded || !form.activeTpl) return null
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-deep/45 p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Template preview"
-      onClick={(clickEvent) => {
-        if (clickEvent.target === clickEvent.currentTarget) form.setExpanded(false)
-      }}
-    >
-      <div className="max-h-[86vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-4 sm:p-6">
+    <Modal open onClose={() => form.setExpanded(false)} wide label="Template preview">
+      <div className="p-4 sm:p-6">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[13px] font-extrabold text-navy">Final preview · {form.activeTpl.name}</p>
           <button
@@ -134,6 +127,6 @@ export function ExpandedPreviewModal({ form }: { form: ComposeFormApi }) {
           msg={form.message}
         />
       </div>
-    </div>
+    </Modal>
   )
 }

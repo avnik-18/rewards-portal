@@ -7,7 +7,7 @@ export function imagesForValueLabel(label?: string): string[] {
   // labels arrive card-formatted ("Customer first") while the token file keeps "Customer First"
   const sought = (label ?? '').trim().toLowerCase()
   const valueKey = VALUE_KEYS.find((key) => CORE_VALUES[key].label.toLowerCase() === sought)
-  return valueKey ? [...VALUE_TEMPLATES[valueKey][0].urls] : ['/img1.png']
+  return valueKey ? [...VALUE_TEMPLATES[valueKey][0].urls] : ['/img1.webp']
 }
 
 /** Guaranteed copy: clipboard API first, hidden-textarea select+execCommand fallback. */

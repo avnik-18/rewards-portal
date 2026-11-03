@@ -21,9 +21,16 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      // the units this slice owns — app/ server files are exercised by e2e
-      include: ['components/**/*.tsx', 'lib/**/*.ts'],
-      exclude: ['components/atoms/index.ts', 'lib/mock-data.ts'],
+      // sir's review: hooks/ and app/ hold the most logic-heavy code — they
+      // are measured against the 90% gate along with components and lib
+      include: [
+        'components/**/*.tsx',
+        'lib/**/*.ts',
+        'hooks/**/*.ts',
+        'app/**/*.tsx',
+        'app/**/*.ts',
+      ],
+      exclude: ['components/atoms/index.ts', 'lib/mock-data.ts', 'lib/mock-data-parts/**'],
       thresholds: { statements: 90, branches: 90, functions: 90, lines: 90 },
     },
   },

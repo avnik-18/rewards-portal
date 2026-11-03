@@ -1,5 +1,8 @@
 import RewardsBalanceHero from '@/components/organisms/RewardsBalanceHero'
-import RecognitionsReceived, { RewardsLedger, ValuesYouLive, MyEoQAwards } from '@/components/organisms/RewardsSections'
+import RecognitionsReceived from "@/components/organisms/recognitions-received"
+import ValuesYouLive from "@/components/organisms/values-you-live"
+import MyEoQAwards from "@/components/organisms/eoq-awards"
+import { RewardsLedger } from "@/components/organisms/rewards-ledger"
 import { getRewards } from '@/lib/data-api'
 import { VALUES_LIVED } from '@/lib/mock-data'
 

@@ -57,7 +57,7 @@ export const RECEIVED: RecognitionReceived[] = [
     value: 'Customer first',
     points: 25,
     template: { name: 'Service Star', emoji: '⭐' },
-    artUrl: '/xoxo/customer_first_01.jpg',
+    artUrl: '/xoxo/customer_first_01.webp',
     toIds: ['me'],
   },
   {

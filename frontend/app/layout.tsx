@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import PrimaryNav, { HeaderActions, MobileChipNav, MobileBottomBar } from '@/components/organisms/PrimaryNav'
+import PrimaryNav from "@/components/organisms/primary-nav"
+import HeaderActions from "@/components/organisms/header-actions"
+import { MobileChipNav, MobileBottomBar } from "@/components/organisms/mobile-nav"
 import './globals.css'
 
 export const metadata: Metadata = {

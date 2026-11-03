@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Sparkles, X, Linkedin } from 'lucide-react'
+import { Modal } from '@/components/atoms'
 import ShareCardShelf from '@/components/organisms/share-card-shelf'
 import { buildPostDraft, polishPostText, linkedinComposerUrl } from '@/lib/share-post'
 import { drawRecognitionCard } from '@/lib/recognition-card'
@@ -47,14 +48,7 @@ export default function ShareComposer({
   const [text, setText] = useState('')
   const [copied, setCopied] = useState<'yes' | 'no' | null>(null)
 
-  useEffect(() => {
-    const onKeyDown = (keyEvent: KeyboardEvent) => {
-      if (keyEvent.key === 'Escape') onClose()
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
-
+  // Escape/initial-focus/focus-return handled by the shared Modal atom
   const selectedCard = cards[imageIndex] ?? cards[0]
 
   const shareCardDataUrl = async (): Promise<string> =>
@@ -93,13 +87,8 @@ export default function ShareComposer({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={(clickEvent) => {
-        if (clickEvent.target === clickEvent.currentTarget) onClose()
-      }}
-    >
-      <div className="max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-5 sm:p-6">
+    <Modal open onClose={onClose} wide label="Share this recognition">
+      <div className="max-h-[88vh] w-full max-w-2xl overflow-y-auto p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-[15px] font-extrabold text-navy">Share this recognition</p>
           <button
@@ -166,6 +155,6 @@ export default function ShareComposer({
           </p>
         )}
       </div>
-    </div>
+    </Modal>
   )
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import RewardsBalanceHero from '@/components/organisms/RewardsBalanceHero'
-import RecognitionsReceived, { RewardsLedger } from '@/components/organisms/RewardsSections'
+import RecognitionsReceived, { RewardsLedger } from '@/components/organisms/recognitions-received'
 import { LEDGER, RECEIVED, REWARDS_SUMMARY, person } from '@/lib/mock-data'
 
 import { fireEvent as fe } from '@testing-library/react'

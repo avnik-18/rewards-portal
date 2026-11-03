@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Mascot } from '../atoms'
@@ -84,23 +84,52 @@ function RecognizeCycle({ className = '' }: { className?: string }) {
 
 function HeroBackdrop() {
   const [videoMissing, setVideoMissing] = useState(false)
+  // sir: respects prefers-reduced-motion — poster instead of autoplaying video
+  const [reducedMotion, setReducedMotion] = useState(false)
+
+  useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const updatePrefersMotion = () => setReducedMotion(motionQuery.matches)
+    updatePrefersMotion()
+    motionQuery.addEventListener('change', updatePrefersMotion)
+    return () => motionQuery.removeEventListener('change', updatePrefersMotion)
+  }, [])
+
+  const showPoster = reducedMotion || videoMissing
+
+  const pauseVideo = (event: ReactMouseEvent<HTMLVideoElement>) => {
+    event.currentTarget.pause()
+  }
+
+  const playVideo = (event: ReactMouseEvent<HTMLVideoElement>) => {
+    void event.currentTarget.play()
+  }
+
   return (
-    <div className="pointer-events-none absolute -inset-x-8 -bottom-10 -top-16 -z-10 overflow-hidden" aria-hidden>
-      {videoMissing ? (
+    <div className="absolute -inset-x-8 -bottom-10 -top-16 -z-10 overflow-hidden">
+      {showPoster ? (
         <Image src="/emids-hero.webp" alt="" fill className="object-cover" sizes="100vw" />
       ) : (
+        // sir: lazy-load (preload=none) so the 11 MB video is not downloaded on
+        // every dashboard visit — mobile especially; compression targets <2MB
+        // and CDN/LFS follow-up noted in the PR. Click toggles play/pause
+        // (WCAG 2.2.2 — a pause control for autoplaying motion).
         <video
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full cursor-pointer object-cover"
           src="/emids-site-hero.mp4"
           poster="/emids-hero.webp"
+          preload="none"
           autoPlay
           muted
           loop
           playsInline
           onError={() => setVideoMissing(true)}
+          onClick={(clickEvent) =>
+            clickEvent.currentTarget.paused ? void playVideo(clickEvent) : pauseVideo(clickEvent)
+          }
         />
       )}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#030d1c]/80 via-[#030d1c]/60 to-[#030d1c]/55" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#030d1c]/80 via-[#030d1c]/60 to-[#030d1c]/55" />
     </div>
   )
 }

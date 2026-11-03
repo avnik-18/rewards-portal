@@ -13,6 +13,9 @@ export default function ComposeHeading() {
   const wordRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
+    // sir: skip the rotation interval when the user asks for reduced motion
+    // (WCAG 2.2.2) — the heading always stays on its first word then
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const rotateTimer = setInterval(() => setWordIndex((index) => (index + 1) % ROTATE_WORDS.length), 2600)
     return () => clearInterval(rotateTimer)
   }, [])

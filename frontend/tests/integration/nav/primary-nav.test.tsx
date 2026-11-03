@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import PrimaryNav, { HeaderActions } from '@/components/organisms/PrimaryNav'
+import PrimaryNav from '@/components/organisms/primary-nav'
+import HeaderActions from '@/components/organisms/header-actions'
 
 // next/navigation's usePathname — mock per test case
 const usePathnameMock = vi.fn()

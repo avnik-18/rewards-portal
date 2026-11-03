@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
-import RecognitionsReceived from '@/components/organisms/RewardsSections'
+import RecognitionsReceived from '@/components/organisms/recognitions-received'
 import LinkedInShareButton from '@/components/molecules/LinkedInShareButton'
 import { recognitionPageUrl } from '@/lib/linkedin'
 import { RECEIVED } from '@/lib/mock-data'
