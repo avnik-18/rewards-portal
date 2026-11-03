@@ -25,9 +25,14 @@ class Settings(BaseSettings):
     environment: str | None = None  # local | production — MUST be set explicitly
     log_level: str = "INFO"
 
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/recog"
+    database_url: str = ""  # REQUIRED — start-up guard raises if empty
 
     otlp_endpoint: str | None = None
+
+    # CORS — explicit origins; never "*" with credentials
+    cors_origins: str = ""  # comma-separated list
+
+    # gateway rate-limiting is documented; no hardcoded limiter in v1
 
     # Entra ID SSO — required whenever environment != local
     entra_tenant_id: str = ""

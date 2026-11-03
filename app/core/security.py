@@ -53,6 +53,10 @@ def require_identity_configured() -> None:
     longer fall back to the X-Demo-User demo identity in a deployed
     environment (the reviewer's fail-open concern)."""
     settings = get_settings()
+    if not settings.database_url:
+        raise IdentityConfigError(
+            "DATABASE_URL is required — refusing to start without a database"
+        )
     if settings.environment is None:
         raise IdentityConfigError(
             "ENVIRONMENT is not set (local|production) — refusing to start: "

@@ -5,6 +5,7 @@ from app.notifications.email import GraphMailSender, LogEmailSender, get_email_s
 
 
 def test_log_sender_is_default_without_credentials(monkeypatch) -> None:
+    monkeypatch.setenv("ENVIRONMENT", "local")
     monkeypatch.delenv("GRAPH_MAILBOX", raising=False)
     monkeypatch.delenv("GRAPH_CLIENT_ID", raising=False)
     monkeypatch.delenv("GRAPH_TENANT_ID", raising=False)

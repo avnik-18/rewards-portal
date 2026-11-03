@@ -1,54 +1,67 @@
-"""Applause models — re-export the mirror + shared Base for future ORM reads.
+from __future__ import annotations
 
-Model regeneration lives outside the app (docs/db/design-source/scripts/); do
-not hand-edit schema.py.
-"""
-
-from app.models.schema import (
-    ApprovalDelegation,
-    ApprovalItem,
-    ApprovalItemStep,
-    ApprovalRule,
-    ApprovalRuleStep,
-    Awards,
-    AwardsNominations,
-    Ballot,
-    Base,
+from .approvals import ApprovalItem, ApprovalItemStep, ApprovalRule, ApprovalRuleStep
+from .awards import Awards, AwardsNominations, Ballot, JuryAssignment
+from .base import Base  # noqa: F401
+from .money import (
     BudgetPolicy,
-    EmidsValues,
     FiscalPeriod,
     JournalEntry,
     JournalLine,
     Ledger,
     LedgerAccount,
-    MilestoneRule,
-    Notification,
-    OutboxEvent,
     PointsWallet,
+    ToRecogPoints,
+)
+from .people import ApprovalDelegation, RoleAssignment, TeamMembers, Teams, Users
+from .recognition import (
+    EmidsValues,
     RecognitionHistory,
     RecognitionPending,
     RecognitionRecipients,
     RecognitionTemplates,
-    RoleAssignment,
-    TeamMembers,
-    Teams,
-    ToRecogPoints,
-    Users,
-    AuditLog,
-    ApprovalDelegation as _Delegation,
+)
+from .system import (
+    AdminSetting,
+    AdminSettingKey,
+    AuditLog,  # noqa: F401
+    MilestoneRule,
+    Notification,
+    OutboxEvent,
 )
 
 __all__ = [
-    "Base",
-    "Users", "Teams", "TeamMembers", "RoleAssignment",
-    "FiscalPeriod", "BudgetPolicy",
-    "ToRecogPoints", "PointsWallet", "LedgerAccount", "JournalEntry",
-    "JournalLine", "Ledger",
-    "EmidsValues", "RecognitionTemplates", "RecognitionHistory",
-    "RecognitionRecipients", "RecognitionPending",
-    "ApprovalRule", "ApprovalRuleStep", "ApprovalItem", "ApprovalItemStep",
+    "AdminSetting",
+    "AdminSettingKey",
     "ApprovalDelegation",
-    "Awards", "AwardsNominations", "JuryAssignment", "Ballot",
-    "Notification", "OutboxEvent",
-    "AdminSetting", "AdminSettingKey", "MilestoneRule", "AuditLog",
+    "ApprovalItem",
+    "ApprovalItemStep",
+    "ApprovalRule",
+    "ApprovalRuleStep",
+    "AuditLog",
+    "Awards",
+    "AwardsNominations",
+    "Ballot",
+    "BudgetPolicy",
+    "EmidsValues",
+    "FiscalPeriod",
+    "JournalEntry",
+    "JournalLine",
+    "JuryAssignment",
+    "Ledger",
+    "LedgerAccount",
+    "MilestoneRule",
+    "Notification",
+    "OutboxEvent",
+    "PointsWallet",
+    "RecognitionHistory",
+    "RecognitionPending",
+    "RecognitionRecipients",
+    "RecognitionTemplates",
+    "RoleAssignment",
+    "TeamMembers",
+    "Teams",
+    "ToRecogPoints",
+    "Users",
+    "Base",
 ]

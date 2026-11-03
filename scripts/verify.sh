@@ -75,5 +75,17 @@ if docker run --rm -v "$PWD:/srv" -w /srv python:3.12-slim \
   fi
 fi
 
+echo "== ruff + mypy + bandit =="
+if command -v ruff >/dev/null 2>&1; then
+  ruff check app tests && echo "ruff: pass" || echo "ruff: FAIL"
+else
+  echo "ruff not available (install .[dev]) — SKIPPED"
+fi
+if command -v mypy >/dev/null 2>&1; then
+  mypy app || echo "mypy: FAIL"
+else
+  echo "mypy not available — SKIPPED"
+fi
+
 echo "== summary: $pass passed, $fail failed =="
 [[ "$fail" -eq 0 ]] || exit 1

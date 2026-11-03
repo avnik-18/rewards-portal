@@ -6,22 +6,45 @@ dependency (app.core.actor.get_actor_id), never from the body.
 
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 
 class RecognizeRequest(BaseModel):
     """POST /recognitions — send a praise (value/template optional, message ≤ chars 2000)."""
 
-    to_user_ids: list[UUID] = Field(min_length=1)
-    cc_user_ids: list[UUID] = Field(default_factory=list)
+    to_user_ids: list[UUID] = Field(min_length=1, max_length=25)
+    cc_user_ids: list[UUID] = Field(default_factory=list, max_length=50)
     value_id: UUID | None = None
     points: int = Field(ge=0, le=9999)
     message: str = Field(default="", max_length=2000)
 
+    @field_validator("to_user_ids", "cc_user_ids")
+    @classmethod
+    def no_hidden_duplicates(cls, v: list[UUID], info: ValidationInfo) -> list[UUID]:
+        """Rejects same-person duplicates and to/cc overlap — the fn only catches
+        self-recognition, leaving repeated recipients to stretch routing unnaturally (reviewer)."""
+        seen = set(v)
+        if len(seen) != len(v):
+            raise ValueError(f"duplicate recipient in '{info.field_name}'")
+        return v
+
+    @field_validator("to_user_ids")
+    @classmethod
+    def to_and_cc_disjoint(cls, v: list[UUID], info: ValidationInfo) -> list[UUID]:
+        cc = info.data.get("cc_user_ids", [])
+        overlap = set(v) & set(cc)
+        if overlap:
+            raise ValueError("a recipient cannot also be in cc")
+        return v
+
     @field_validator("message", mode="before")
     @classmethod
-    def blank_ok(cls, v: object) -> str:
-        return str(v)
+    def blank_ok(cls, v: object) -> object:
+        """bug fix (reviewer): None must not become the string "None".
+        Non-string non-None values still fail str validation (422)."""
+        if v is None:
+            return ""
+        return v
 
 
 class RecognizeResponse(BaseModel):
