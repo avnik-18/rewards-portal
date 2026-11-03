@@ -32,7 +32,7 @@ def get_engine() -> AsyncEngine:
 
 
 def get_session_factory() -> async_sessionmaker[AsyncSession]:
-    global _ENGINE, _ENGINE_LOOP_ID, _SESSION_FACTORY
+    global _SESSION_FACTORY, _ENGINE_LOOP_ID
     loop_id = id(asyncio.get_running_loop())
     if _SESSION_FACTORY is None or _ENGINE_LOOP_ID != loop_id:
         _SESSION_FACTORY = async_sessionmaker(get_engine(), expire_on_commit=False)
@@ -40,5 +40,17 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:
+    """Unit-of-work per request: the dependency owns the transaction.
+
+    Commit once when the handler completes successfully; roll back (and
+    re-raise) on ANY failure — including exceptions converted to responses by
+    downstream handlers. Repositories therefore never commit or roll back;
+    future multiple writes (outbox, audit, notification) land in the same
+    unit of work (reviewer transaction-ownership comment)."""
     async with get_session_factory()() as session:
-        yield session
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise

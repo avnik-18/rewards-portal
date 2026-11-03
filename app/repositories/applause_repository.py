@@ -47,38 +47,42 @@ class ApplauseRepository:
         ORIGINAL recognition id is returned — returns (id, replayed).
         """
         try:
-            result = await self._session.execute(
-                text(
-                    "SELECT fn_submit_recognition("
-                    ":from_user, :to_users, :cc_users, :value_id, NULL, "
-                    ":message, :points, NULL, 'praise'::recognition_kind, "
-                    ":idempotency_key) AS id"
-                ),
-                dict(
-                    from_user=from_user,
-                    to_users=to_users,
-                    cc_users=cc_users,
-                    value_id=value_id,
-                    message=message,
-                    points=points,
-                    idempotency_key=idempotency_key,
-                ),
-            )
+            # savepoint so an idempotent-retry unique conflict discards ONLY
+            # the failed attempt; the request transaction stays alive and is
+            # committed once by the session dependency (reviewer: UoW per
+            # request, no commits in repositories)
+            async with self._session.begin_nested():
+                result = await self._session.execute(
+                    text(
+                        "SELECT fn_submit_recognition("
+                        ":from_user, :to_users, :cc_users, :value_id, NULL, "
+                        ":message, :points, NULL, 'praise'::recognition_kind, "
+                        ":idempotency_key) AS id"
+                    ),
+                    dict(
+                        from_user=from_user,
+                        to_users=to_users,
+                        cc_users=cc_users,
+                        value_id=value_id,
+                        message=message,
+                        points=points,
+                        idempotency_key=idempotency_key,
+                    ),
+                )
         except DBAPIError as e:
             if (str(getattr(e.orig, "sqlstate", None) or "") == "23505"
                     and idempotency_key is not None):
-                await self._session.rollback()  # clear the aborted transaction
-                original = await self._session.execute(
-                    text("SELECT id FROM recognition_history WHERE idempotency_key = :key"),
-                    dict(key=idempotency_key),
-                )
-                await self._session.commit()
-                original_id = original.scalar()
+                original_id = (
+                    await self._session.execute(
+                        text("SELECT id FROM recognition_history "
+                             "WHERE idempotency_key = :key"),
+                        dict(key=idempotency_key),
+                    )
+                ).scalar()
                 if original_id is None:
-                    raise  # conflict without a row would contradict the key — surface it
+                    raise  # conflict without a row would contradict the key
                 return (str(original_id), True)
             raise
-        await self._session.commit()  # fn is atomic; nothing further can roll it back
         return (str(result.scalar()), False)
 
     async def user_id_by_code(self, employee_code: str) -> Any:
@@ -99,22 +103,34 @@ class ApplauseRepository:
         return result.scalar()
 
     async def recognition_replay(self, recognition_id: Any) -> tuple[str, int, Any]:
-        """(status, pending_step_count, approval_item_id) after submit."""
+        """(status, pending_step_count, approval_item_id) after submit.
+
+        A missing row right after a successful insert is an integrity fault:
+        it raises instead of inventing a 'cancelled' status (reviewer). The
+        projection is deterministic even if a recognition ever gains more
+        than one approval item: the pending item first, then the newest."""
         result = await self._session.execute(
             text(
-                "SELECT rh.status::text, COALESCE(count(s.id) FILTER "
-                "(WHERE s.status = 'pending'), 0) AS pending, ai.id "
+                "SELECT rh.status::text AS status, "
+                "COALESCE(count(s.id) FILTER (WHERE s.status = 'pending'), 0) "
+                "AS pending, ai.id AS approval_item_id "
                 "FROM recognition_history rh "
                 "LEFT JOIN approval_item ai ON ai.recognition_id = rh.id "
                 "LEFT JOIN approval_item_step s ON s.approval_item_id = ai.id "
-                "WHERE rh.id = :rid GROUP BY rh.status, ai.id"
+                "WHERE rh.id = :rid "
+                "GROUP BY rh.status, ai.id, ai.created_at "
+                "ORDER BY (bool_or(s.status = 'pending')) DESC NULLS LAST, "
+                "ai.created_at DESC NULLS LAST LIMIT 1"
             ),
             dict(rid=recognition_id),
         )
         row = result.mappings().first()
         if row is None:
-            return "cancelled", 0, None
-        return str(row["status"]), int(row["pending"]), row["id"]
+            raise RuntimeError(
+                "recognition_history row missing immediately after fn_submit — "
+                "internal projection fault (must surface as 500, not a status)"
+            )
+        return str(row["status"]), int(row["pending"]), row["approval_item_id"]
 
     async def decide_approval(
         self,
@@ -133,7 +149,6 @@ class ApplauseRepository:
             ),
             dict(item=item, decider=decider, approve=approve, note=note),
         )
-        await self._session.commit()
         status = await self._session.execute(
             text("SELECT status::text FROM approval_item WHERE id = CAST(:item AS uuid)"),
             dict(item=item),
