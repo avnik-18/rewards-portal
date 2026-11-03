@@ -2,10 +2,15 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import health, me, recognitions
+from app.api.v1 import health, leaderboard, me, notifications, recognitions, showcase
 
 api_router = APIRouter()
 api_router.include_router(health.router)
 
 api_router.include_router(me.router)
 api_router.include_router(recognitions.router)
+
+# Dashboard deliverables 4-6 — leaderboard, awards showcase, badge count
+api_router.include_router(leaderboard.router)
+api_router.include_router(showcase.router)
+api_router.include_router(notifications.router)
