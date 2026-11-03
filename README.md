@@ -42,7 +42,7 @@ uvicorn app.main:app --reload
 The approved schema has landed (recog-db workstream) — 18 Alembic revisions in
 `alembic/versions/`, schema **owned by alembic + stored functions** (routing,
 chain, money math and guards live in `fn_submit_recognition` / `fn_item_decide`
-and friends — see `db/README.md`).
+and friends — see `docs/db/design-source/README.md`).
 
 ```bash
 alembic upgrade head        # build / update the database

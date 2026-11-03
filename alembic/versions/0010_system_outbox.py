@@ -1,6 +1,4 @@
-"""0010_system_outbox — Alembic revision (canonical; converted once from the design workspace, then maintained here — edit this file, not the design copy)
-
-Run order note: SQL statements execute in their original node-pg-migrate order.
+"""0010_system_outbox — Alembic revision (canonical; converted once from the design workspace — edit this file directly)
 """
 from alembic import op
 

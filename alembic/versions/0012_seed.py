@@ -1,6 +1,4 @@
-"""0012_seed — Alembic revision (canonical; converted once from the design workspace, then maintained here — edit this file, not the design copy)
-
-Run order note: SQL statements execute in their original node-pg-migrate order.
+"""0012_seed — Alembic revision (canonical; converted once from the design workspace — edit this file directly)
 """
 from alembic import op
 
@@ -29,4 +27,8 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.execute(r"""
     DELETE FROM ledger_account WHERE kind = 'system' AND code LIKE 'SYS_%';
-    DELETE FROM fiscal_period""")
+    -- remove only the period this revision anchored; other revisions (demo
+    -- seeds) may have added their own, and wiping those is not this downgrade's job
+    DELETE FROM fiscal_period
+    WHERE id = '11111111-1111-1111-1111-111111111101'
+      AND name = 'FY26 Q4'""")

@@ -11,7 +11,7 @@ only — never apply the design copy to a database.
   schema back *and* leaves `alembic_version` untouched (safe to re-run).
 - Offline review (`alembic upgrade head --sql`) emits the full SQL.
 
-`app/models/schema.py` is a generated mirror of the head schema — never
+`app/models/schema.py` is a hand-mirrored copy of the head schema — never
 hand-edit it and never hand-edit tables; hand-write a new revision here.
 
 All schema mutations go through this folder.
