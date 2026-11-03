@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One command to verify the whole recog-api scaffold, end to end.
 #
-#   wsl --cd /mnt/c/Users/shouryac/Desktop/syed-recog-portal/recog-api -- bash scripts/verify.sh
+#   wsl --cd <repo-root> -- bash scripts/verify.sh
 #   (plain: bash scripts/verify.sh  — from the repo root or anywhere)
 #
 # Checks: containers up · /healthz · /api/v1/health · demo route · /me identity ·

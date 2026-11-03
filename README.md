@@ -1,11 +1,14 @@
-# recog-api
+# rewards-portal-api
 
-FastAPI backend for the emids rewards & recognition portal. One of three repos:
-`recog-db` (schema design, in progress), `recog-api` (this), `rewards_recog` (front-end).
+FastAPI backend for the emids rewards & recognition portal.
+**GitHub:** `EMIDS-Data-AI-Engineering/rewards-portal-api` (formerly `recog-api`).
+Front-end: `rewards_recog` (Vite PoC) migrating to Next.js; the approved database
+schema ships in this repo as Alembic revisions.
 
-**Status: scaffold.** The walking skeleton is real (`/healthz`, `/api/v1/health`,
-`/api/v1/demo/{name}`, `/api/v1/me`); all business services are stubs blocked on the
-DB team's approved schema. See `CLAUDE.md` for the full stub map.
+**Status: core slice live.** Approved schema (18 revisions) + recognition/approval
+API on `develop` (verified by `scripts/verify.sh` + 44-check `db-verify.sh`).
+Dashboard read APIs (`/me`, `/me/stats`, leaderboard, awards showcase, media)
+in progress — see `CLAUDE.md` for the stub map.
 
 ## Stack (team-mandated)
 

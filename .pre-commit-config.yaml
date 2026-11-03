@@ -9,6 +9,15 @@ repos:
 
   - repo: local
     hooks:
+      # Naming conventions: descriptive names per CLAUDE.md — PEP 8 shapes
+      # (snake_case functions/vars, CapWords classes, UPPER_CASE constants),
+      # no single-letter names outside the good-names list.
+      - id: pylint-naming
+        name: pylint (naming conventions)
+        entry: pylint --disable=all --enable=invalid-name
+        language: system
+        types: [python]
+
       - id: mypy
         name: mypy (strict)
         entry: mypy app

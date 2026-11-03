@@ -1,5 +1,6 @@
 """Async SQLAlchemy engine + session dependency. Models land with the first migration."""
 
+import asyncio
 from collections.abc import AsyncIterator
 
 from sqlalchemy.ext.asyncio import (
@@ -11,22 +12,31 @@ from sqlalchemy.ext.asyncio import (
 
 from app.core.config import get_settings
 
-_engine: AsyncEngine | None = None
-_session_factory: async_sessionmaker[AsyncSession] | None = None
+# The engine is bound to the event loop that created it. In production that's
+# a single loop for the process' lifetime; under pytest each TestClient spins
+# its own loop, so a naively cached engine trips 'Event loop is closed' on the
+# second test file. Tracking the owning loop makes engine reuse loop-safe
+# (rebuilds only when the loop changes — never in production).
+_ENGINE: AsyncEngine | None = None
+_ENGINE_LOOP_ID: int | None = None
+_SESSION_FACTORY: async_sessionmaker[AsyncSession] | None = None
 
 
 def get_engine() -> AsyncEngine:
-    global _engine
-    if _engine is None:
-        _engine = create_async_engine(get_settings().database_url, pool_pre_ping=True)
-    return _engine
+    global _ENGINE, _ENGINE_LOOP_ID
+    loop_id = id(asyncio.get_running_loop())
+    if _ENGINE is None or _ENGINE_LOOP_ID != loop_id:
+        _ENGINE = create_async_engine(get_settings().database_url, pool_pre_ping=True)
+        _ENGINE_LOOP_ID = loop_id
+    return _ENGINE
 
 
 def get_session_factory() -> async_sessionmaker[AsyncSession]:
-    global _session_factory
-    if _session_factory is None:
-        _session_factory = async_sessionmaker(get_engine(), expire_on_commit=False)
-    return _session_factory
+    global _ENGINE, _ENGINE_LOOP_ID, _SESSION_FACTORY
+    loop_id = id(asyncio.get_running_loop())
+    if _SESSION_FACTORY is None or _ENGINE_LOOP_ID != loop_id:
+        _SESSION_FACTORY = async_sessionmaker(get_engine(), expire_on_commit=False)
+    return _SESSION_FACTORY
 
 
 async def get_session() -> AsyncIterator[AsyncSession]:

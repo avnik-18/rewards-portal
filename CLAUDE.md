@@ -1,16 +1,22 @@
-# CLAUDE.md — recog-api
+# CLAUDE.md — rewards-portal-api
 
 Instructions for any Claude Code session working in this repository.
 
+**GitHub:** `EMIDS-Data-AI-Engineering/rewards-portal-api` (formerly `recog-api`).
+Working branches: PRs → `develop` → `main` as release. Do not push directly to `develop`.
+
 ## What this is
 
-FastAPI backend for the emids rewards & recognition portal. Sibling repos:
-`recog-db` (ER + schema design, owned by the DB workstream), `rewards_recog`
-(the front-end POC with mock data — read-only reference for domain rules and
-seed shapes). This repo is the **only** thing allowed to talk to Postgres.
+FastAPI backend for the emids rewards & recognition portal. The approved
+database schema lives in THIS repo (`alembic/versions/` — the recog-db
+workstream's deliverable, folded in after its design phase). Front-end:
+`rewards_recog` (the Vite PoC) being migrated to Next.js by the UI team —
+read its screen source for domain rules, never `data.ts` (retired as a spec).
+This repo is the **only** thing allowed to talk to Postgres.
 
-**Status: scaffold.** Business logic is stubbed on purpose until the DB team's
-schema is approved. Don't "finish" stubs without real tables.
+**Status: core slice live.** Approved schema (18 revisions) + recognition/
+approval API are merged on `develop` (verified: `verify.sh` + 44-check
+DB gate). Stub map below tracks what remains.
 
 ## Non-negotiable architecture rules
 
@@ -27,6 +33,18 @@ schema is approved. Don't "finish" stubs without real tables.
 - **Logging = structlog** (`app/core/logging.get_logger`). No `print`, no
   bare `logging.getLogger`.
 - **mypy strict** — code must pass `mypy app` clean.
+- **Scripts hygiene (post-review policy)** — anything committed to `scripts/` must run on
+  any machine: never absolute personal paths (use `cd "$(dirname "$0")/.."`), never
+  destructive git operations (`push --force`, `reset --hard`) against shared branches,
+  never secrets. One-off operator commands are run OUTSIDE the repo and deleted, not
+  committed. Branch history is the only place a mistake may live — never shared state.
+- **Descriptive names, enforced by linters** — pylint's naming gate runs in
+  pre-commit on every file: `snake_case` functions/variables, `CapWords`
+  classes, `UPPER_CASE` module constants, no single-letter names outside the
+  documented `good-names` list (i/j/k loop counters, `e` exceptions, `id`,
+  `db`, `_`). Names must say what they hold/return (`actor_id`,
+  `pending_steps`, not `x`, `tmp`, `data2`). Renames always via `ruff --fix`
+  or IDE so grep stays green.
 
 ## Commands
 

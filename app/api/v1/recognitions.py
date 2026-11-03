@@ -15,13 +15,12 @@ Identity: the actor is NEVER taken from the request body.
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import get_settings
-from app.core.security import get_current_user
+from app.core.actor import get_actor_id
 from app.db.session import get_session
 from app.repositories.applause_repository import ApplauseRepository
-from app.schemas.auth import CurrentUser
 from app.schemas.recognition import (
     DecideRequest,
     DecisionResponse,
@@ -30,7 +29,6 @@ from app.schemas.recognition import (
     RecognizeResponse,
 )
 from app.services.recognition_service import RecognitionDomainError, RecognitionService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["recognitions"])
 
@@ -39,31 +37,7 @@ def _service(session: Annotated[AsyncSession, Depends(get_session)]) -> Recognit
     return RecognitionService(ApplauseRepository(session))
 
 
-async def _actor_id(
-    x_demo_user: Annotated[str | None, Header()] = None,
-    session: Annotated[AsyncSession, Depends(get_session)] = None,
-) -> UUID:
-    """Resolve the acting user's DB id from the authentication dependency.
-
-    Production: the JWT subject must map to users.external_id — blocked until
-    the Entra JWT wiring lands (app/core/security.py). Dev: X-Demo-User header.
-    """
-    settings = get_settings()
-    if settings.entra_authority:
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN,
-            "recognitions require the Entra JWT subject mapping "
-            "(users.external_id) — blocked on the App registration",
-        )
-    if not x_demo_user:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            "dev mode requires the X-Demo-User: <employee_code> header",
-        )
-    actor = await ApplauseRepository(session).user_id_by_code(x_demo_user)
-    if actor is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, f"unknown demo user: {x_demo_user}")
-    return actor
+_actor_id = get_actor_id  # shared dependency; recognitions keep their historic alias
 
 
 @router.post("/recognitions", response_model=RecognizeResponse)
@@ -71,7 +45,6 @@ async def recognize(
     body: RecognizeRequest,
     actor_id: Annotated[UUID, Depends(_actor_id)],
     service: Annotated[RecognitionService, Depends(_service)],
-    user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> RecognizeResponse:
     rid, status_text, routed, item = await service.recognize(
         actor_id=actor_id,
@@ -95,12 +68,11 @@ async def decide(
     body: DecideRequest,
     actor_id: Annotated[UUID, Depends(_actor_id)],
     service: Annotated[RecognitionService, Depends(_service)],
-    user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> DecisionResponse:
     try:
         result = await service.decide(item_id, actor_id, body.approve, body.note)
     except RecognitionDomainError as e:
-        code, detail = e.code, e.detail
+        code = e.code
         if code in {"insufficient_points", "person_inactive", "double_refund_blocked",
                     "self_recognition_blocked", "item_already_pending",
                     "item_already_approved", "item_already_declined",
@@ -118,7 +90,6 @@ async def decide(
 async def pending_approvals(
     actor_id: Annotated[UUID, Depends(_actor_id)],
     service: Annotated[RecognitionService, Depends(_service)],
-    user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> list[PendingApprovalRow]:
     rows = await service.pending_for(actor_id)
     return [PendingApprovalRow(**r) for r in rows]  # type: ignore[misc]
