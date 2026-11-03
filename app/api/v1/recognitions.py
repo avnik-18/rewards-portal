@@ -13,8 +13,16 @@ Identity: the actor is NEVER taken from the request body.
 
 Domain errors: fn_* failures surface as RecognitionDomainError and are
 translated ONCE by the app-level handler (see recognition_domain_handler +
-main.py) — POST /recognitions, the decide endpoint and anything tomorrow get
-409/422/404 semantics, never a 500.
+main.py). Mapping order lives in ONE table of prefix sets per status class:
+- CONFLICT set                → 409
+- UNPROCESSABLE set           → 422
+- NOT_FOUND set               → 404 (includes the approver_unresolvable_at_step_N
+                                 family)
+- not_pending_for_decider     → **403** (the caller is authenticated but is
+                                 not an approver on this item)
+- everything else             → 500 (see `any_other_domain_code`) — no
+                                 unmapped code, connection issue or check
+                                 violation can degrade into a 404
 """
 
 from typing import Annotated
@@ -42,12 +50,29 @@ router = APIRouter(tags=["recognitions"])
 log = structlog.get_logger(__name__)
 
 CONFLICT = {"insufficient_points", "person_inactive", "double_refund_blocked",
-            "self_recognition_blocked", "item_already_pending",
-            "item_already_approved", "item_already_declined",
-            "item_already_returned", "item_already_cancelled"}
+            "self_recognition_blocked"}
 UNPROCESSABLE = {"no_approval_route", "decline_note_required", "recipient_total_mismatch",
                  "guest_cannot_receive", "no_allowance_for_period", "allocation_below_spent"}
-NOT_FOUND = {"not_pending_for_decider", "approver_unresolvable", "prize_pool_empty"}
+NOT_FOUND = {"approver_unresolvable", "prize_pool_empty"}
+UNAUTHORIZED = {"item_state_mismatch", "invalid_state"}
+
+
+def _code_status(code: str) -> int:
+    if code == "not_pending_for_decider":
+        return status.HTTP_403_FORBIDDEN
+    if code == "item_state_mismatch":
+        return status.HTTP_409_CONFLICT
+    if any(code.startswith(prefix) for prefix in ("approver_unresolvable",)):
+        return status.HTTP_404_NOT_FOUND
+    if any(code.startswith(prefix) for prefix in ("item_already_",)):
+        return status.HTTP_409_CONFLICT
+    if code in CONFLICT:
+        return status.HTTP_409_CONFLICT
+    if code in UNPROCESSABLE:
+        return status.HTTP_422_UNPROCESSABLE_ENTITY
+    if code in NOT_FOUND:
+        return status.HTTP_404_NOT_FOUND
+    return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
 def recognition_domain_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -57,14 +82,8 @@ def recognition_domain_handler(request: Request, exc: Exception) -> JSONResponse
     log.warning("recognition.domain_error", code=exc.code, detail=exc.detail,
                 path=request.url.path,
                 actor=str(request.headers.get("x-demo-user", "")))
-    if exc.code in CONFLICT:
-        status_code = status.HTTP_409_CONFLICT
-    elif exc.code in UNPROCESSABLE:
-        status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-    elif exc.code in NOT_FOUND:
-        status_code = status.HTTP_404_NOT_FOUND
-    else:
-        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = _code_status(exc.code)
+    if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
         log.error("recognition.unmapped_domain_code", code=exc.code)
     return JSONResponse(status_code=status_code, content={"detail": exc.code})
 
@@ -102,10 +121,6 @@ async def decide(
     actor_id: Annotated[UUID, Depends(get_actor_id)],
     service: Annotated[RecognitionService, Depends(_service)],
 ) -> DecisionResponse:
-    if not body.approve and not (body.note and body.note.strip()):
-        raise RecognitionDomainError(
-            "decline_note_required", "declining requires a note"
-        )
     result = await service.decide(item_id, actor_id, body.approve, body.note)
     return DecisionResponse(approval_item_id=item_id, status=result)
 
