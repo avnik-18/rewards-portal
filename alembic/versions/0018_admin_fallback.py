@@ -5,8 +5,6 @@ unresolvable steps escalate to 'admin' holders of role_assignment. Shipping
 demo admins was removed — production grants roles via an admin API/person
 workstream, NOT via migrations. No structural change in this revision.
 """
-from alembic import op
-
 revision = "0018_admin_fallback"
 down_revision = "0017_admin_flows"
 branch_labels = None
