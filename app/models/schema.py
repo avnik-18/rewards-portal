@@ -4,7 +4,8 @@ GENERATED MIRROR — never hand-edit. The schema owner is `alembic/versions/`
 (DB-first, SQL-authored; see docs/db/design-source/README.md). Model classes
 serve ORM reads and future `alembic.autogenerate`-free comparisons; the money
 invariants and business rules live in SQL functions (fn_submit_recognition,
-fn_item_decide, fn_admin_set_budget, fn_finalize_award — see db/README.md).
+fn_item_decide, fn_admin_set_budget, fn_finalize_award — see
+docs/db/design-source/README.md).
 
 Regenerate after model revisions land: `db/scripts/gen_models.py` will be
 restored for that (currently hand-mirrored — see PR description).

@@ -2,10 +2,10 @@
 
 The schema is DB-OWNED (alembic/versions/*.py) and its business rules live in
 SQL functions — repositories call those functions through plain SQL, they do
-not hand-write money math. See db/README.md in this repo for the fn surface
-and db/schema.sql for the DDL.
+not hand-write money math. See docs/db/design-source/README.md for the fn surface
+and schema.sql for the DDL.
 
-Function surface used here (see db/README.md §4):
+Function surface used here (see docs/db/design-source/README.md §4):
   fn_submit_recognition(from, to[], cc[], value, tpl, msg, pts, art, kind, idemkey)
   fn_item_decide(item, decider, approve, note)
   fn_admin_set_budget(user, period, allocated, actor)

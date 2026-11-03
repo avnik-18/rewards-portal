@@ -7,8 +7,8 @@ schema ships in this repo as Alembic revisions.
 
 **Status: core slice live.** Approved schema (18 revisions) + recognition/approval
 API on `develop` (verified by `scripts/verify.sh` + 44-check `db-verify.sh`).
-Dashboard read APIs (`/me`, `/me/stats`, leaderboard, awards showcase, media)
-in progress — see `CLAUDE.md` for the stub map.
+Dashboard read APIs in progress — see `docs/adr/0001-business-logic-in-pl-pgsql.md`
+for the recorded architecture decision.
 
 ## Stack (team-mandated)
 
