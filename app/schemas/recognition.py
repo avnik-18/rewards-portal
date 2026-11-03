@@ -1,7 +1,7 @@
 """Recognition + approval DTOs — XxxRequest / XxxResponse convention.
 
 The actor identity is NEVER part of these DTOs — it comes from the auth
-dependency (app/api/v1/recognitions.py::_actor_id), never from the body.
+dependency (app.core.actor.get_actor_id), never from the body.
 """
 
 from uuid import UUID

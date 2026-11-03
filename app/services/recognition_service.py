@@ -44,7 +44,9 @@ class RecognitionService:
         _actor_id dependency).
         """
         if points != 0 and actor_id in to_user_ids:
-            raise RecognitionDomainError("self_recognition_blocked", "the giver cannot also be a recipient")
+            raise RecognitionDomainError(
+                "self_recognition_blocked", "the giver cannot also be a recipient"
+            )
         try:
             rid = await self._repo.submit_recognition(
                 actor_id, to_user_ids, cc_user_ids, value_id, message, points

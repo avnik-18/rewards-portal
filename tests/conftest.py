@@ -1,9 +1,16 @@
-"""Shared fixtures. The app routes that exist today need no live DB."""
+"""Test environment must be explicit BEFORE app imports: the app refuses to
+start without identity configuration (fail-closed identity preflight), so the
+test suite pins ENVIRONMENT=local for every run."""
 
-import pytest
-from fastapi.testclient import TestClient
+import os
 
-from app.main import app
+os.environ.setdefault("ENVIRONMENT", "local")
+
+from fastapi.testclient import TestClient  # noqa: E402
+
+import pytest  # noqa: E402
+
+from app.main import app  # noqa: E402
 
 
 @pytest.fixture

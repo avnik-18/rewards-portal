@@ -90,6 +90,15 @@ class ApplauseRepository:
         )
         return result.scalar()
 
+    async def user_id_by_external_id(self, external_id: str) -> Any:
+        """Map a verified SSO subject (Entra oid) to a users.id. Portal access
+        requires the row to exist with external_id populated (HRIS sync)."""
+        result = await self._session.execute(
+            text("SELECT id FROM users WHERE external_id = :external_id"),
+            dict(external_id=external_id),
+        )
+        return result.scalar()
+
     async def recognition_replay(self, recognition_id: Any) -> tuple[str, int, Any]:
         """(status, pending_step_count, approval_item_id) after submit."""
         result = await self._session.execute(
@@ -117,8 +126,11 @@ class ApplauseRepository:
     ) -> str:
         """Call fn_item_decide; returns the post-decision approval_item.status."""
         try:
-            result = await self._session.execute(
-                text("SELECT fn_item_decide(CAST(:item AS uuid), CAST(:decider AS uuid), :approve, :note)"),
+            await self._session.execute(
+                text(
+                    "SELECT fn_item_decide("
+                    "CAST(:item AS uuid), CAST(:decider AS uuid), :approve, :note)"
+                ),
                 dict(item=item, decider=decider, approve=approve, note=note),
             )
         except sqlalchemy.exc.DBAPIError as e:

@@ -7,12 +7,17 @@ from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.core.otel import setup_tracing
+from app.core.security import require_identity_configured
 from app.services.recognition_service import RecognitionDomainError
 
 
 def create_app() -> FastAPI:
     configure_logging()
     settings = get_settings()
+    # fail-closed identity (reviewer auth comment): the app refuses to start
+    # without an explicit identity configuration — no silent dev fallback in
+    # a deployed environment.
+    require_identity_configured()
     app = FastAPI(title=settings.app_name, version=settings.version)
     setup_tracing(app)
     app.include_router(api_router, prefix=settings.api_prefix)

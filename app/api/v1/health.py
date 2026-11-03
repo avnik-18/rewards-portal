@@ -13,4 +13,8 @@ router = APIRouter(tags=["health"])
 def health(
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> dict[str, str]:
-    return {"status": "ok", "environment": settings.environment, "version": settings.version}
+    return {
+        "status": "ok",
+        "environment": str(settings.environment or "unset"),
+        "version": settings.version,
+    }

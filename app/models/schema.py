@@ -13,7 +13,7 @@ restored for that (currently hand-mirrored — see PR description).
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 from sqlalchemy import (
@@ -280,7 +280,7 @@ class EmidsValues(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
     key: Mapped[str] = mapped_column(Text, unique=True)
     label: Mapped[str] = mapped_column(Text)
-    meta: Mapped[Optional[dict]] = mapped_column(JSONB)
+    meta: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
@@ -291,7 +291,7 @@ class RecognitionTemplates(Base):
     value_id: Mapped[UUID] = mapped_column(ForeignKey("emids_values.id", ondelete="CASCADE"))
     name: Mapped[str] = mapped_column(Text)
     emoji: Mapped[Optional[str]] = mapped_column(Text)
-    art_json: Mapped[Optional[dict]] = mapped_column(JSONB)
+    art_json: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
     prefill: Mapped[Optional[str]] = mapped_column(Text)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -348,7 +348,7 @@ class ApprovalRule(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
     kind: Mapped[str] = mapped_column(approval_kind)
     version: Mapped[int] = mapped_column(Integer, default=1)
-    condition: Mapped[Optional[dict]] = mapped_column(JSONB)
+    condition: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
     min_points: Mapped[Optional[int]] = mapped_column(Integer)
     max_points: Mapped[Optional[int]] = mapped_column(Integer)
     priority: Mapped[int] = mapped_column(Integer)
@@ -383,7 +383,7 @@ class ApprovalItem(Base):
     rule_version: Mapped[Optional[int]] = mapped_column(Integer)
     recognition_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("recognition_history.id"))
     nomination_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("awards_nominations.id"))
-    snapshot: Mapped[dict] = mapped_column(JSONB)
+    snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB)
     status: Mapped[str] = mapped_column(approval_status, default="pending")
     decided_by: Mapped[Optional[UUID]] = mapped_column(ForeignKey("users.id"))
     decided_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
@@ -455,7 +455,7 @@ class AwardsNominations(Base):
     is_self_nomination: Mapped[bool] = mapped_column(Boolean, default=False)
     shortlisted: Mapped[Optional[bool]] = mapped_column(Boolean)
     status: Mapped[str] = mapped_column(nomination_status, default="submitted")
-    flags: Mapped[Optional[list]] = mapped_column(JSONB)
+    flags: Mapped[Optional[list[str]]] = mapped_column(JSONB)
     decided_by: Mapped[Optional[UUID]] = mapped_column(ForeignKey("users.id"))
     decided_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(DateTime)
@@ -489,7 +489,7 @@ class Notification(Base):
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     type: Mapped[str] = mapped_column(notification_type)
     channel: Mapped[str] = mapped_column(notification_channel, default="in_app")
-    payload: Mapped[dict] = mapped_column(JSONB)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSONB)
     delivery_status: Mapped[str] = mapped_column(delivery_status, default="queued")
     dedupe_key: Mapped[Optional[str]] = mapped_column(Text, unique=True)
     read_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
@@ -503,7 +503,7 @@ class OutboxEvent(Base):
     aggregate: Mapped[str] = mapped_column(outbox_aggregate)
     aggregate_id: Mapped[str] = mapped_column(Text)
     event_type: Mapped[str] = mapped_column(Text)
-    payload: Mapped[Optional[dict]] = mapped_column(JSONB)
+    payload: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
     status: Mapped[str] = mapped_column(outbox_status, default="pending")
     attempts: Mapped[int] = mapped_column(Integer)
     next_attempt_at: Mapped[datetime] = mapped_column(DateTime)
@@ -519,7 +519,7 @@ class AdminSettingKey(Base):
     key: Mapped[str] = mapped_column(Text, primary_key=True)
     label: Mapped[str] = mapped_column(Text)
     data_type: Mapped[str] = mapped_column(setting_data_type)
-    allowed_range: Mapped[Optional[dict]] = mapped_column(JSONB)
+    allowed_range: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
     is_program_policy: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
@@ -527,7 +527,7 @@ class AdminSetting(Base):
     __tablename__ = "admin_setting"
 
     key: Mapped[str] = mapped_column(ForeignKey("admin_setting_key.key"), primary_key=True)
-    value: Mapped[dict] = mapped_column(JSONB)
+    value: Mapped[dict[str, Any]] = mapped_column(JSONB)
     updated_by: Mapped[Optional[UUID]] = mapped_column(ForeignKey("users.id"))
     updated_at: Mapped[datetime] = mapped_column(DateTime)
 
@@ -552,6 +552,6 @@ class AuditLog(Base):
     action: Mapped[str] = mapped_column(Text)
     entity: Mapped[str] = mapped_column(Text)
     entity_id: Mapped[Optional[str]] = mapped_column(Text)
-    before: Mapped[Optional[dict]] = mapped_column(JSONB)
-    after: Mapped[Optional[dict]] = mapped_column(JSONB)
+    before: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
+    after: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
     at: Mapped[datetime] = mapped_column(DateTime)

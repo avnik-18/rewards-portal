@@ -16,6 +16,7 @@ dependencies = [
     "opentelemetry-sdk>=1.29",
     "opentelemetry-instrumentation-fastapi>=0.50b0",
     "httpx>=0.28",
+    "pyjwt[crypto]>=2.8",
 ]
 
 [project.optional-dependencies]
@@ -23,6 +24,7 @@ dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
     "pytest-cov>=6.0",
+    "cryptography>=43.0",
     "httpx>=0.28",
     "ruff>=0.8",
     "mypy>=1.13",
