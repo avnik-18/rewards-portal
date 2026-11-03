@@ -55,7 +55,7 @@ class RecognitionService:
         # status + routing depth: pending means the chain is frozen and waiting;
         # routed_to = how many steps await; item id matches the pending approval
         status, routed, item = await self._repo.recognition_replay(rid)
-        return rid, status, routed, item
+        return UUID(str(rid)), status, routed, item
 
     async def decide(
         self,
