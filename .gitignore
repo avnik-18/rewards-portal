@@ -15,3 +15,11 @@ node_modules/
 playwright-report/
 test-results/
 .claude/settings.json
+
+# scripts/ — only the repo gates are tracked; anything else stays local
+scripts/*
+!scripts/verify.sh
+!scripts/db-verify.sh
+!scripts/db-test-race.sh
+!scripts/test-in-docker.sh
+!scripts/e2e_recognize.py
