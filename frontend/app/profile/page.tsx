@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Building2, Landmark, MapPin, Send } from 'lucide-react'
 import { Avatar, Card, Chip } from '@/components/atoms'
 import ProfileJourney from '@/components/organisms/ProfileJourney'
-import { getProfile } from '@/lib/data-api'
+import { getProfile, WELCOME_BONUS_POINTS } from '@/lib/data-api'
 import { fmtNum } from '@/lib/format'
 
 export const dynamic = 'force-dynamic'
@@ -24,7 +24,7 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const isMe = profile.id === 'me'
   const pointsEarned =
     profile.received.filter((credit) => credit.points).reduce((sum, credit) => sum + (credit.points ?? 0), 0) +
-    (isMe ? 1240 : 0)
+    (isMe ? WELCOME_BONUS_POINTS : 0)
 
   return (
     <div>

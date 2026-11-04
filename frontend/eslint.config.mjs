@@ -10,6 +10,28 @@ const config = [
     ignores: ['node_modules/', 'coverage/', 'playwright-report/', 'test-results/'],
   },
   {
+    // sir's review: the UI layer must not reach the mock-data barrel directly.
+    // Pages/components read datasets through lib/data-api.ts; while the data
+    // layer is still mocks, direct imports are allowed ONLY from the specific
+    // domain module they need (lib/mock-data-parts/*). Type-only imports stay
+    // permitted so the façade swap does not have to land in one commit.
+    files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/lib/mock-data'],
+              allowTypeImports: true,
+              message: "Read through '@/lib/data-api' (or the specific '@/lib/mock-data-parts/*' module) instead.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // typed linting scoped to TS/TSX files — Next's babel parser still owns
     // the .mjs config files, TS parser + projectService owns the rest
     files: ['**/*.{ts,tsx}'],

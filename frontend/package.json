@@ -15,7 +15,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
-    "scan:sca": "trivy fs --scanners vuln,secret --skip-dirs node_modules,.next . || echo 'trivy not installed locally; runs in CI'",
+    "scan:sca": "trivy fs --scanners vuln,secret --skip-dirs node_modules,.next .",
     "prepare": "husky"
   },
   "lint-staged": {

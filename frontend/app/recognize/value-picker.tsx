@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComposeFormApi } from '@/hooks/use-compose-form'
-import { CORE_VALUES, VALUE_KEYS } from '@/lib/mock-data'
+import { CORE_VALUES, VALUE_KEYS } from '@/lib/mock-data-parts/values'
 
 /** The five emids values — clicking one attaches it to the recognition. */
 export default function ValuePicker({ form }: { form: ComposeFormApi }) {

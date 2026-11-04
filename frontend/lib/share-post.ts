@@ -18,12 +18,13 @@ const TAIL = '\n\n#emidsRecognition #EmployeeRecognition #emids'
 
 /** Pre-written LinkedIn post text from a recognition. */
 export function buildPostDraft({ receiver, giver, value, message }: PostDraftFields): string {
+  const valueCredit = value ? ` · ${value}` : ''
   const lines = [
     'Proud to share that this got recognized at emids. 🎉',
     '',
     `${receiver} — ${message.replace(/^"|"$/g, '')}`,
     '',
-    `Recognized by ${giver}${value ? ` · ${value}` : ''} · emids Technologies`,
+    `Recognized by ${giver}${valueCredit} · emids Technologies`,
   ]
   return lines.join('\n') + TAIL
 }

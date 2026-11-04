@@ -1,5 +1,5 @@
-'use client'
-
+/* No 'use client' — this atom owns no state or handlers; every interaction
+   prop it forwards already marks the importing client boundary. */
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 export interface BtnProps extends ButtonHTMLAttributes<HTMLButtonElement> {

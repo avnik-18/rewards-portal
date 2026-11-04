@@ -2,13 +2,7 @@
 
 import { useState } from 'react'
 import type { ApprovalItem } from '@/lib/mock-data'
-import type { ApprovalVerdict } from '@/lib/approval'
-
-/** A decision with its audit note — the note is no longer dropped. */
-export interface ApprovalDecision {
-  verdict: ApprovalVerdict
-  note: string
-}
+import type { ApprovalDecision, ApprovalVerdict } from '@/lib/approval'
 
 /**
  * Holds decisions for the current session — the approvals list itself is

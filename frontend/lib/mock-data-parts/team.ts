@@ -1,4 +1,4 @@
-import { person, initials } from "./people"
+import { person } from "./people"
 import type { ValueKey } from "./values"
 export interface LeaderRow {
   id: string

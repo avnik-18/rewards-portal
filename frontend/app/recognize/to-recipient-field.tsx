@@ -1,16 +1,17 @@
 'use client'
 
-import { useMemo } from 'react'
 import { X } from 'lucide-react'
 import { Avatar } from '@/components/atoms'
 import { EMAIL_RE } from '@/lib/compose'
 import type { ComposeFormApi } from '@/hooks/use-compose-form'
-import { person } from '@/lib/mock-data'
+import { person } from '@/lib/mock-data-parts/people'
 
 /** The "To" field: chosen recipients, typed filter, directory + email results. */
 export default function ToRecipientField({ form }: { form: ComposeFormApi }) {
-  const matchResults = useMemo(() => form.pickResults(form.q), [form])
-  const emailCandidate = useMemo(() => form.emailCandidate(form.q), [form])
+  // Recomputed per render on purpose — `form` changes identity every render,
+  // so memoizing these against it only added indirection (sir's review).
+  const matchResults = form.pickResults(form.q)
+  const emailCandidate = form.emailCandidate(form.q)
 
   return (
     <>

@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Avatar, Card } from '@/components/atoms'
 import TemplateCard from '@/components/molecules/TemplateCard'
 import { kindLabel, type ApprovalVerdict } from '@/lib/approval'
-import { CORE_VALUES, person } from '@/lib/mock-data'
+import { CORE_VALUES } from '@/lib/mock-data-parts/values'
+import { person } from '@/lib/mock-data-parts/people'
 import type { ApprovalItem } from '@/lib/mock-data'
 
 const VERDICT_LABEL: Record<ApprovalVerdict, string> = {
@@ -94,8 +95,9 @@ export default function ApprovalDetail({ item, verdict, onDecide, viewerId }: Ap
               <input
                 value={comment}
                 onChange={(inputEvent) => setComment(inputEvent.target.value)}
-                placeholder="Add a note (optional, visible in audit trail)"
+                placeholder="Add a note (required to decline, visible in the audit trail)"
                 aria-label="Decision note"
+                aria-required
                 className="h-10 w-full rounded-xl border border-line bg-slate-50 px-4 text-sm outline-none focus:border-brand/40 focus:bg-white"
               />
               <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -108,12 +110,16 @@ export default function ApprovalDetail({ item, verdict, onDecide, viewerId }: Ap
                 >
                   Approve
                 </button>
+                {/* Decline always ships the note with the verdict — the audit
+                    trail must explain WHY, so the button stays locked until
+                    the field has content (sir's review). */}
                 <button
                   onClick={() => {
                     onDecide('declined', comment.trim())
                     setComment('')
                   }}
-                  className="rounded-xl border border-line px-4 py-2 text-[13px] font-extrabold text-navy transition hover:bg-slate-50"
+                  disabled={!comment.trim()}
+                  className="rounded-xl border border-line px-4 py-2 text-[13px] font-extrabold text-navy transition hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-45"
                 >
                   Next time
                 </button>

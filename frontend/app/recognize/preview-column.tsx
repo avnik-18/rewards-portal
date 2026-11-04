@@ -4,9 +4,9 @@ import { Check, Maximize2, Send, X } from 'lucide-react'
 import TemplateCard from '@/components/molecules/TemplateCard'
 import { Card, Modal } from '@/components/atoms'
 import { EMAIL_RE } from '@/lib/compose'
-import { VALUE_TEMPLATES } from '@/lib/mock-data'
+import { VALUE_TEMPLATES } from '@/lib/mock-data-parts/values'
 import type { ComposeFormApi } from '@/hooks/use-compose-form'
-import { person } from '@/lib/mock-data'
+import { person } from '@/lib/mock-data-parts/people'
 
 interface PreviewColumnProps {
   form: ComposeFormApi

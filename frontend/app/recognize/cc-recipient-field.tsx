@@ -1,16 +1,17 @@
 'use client'
 
-import { useMemo } from 'react'
 import { X } from 'lucide-react'
 import { Avatar } from '@/components/atoms'
 import { EMAIL_RE } from '@/lib/compose'
 import type { ComposeFormApi } from '@/hooks/use-compose-form'
-import { person } from '@/lib/mock-data'
+import { person } from '@/lib/mock-data-parts/people'
 
 /** The "cc" field: auto-added managers, chosen extras, typed filter. */
 export default function CcRecipientField({ form }: { form: ComposeFormApi }) {
-  const matchResults = useMemo(() => form.pickResults(form.ccq), [form])
-  const emailCandidate = useMemo(() => form.emailCandidate(form.ccq), [form])
+  // Recomputed per render on purpose — `form` changes identity every render,
+  // so memoizing these against it only added indirection (sir's review).
+  const matchResults = form.pickResults(form.ccq)
+  const emailCandidate = form.emailCandidate(form.ccq)
 
   return (
     <>

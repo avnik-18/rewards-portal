@@ -129,10 +129,10 @@ export async function drawRecognitionCard(art: RecognitionCardArt): Promise<stri
   ctx.fillText(art.receiverFirstName, avX + 34, avY)
 
   // points badge
-  let bx = avX + 34 + ctx.measureText(art.receiverFirstName).width + 18
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   if (art.points > 0) {
+    const bx = avX + 34 + ctx.measureText(art.receiverFirstName).width + 18
     const label = `+${art.points} pts`
     ctx.font = '800 17px Inter, sans-serif'
     const pw = ctx.measureText(label).width + 28
@@ -141,12 +141,11 @@ export async function drawRecognitionCard(art: RecognitionCardArt): Promise<stri
     ctx.fill()
     ctx.fillStyle = '#3d2b00'
     ctx.fillText(label, bx + pw / 2, avY + 1)
-    bx += pw + 16
   }
 
   // value chip — pushed to the right edge
   if (art.valueLabel) {
-    const key = VALUE_KEYS.find((k) => CORE_VALUES[k].label === art.valueLabel)
+    const key = VALUE_KEYS.find((candidateKey) => CORE_VALUES[candidateKey].label === art.valueLabel)
     if (key) {
       ctx.font = '700 17px Inter, sans-serif'
       const vw = ctx.measureText(art.valueLabel).width + 28

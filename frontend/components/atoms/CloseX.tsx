@@ -1,5 +1,6 @@
-'use client'
-
+/* No 'use client' — CloseX owns no state or handlers of its own; it only
+   forwards the caller's onClick, and every current caller is a client
+   component (member-info-modal). */
 import { X } from 'lucide-react'
 
 export interface CloseXProps {

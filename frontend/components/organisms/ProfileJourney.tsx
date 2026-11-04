@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Avatar, Card, Chip, Segmented, SectionTitle } from '@/components/atoms'
-import { CORE_VALUES, person } from '@/lib/mock-data'
+import { CORE_VALUES } from '@/lib/mock-data-parts/values'
+import { person } from '@/lib/mock-data-parts/people'
 import type { Post } from '@/lib/mock-data'
 
 export interface ProfileJourneyProps {
@@ -44,7 +45,18 @@ export default function ProfileJourney({ received, given }: ProfileJourneyProps)
           const otherId = tab === 'received' ? post.fromId : post.toIds[0]
           const other = person(otherId)
           const v = post.valueKey ? CORE_VALUES[post.valueKey] : null
-          if (!other) return null
+          // Known-data fallback: a post whose directory record is gone still
+          // renders, as a quiet placeholder row (sir's review: never dropped)
+          if (!other) {
+            return (
+              <Card key={post.id} className="p-4">
+                <p className="text-[12.5px] text-muted">
+                  {tab === 'received' ? 'A received recognition' : 'A recognition you gave'} could not be linked to a
+                  teammate record.
+                </p>
+              </Card>
+            )
+          }
           return (
             <Card key={post.id} className="flex items-center gap-3.5 p-4 transition hover:shadow-lift">
               <Avatar id={other.id} size={40} />

@@ -28,11 +28,19 @@ describe('ApprovalsBoard', () => {
     expect(screen.queryByText('Approve')).toBeNull()
   })
 
-  it('declining shows Next time instead of approve', () => {
+  it('declining is locked until a note is typed — the verdict ships with it', () => {
     render(<ApprovalsBoard items={APPROVALS} />)
 
-    fireEvent.click(screen.getByText('Next time'))
-    expect(screen.getByText('Next time')).toBeTruthy()
+    const decline = screen.getByRole('button', { name: 'Next time' }) as HTMLButtonElement
+    // no note typed yet: the decline button stays disabled (audit-trail rule)
+    expect(decline.disabled).toBe(true)
+
+    fireEvent.change(screen.getByLabelText('Decision note'), { target: { value: 'context lost this sprint' } })
+    expect(decline.disabled).toBe(false)
+
+    fireEvent.click(decline)
+    // the recorded pill shows the "Next time" verdict, the action bar is gone
+    expect(screen.getAllByText('Next time').length).toBeGreaterThan(0)
   })
 
   it('history folder lists decided items and empty folders show empty copy', () => {

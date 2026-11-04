@@ -27,19 +27,24 @@ export default function ComposeHeading() {
   return (
     <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 pt-4">
       <h1 className="text-2xl font-extrabold tracking-tight text-navy md:text-[28px]">
-        Recognize your{' '}
-        <span
-          aria-live="polite"
-          className="say-shimmer relative inline-flex items-baseline overflow-hidden"
-          style={{ width: clipWidth, transition: 'width 420ms cubic-bezier(0.33, 1, 0.68, 1)' }}
-        >
+        {/* Screen readers get one stable static heading; the animated word is
+            decorative aria-hidden output (sir's review — an aria-live region
+            would re-announce the heading every 2.6s). */}
+        <span className="sr-only">Recognize your {ROTATE_WORDS[0]}</span>
+        <span aria-hidden="true">
+          Recognize your{' '}
           <span
-            key={wordIndex}
-            ref={wordRef}
-            className="word-roll-cycle whitespace-nowrap font-extrabold"
-            style={{ animation: 'word-roll 2600ms cubic-bezier(0.33, 1, 0.68, 1) both' }}
+            className="say-shimmer relative inline-flex items-baseline overflow-hidden"
+            style={{ width: clipWidth, transition: 'width 420ms cubic-bezier(0.33, 1, 0.68, 1)' }}
           >
-            {ROTATE_WORDS[wordIndex]}
+            <span
+              key={wordIndex}
+              ref={wordRef}
+              className="word-roll-cycle whitespace-nowrap font-extrabold"
+              style={{ animation: 'word-roll 2600ms cubic-bezier(0.33, 1, 0.68, 1) both' }}
+            >
+              {ROTATE_WORDS[wordIndex]}
+            </span>
           </span>
         </span>
       </h1>

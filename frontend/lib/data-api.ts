@@ -40,6 +40,10 @@ export async function getMe(): Promise<{ name: string }> {
   return { name: 'Ayan' }
 }
 
+/** The mock starting balance the signed-in user carries until the backend
+ *  earns it for real — named so the façade carries no magic number. */
+export const WELCOME_BONUS_POINTS = 1240
+
 export async function getDashboardStats(): Promise<{
   balance: number
   given: number
@@ -47,7 +51,7 @@ export async function getDashboardStats(): Promise<{
   orgRecognitions: number
 }> {
   return {
-    balance: 1240,
+    balance: WELCOME_BONUS_POINTS,
     given: DASH_STATS.given,
     got: DASH_STATS.got,
     orgRecognitions: ORG_STATS.recognitions,
@@ -67,7 +71,7 @@ export interface TreeMember {
   id: string
   name: string
   title: string
-  teamId: 'humana' | 'dev'
+  teamId: TeamId
   teamName: string
   pts: number
 }
@@ -78,7 +82,7 @@ export interface RecognitionTreeData {
 }
 
 const leaderboardPointsOf = (memberId: string) => TEAM_LEADERBOARD.find((leaderRow) => leaderRow.id === memberId)?.pts ?? 0
-const teamMembershipOf = (memberId: string): "humana" | "dev" => (TEAM_STATS.humana.some((team) => team.id === memberId) ? "humana" : "dev")
+const teamMembershipOf = (memberId: string): TeamId => (TEAM_STATS.humana.some((team) => team.id === memberId) ? 'humana' : 'dev')
 
 /** The subtree under the signed-in user in ORG_TREE. */
 function mySubtreeMembers(): string[] {
@@ -206,8 +210,6 @@ export interface CreatedRecognition {
 
 /** Mock send: returns the created recognition immediately. */
 export async function sendRecognition(input: RecognitionPayload): Promise<CreatedRecognition> {
-  const first = input.toIds[0]
-  void person(first) // keeps the mock facade wired for the FastAPI swap and gives a sensible wrong-id crash in dev
   return {
     id: 'r' + Date.now(),
     fromId: 'me',

@@ -5,7 +5,10 @@ export const ROTATE_WORDS = ['teammate', 'colleague', 'team lead', 'manager', 'p
 
 export const POINT_PRESETS = [0, 25, 50, 100]
 
-export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+/** ReDoS-safe email check: the domain labels and their dot separators are
+ *  disjoint runs, so backtracking stays linear (no nested quantifiers —
+ *  sir's review on the old "one class eats the dots" pattern). */
+export const EMAIL_RE = /^[^\s@]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/
 
 /** First draft text per value — the "Draft for me" button fills the note with it. */
 export const AI_DRAFTS: Record<ValueKey, string> = {

@@ -3,6 +3,8 @@ import type { ReactElement } from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { AppRouterContext as AppRouterContextProvider } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 import TeamPage from '@/app/team/page'
+import TeamPeopleTable from '@/components/organisms/team-people-table'
+import type { TeamRow } from '@/lib/data-api'
 
 const mockRouter = {
   back: vi.fn(),
@@ -83,5 +85,34 @@ describe('TeamPage — ditto of the old team screen', () => {
     expect(dlg.textContent).toContain('Recognitions received')
     expect(dlg.textContent).toContain('Bengaluru')
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+  })
+})
+
+describe('TeamPeopleTable — directory record missing', () => {
+  it('renders an unknown row id as "Unknown teammate", never the raw id', () => {
+    const rowBehindGhostId: TeamRow = {
+      id: 'ghost-1',
+      given: 0,
+      received: 0,
+      lastRecognized: '— 30 days',
+      valuesTop: 'ownership',
+      team: 'humana',
+    }
+
+    render(
+      <TeamPeopleTable
+        visible={[rowBehindGhostId]}
+        team="all"
+        headRef={{ current: null }}
+        bodyRef={{ current: null }}
+        onBodyScroll={() => {}}
+        onOpenProfile={() => {}}
+        onPraise={() => {}}
+        onOpenInfo={() => {}}
+      />,
+    )
+
+    expect(screen.getByText('Unknown teammate')).toBeTruthy()
+    expect(screen.queryByText('ghost-1')).toBeNull()
   })
 })

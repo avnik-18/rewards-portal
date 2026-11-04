@@ -1,4 +1,3 @@
-import type { ValueKey } from "./values"
 export interface EarningBreakdown {
   awards: number
   grants: number

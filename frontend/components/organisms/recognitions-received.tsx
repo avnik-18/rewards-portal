@@ -6,7 +6,7 @@ import { ChevronDown } from 'lucide-react'
 import { Avatar, Card } from '@/components/atoms'
 import TemplateCard from '@/components/molecules/TemplateCard'
 import LinkedInShareButton from '@/components/molecules/LinkedInShareButton'
-import { personDisplayName } from '@/lib/mock-data'
+import { personDisplayName } from '@/lib/mock-data-parts/people'
 import type { RecognitionReceived } from '@/lib/mock-data'
 
 export interface RecognitionsReceivedProps {

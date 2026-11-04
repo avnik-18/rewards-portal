@@ -4,12 +4,11 @@ import ValuesYouLive from "@/components/organisms/values-you-live"
 import MyEoQAwards from "@/components/organisms/eoq-awards"
 import { RewardsLedger } from "@/components/organisms/rewards-ledger"
 import { getRewards } from '@/lib/data-api'
-import { VALUES_LIVED } from '@/lib/mock-data'
 
 export const dynamic = 'force-dynamic'
 
 export default async function RewardsPage() {
-  const { summary, received, ledger, eoqAwards } = await getRewards()
+  const { summary, received, ledger, valuesLived, eoqAwards } = await getRewards()
   return (
     <div>
       <div className="mb-6">
@@ -24,7 +23,7 @@ export default async function RewardsPage() {
       <RecognitionsReceived items={received} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ValuesYouLive values={VALUES_LIVED} />
+        <ValuesYouLive values={valuesLived} />
         <MyEoQAwards awards={eoqAwards} />
       </div>
 

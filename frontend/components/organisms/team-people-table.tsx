@@ -3,11 +3,12 @@
 import { Eye, Send } from 'lucide-react'
 import type { RefObject } from 'react'
 import { Avatar, Btn, Card, Chip } from '@/components/atoms'
-import { CORE_VALUES, TEAMS, person } from '@/lib/mock-data'
-import type { ValueKey } from '@/lib/mock-data'
+import { CORE_VALUES } from '@/lib/mock-data-parts/values'
+import { TEAMS, type TeamId } from '@/lib/mock-data-parts/team'
+import { person, personDisplayName } from '@/lib/mock-data-parts/people'
 import type { TeamRow } from '@/lib/data-api'
 
-const TEAM_CHIP: Record<'humana' | 'dev', string> = {
+const TEAM_CHIP: Record<TeamId, string> = {
   humana: 'bg-brand-soft text-brand',
   dev: 'bg-violet-soft text-violet',
 }
@@ -53,15 +54,6 @@ export default function TeamPeopleTable({
       <div ref={bodyRef} onScroll={onBodyScroll} className="rail-scroll rounded-b-2xl overflow-x-auto">
         <div className="min-w-[780px]">
           {visible.map((row, index) => {
-            const memberProfile = person(row.id) ?? {
-              id: row.id,
-              name: row.id,
-              title: 'Unknown',
-              dept: '',
-              office: '',
-              tenure: '',
-              status: 'offline' as const,
-            }
             const memberValue = CORE_VALUES[row.valuesTop as keyof typeof CORE_VALUES]
             return (
               <div
@@ -79,7 +71,7 @@ export default function TeamPeopleTable({
                   <Avatar id={row.id} size={36} />
                   <span className="flex min-w-0 items-center gap-2">
                     <span className="block truncate text-[13.5px] font-extrabold text-navy group-hover:text-brand group-hover:underline">
-                      {memberProfile.name}
+                      {personDisplayName(row.id)}
                     </span>
                     {team === 'all' && (
                       <Chip className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${TEAM_CHIP[row.team]}`}>
@@ -88,7 +80,7 @@ export default function TeamPeopleTable({
                     )}
                   </span>
                 </button>
-                <span className="truncate text-[13px] font-medium text-muted">{memberProfile.title}</span>
+                <span className="truncate text-[13px] font-medium text-muted">{person(row.id)?.title ?? 'Unknown'}</span>
                 <span>
                   <Chip className={`${memberValue.soft} ${memberValue.ink}`}>{memberValue.label}</Chip>
                 </span>

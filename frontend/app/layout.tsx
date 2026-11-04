@@ -87,6 +87,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   className="transition hover:text-white"
                 >
                   Code of Conduct
+                  <span className="sr-only">(opens in a new tab)</span>
                 </a>
                 <a
                   href="https://www.emids.com/privacy-policy/"
@@ -95,6 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   className="transition hover:text-white"
                 >
                   Privacy Policy
+                  <span className="sr-only">(opens in a new tab)</span>
                 </a>
                 <a
                   href="https://www.emids.com/cookie-policy/"
@@ -103,6 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   className="transition hover:text-white"
                 >
                   Cookie Policy
+                  <span className="sr-only">(opens in a new tab)</span>
                 </a>
                 <a
                   href="https://www.emids.com/accessibility-statement/"
@@ -111,6 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   className="transition hover:text-white"
                 >
                   Accessibility Statement
+                  <span className="sr-only">(opens in a new tab)</span>
                 </a>
               </nav>
             </div>
