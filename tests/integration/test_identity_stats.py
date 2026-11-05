@@ -55,7 +55,7 @@ def _db_ready() -> bool:
 DB_READY = _db_ready()
 
 
-def _psql(q: str) -> str:
+def db_exec(q: str) -> str:
     """Query via docker exec; container + db from env (PG_CONTAINER / PG_DB)."""
     try:
         return (
@@ -71,14 +71,14 @@ def _psql(q: str) -> str:
         return ""
 
 
-def _seed_demo_if_missing() -> None:
-    count = int(_psql("SELECT count(*) FROM users WHERE employee_code LIKE 'E-%'") or 0)
+def seed_demo_if_missing() -> None:
+    count = int(db_exec("SELECT count(*) FROM users WHERE employee_code LIKE 'E-%'") or 0)
     if count < 7:
         demo_seed = Path(__file__).resolve().parents[2] / "seed" / "demo.sql"
-        _psql_file(str(demo_seed))
+        db_exec_file(str(demo_seed))
 
 
-def _psql_file(local_sql: str) -> None:
+def db_exec_file(local_sql: str) -> None:
     """Apply a local SQL file to the DB (docker cp + psql -f)."""
     name = Path(local_sql).name
     subprocess.check_call(["docker", "cp", local_sql, f"{CONTAINER}:/tmp/{name}"])
@@ -88,7 +88,7 @@ def _psql_file(local_sql: str) -> None:
 
 @pytest.mark.skipif(not DB_READY, reason="no live applause DB (set DATABASE_URL)")
 def test_identity_and_stats_flow() -> None:
-    _seed_demo_if_missing()
+    seed_demo_if_missing()
 
     with TestClient(create_app()) as client:
         # 1) profile resolves the header actor
@@ -100,10 +100,10 @@ def test_identity_and_stats_flow() -> None:
         assert profile["role"] in {"individual", "admin", "hr"}
 
         # 1b) RBAC groundwork: a seeded admin resolves role 'admin'
-        admin_count = int(_psql(
+        admin_count = int(db_exec(
             "SELECT count(*) FROM role_assignment WHERE role='admin' AND revoked_at IS NULL") or 0)
         if admin_count > 0:
-            admin_code = _psql(
+            admin_code = db_exec(
                 "SELECT u.employee_code FROM role_assignment r JOIN users u ON u.id = r.user_id "
                 "WHERE r.role='admin' AND r.revoked_at IS NULL LIMIT 1")
             r2 = client.get("/api/v1/me", headers={"X-Demo-User": admin_code})
@@ -119,7 +119,7 @@ def test_identity_and_stats_flow() -> None:
 
         # 3) stats move with one auto-band recognition (delta assertions)
         giver, recipient = "E-PR", "E-BR"
-        recipient_id = _psql(f"SELECT id FROM users WHERE employee_code='{recipient}'")
+        recipient_id = db_exec(f"SELECT id FROM users WHERE employee_code='{recipient}'")
         points = 25
         def stats(code: str) -> dict:
             r = client.get("/api/v1/me/stats", headers={"X-Demo-User": code})

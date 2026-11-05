@@ -1,28 +1,26 @@
-"""Shared integration-test helpers — DATABASE_URL only, no Docker anywhere.
+"""Shared integration-test helpers — connects via DATABASE_URL directly.
 
-Connects the way the app connects: via DATABASE_URL. No container names,
-no `docker exec`, no PG_CONTAINER/PG_DB env vars — the same connection
-principle as production and the session dependency."""
+No Docker exec, no container names, no shell scripts — just a sync SQLAlchemy
+connection to the same Postgres the app uses. Portable to local compose,
+CI service containers, staging, or cloud DB."""
 
 import os
+import sys
 from pathlib import Path
 
 from sqlalchemy import create_engine, text
 
-import pytest  # noqa: E402
-import pytest_asyncio  # noqa: E402
-
-_TEST_DB = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/recog"
-os.environ.setdefault("DATABASE_URL", _TEST_DB)
-DATABASE_URL = os.environ.get("DATABASE_URL", _TEST_DB)
-_SYNC_URL = DATABASE_URL.replace("+asyncpg", "+psycopg2")
+_DATABASE_URL_RAW = os.environ.get(
+    "DATABASE_URL", "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/recog"
+)
+_SYNC_URL = _DATABASE_URL_RAW.replace("+asyncpg", "+psycopg2")
 _SYNC_ENGINE = create_engine(_SYNC_URL)
 
 
 def db_ready() -> bool:
     try:
         with _SYNC_ENGINE.connect() as c:
-            c.execute(_sqltext("SELECT 1"))
+            c.execute(text("SELECT 1"))
         return True
     except Exception:
         return False
@@ -31,50 +29,57 @@ def db_ready() -> bool:
 DB_READY = db_ready()
 
 
-def psql(q: str) -> str:
-    """Execute a SQL query and return the scalar (or string) result."""
+def db_exec(q: str) -> str:
+    """Execute a SQL statement and return the string result of the first column."""
     try:
         with _SYNC_ENGINE.connect() as c:
-            result = c.execute(_sqltext(q))
+            result = c.execute(text(q))
+            c.commit()
             if result.returns_rows:
                 row = result.fetchone()
-                if row is not None and len(row) >= 1:
-                    return str(row[0]) if row[0] is not None else ""
-                return ""
+                if row is not None and len(row) >= 1 and row[0] is not None:
+                    return str(row[0])
             return ""
     except Exception as e:
-        print(f"WARNING: psql query failed ({e!r})", file=sys.stderr)
+        print(f"WARNING: db_exec failed: {e!r}", file=sys.stderr)
         return ""
 
 
-def psql_file(local_sql: str) -> None:
-    """Execute a SQL file against the DB."""
-    sql_text = Path(local_sql).read_text(encoding="utf-8")
+def db_exec_file(sql_file_path: str) -> None:
+    """Read a .sql file from disk and execute it against the DB."""
+    sql_text = Path(sql_file_path).read_text(encoding="utf-8")
     with _SYNC_ENGINE.connect() as c:
-        c.execute(_sqltext(sql_text))
+        c.execute(text(sql_text))
         c.commit()
 
 
 def seed_demo_if_missing() -> None:
-    count = int(psql("SELECT count(*) FROM users WHERE employee_code LIKE 'E-%'") or 0)
+    """Apply seed/demo.sql when demo users are missing."""
+    count = int(db_exec("SELECT count(*) FROM users WHERE employee_code LIKE 'E-%'") or 0)
     if count < 7:
-        demo = Path(__file__).resolve().parents[2] / "seed" / "demo.sql"
-        psql_file(str(demo))
+        demo_seed = str(Path(__file__).resolve().parents[2] / "seed" / "demo.sql")
+        db_exec_file(str(demo_seed))
 
 
-def set_allowances_to_allocated() -> None:
-    psql("UPDATE to_recog_points SET balance = allocated")
+def reset_allowances() -> None:
+    db_exec("UPDATE to_recog_points SET balance = allocated")
 
 
 def wallet_balance(user_id: str) -> int:
-    raw = psql(f"SELECT COALESCE((SELECT balance FROM points_wallet WHERE user_id='{user_id}'), 0)")
+    raw = db_exec(
+        "SELECT COALESCE((SELECT balance FROM points_wallet "
+        f"WHERE user_id='{user_id}'), 0)"
+    )
     return int(raw) if raw else 0
 
 
-def allow_balance(user_id: str) -> int:
-    raw = psql(f"SELECT COALESCE((SELECT balance FROM to_recog_points WHERE user_id='{user_id}'), 0)")
+def allowance_balance(user_id: str) -> int:
+    raw = db_exec(
+        "SELECT COALESCE((SELECT balance FROM to_recog_points "
+        f"WHERE user_id='{user_id}'), 0)"
+    )
     return int(raw) if raw else 0
 
 
-def employee_code_id(code: str) -> str:
-    return psql(f"SELECT id FROM users WHERE employee_code='{code}'")
+def employee_id_by_code(code: str) -> str:
+    return db_exec(f"SELECT id FROM users WHERE employee_code='{code}'")

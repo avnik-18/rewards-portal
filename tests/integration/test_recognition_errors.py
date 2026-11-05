@@ -39,7 +39,7 @@ def _db_ready() -> bool:
 DB_READY = _db_ready()
 
 
-def _psql(q: str) -> str:
+def db_exec(q: str) -> str:
     try:
         return (
             subprocess.check_output(
@@ -52,14 +52,14 @@ def _psql(q: str) -> str:
         return ""
 
 
-def _seed_demo_if_missing() -> None:
-    count = int(_psql("SELECT count(*) FROM users WHERE employee_code LIKE 'E-%'") or 0)
+def seed_demo_if_missing() -> None:
+    count = int(db_exec("SELECT count(*) FROM users WHERE employee_code LIKE 'E-%'") or 0)
     if count < 7:
         demo_seed = Path(__file__).resolve().parents[2] / "seed" / "demo.sql"
-        _psql_file(str(demo_seed))
+        db_exec_file(str(demo_seed))
 
 
-def _psql_file(local_sql: str) -> None:
+def db_exec_file(local_sql: str) -> None:
     name = Path(local_sql).name
     subprocess.check_call(["docker", "cp", local_sql, f"{CONTAINER}:/tmp/{name}"])
     subprocess.check_call(["docker", "exec", CONTAINER, "psql", "-U", "postgres",
@@ -70,8 +70,8 @@ def _psql_file(local_sql: str) -> None:
 def test_recognize_insufficient_points_is_409() -> None:
     """points way beyond the seeded allowance -> 409 WITH the fn code as the
     body, not a 500 (the original reviewer finding)."""
-    _seed_demo_if_missing()
-    recipient_id = _psql("SELECT id FROM users WHERE employee_code='E-RH'")
+    seed_demo_if_missing()
+    recipient_id = db_exec("SELECT id FROM users WHERE employee_code='E-RH'")
     with TestClient(create_app()) as client:
         r = client.post("/api/v1/recognitions", headers={"X-Demo-User": "E-PR"}, json={
             "to_user_ids": [recipient_id],
@@ -120,10 +120,10 @@ def test_pending_approvals_inbox_shapes_without_500() -> None:
     cast) and no test had ever called it. Now: routed recognition creates a
     pending item; the pending owner's inbox call must come back 200 with
     rows that validate against the DTO shape exactly."""
-    _seed_demo_if_missing()
-    recipient_id = _psql("SELECT id FROM users WHERE employee_code='E-BR'")
+    seed_demo_if_missing()
+    recipient_id = db_exec("SELECT id FROM users WHERE employee_code='E-BR'")
     # deterministic allowance headroom for the 0-approval-band recognition
-    assert _psql("UPDATE to_recog_points SET balance = allocated") is not None
+    assert db_exec("UPDATE to_recog_points SET balance = allocated") is not None
     with TestClient(create_app()) as client:
         r = client.post("/api/v1/recognitions", headers={"X-Demo-User": "E-PR"}, json={
             "to_user_ids": [recipient_id], "points": 150,
@@ -133,7 +133,7 @@ def test_pending_approvals_inbox_shapes_without_500() -> None:
         assert item_id, "routed band must produce a pending approval item"
 
         # the pending step's owner id comes from the DB — no demo-org guessing
-        owner_id = _psql(
+        owner_id = db_exec(
             "SELECT s.owner_id FROM approval_item_step s "
             "WHERE s.approval_item_id = '" + item_id + "' AND s.status = 'pending'")
 

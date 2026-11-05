@@ -42,7 +42,7 @@ def _db_ready() -> bool:
 DB_READY = _db_ready()
 
 
-def _psql(q: str) -> str:
+def db_exec(q: str) -> str:
     try:
         return (
             subprocess.check_output(
@@ -55,14 +55,14 @@ def _psql(q: str) -> str:
         return ""
 
 
-def _seed_demo_if_missing() -> None:
-    count = int(_psql("SELECT count(*) FROM users WHERE employee_code LIKE 'E-%'") or 0)
+def seed_demo_if_missing() -> None:
+    count = int(db_exec("SELECT count(*) FROM users WHERE employee_code LIKE 'E-%'") or 0)
     if count < 7:
         demo_seed = Path(__file__).resolve().parents[2] / "seed" / "demo.sql"
-        _psql_file(str(demo_seed))
+        db_exec_file(str(demo_seed))
 
 
-def _psql_file(local_sql: str) -> None:
+def db_exec_file(local_sql: str) -> None:
     name = Path(local_sql).name
     subprocess.check_call(["docker", "cp", local_sql, f"{CONTAINER}:/tmp/{name}"])
     subprocess.check_call(["docker", "exec", CONTAINER, "psql", "-U", "postgres",
@@ -71,15 +71,15 @@ def _psql_file(local_sql: str) -> None:
 
 @pytest.mark.skipif(not DB_READY, reason="no live applause DB (set DATABASE_URL)")
 def test_retry_with_same_key_replays_original() -> None:
-    _seed_demo_if_missing()
+    seed_demo_if_missing()
 
-    recipient_id = _psql(
+    recipient_id = db_exec(
         "SELECT id FROM users WHERE employee_code='E-RH'")
     key = "11111111-2222-3333-4444-555555555555"
 
     with TestClient(create_app()) as client:
         # deterministic allowance for both actors
-        assert _psql("UPDATE to_recog_points SET balance = allocated") is not None
+        assert db_exec("UPDATE to_recog_points SET balance = allocated") is not None
         first_key = key
         body = {"to_user_ids": [recipient_id], "points": 30,
                 "message": "idempotency fixture — auto band"}
