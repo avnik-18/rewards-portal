@@ -47,11 +47,15 @@ CONFLICT = {"insufficient_points", "person_inactive", "double_refund_blocked",
 UNPROCESSABLE = {"no_approval_route", "decline_note_required", "recipient_total_mismatch",
                  "guest_cannot_receive", "no_allowance_for_period", "allocation_below_spent",
                  "points_out_of_range"}
-NOT_FOUND = {"recipient_not_found", "item_not_found", "person_not_found", "prize_pool_empty"}
+NOT_FOUND = {"recipient_not_found", "item_not_found", "person_not_found", "prize_pool_empty",
+             "account_not_found"}
+FORBIDDEN = {"not_pending_for_decider", "self_admin_blocked", "insufficient_privilege"}
+# coded for log detail, but these are DB integrity/config faults — always 500
+INTEGRITY_FAULTS = frozenset({"hold_journal_missing", "hold_lines_missing", "no_budget_policy"})
 
 
 def _code_status(code: str) -> int:
-    if code == "not_pending_for_decider":
+    if code in FORBIDDEN:
         return status.HTTP_403_FORBIDDEN
     if any(code.startswith(prefix) for prefix in ("approver_unresolvable",)):
         return status.HTTP_404_NOT_FOUND
@@ -63,6 +67,7 @@ def _code_status(code: str) -> int:
         return status.HTTP_422_UNPROCESSABLE_ENTITY
     if code in NOT_FOUND:
         return status.HTTP_404_NOT_FOUND
+    # INTEGRITY_FAULTS and anything unmapped land here — 500 with an ERROR log
     return status.HTTP_500_INTERNAL_SERVER_ERROR
 
 

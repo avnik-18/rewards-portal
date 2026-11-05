@@ -10,8 +10,10 @@ This service only:
   friendly message even before the DB raises (never silently clamp)
 
 Error-code contract with the recognition_db workstream:
-- FN functions raise with `USING ERRCODE = '<sqlstate>'` (e.g. C54901 =
+- FN functions raise with `USING ERRCODE = '<sqlstate>'` (e.g. C5491 =
   insufficient_points) carrying the business code in the PG DETAIL/HINT.
+  Custom SQLSTATEs are five characters (the PG limit) — see the table in
+  alembic/versions/0019_fn_errcodes.py, the contract's source of truth.
 - That SQLSTATE is the ONLY intended mapping key (e.orig.sqlstate) — the
   fallback parsing below dies with that migration.
 Until the ERRCODE migration lands the durable bridge for `RAISE EXCEPTION`
@@ -65,25 +67,37 @@ def _pg_message(orig: Any) -> str:
     return str(orig)
 
 
+# Keys are the five-char SQLSTATEs the fn_* bodies raise with
+# `USING ERRCODE = '...'` (PG limit: five chars). Contract table /
+# source of truth: alembic/versions/0019_fn_errcodes.py.
+# Keys ending in '_' are DYNAMIC raises whose full business code is the
+# first word of the primary message ('item_already_%' carries the status):
+# _error_code completes them from the message.
 _SQLSTATE_TO_CODE = {
-    "C54901": "insufficient_points",
-    "C54902": "person_inactive",
-    "C54903": "double_refund_blocked",
-    "C54904": "self_recognition_blocked",
-    "C54905": "item_already_pending",
-    "C54906": "points_out_of_range",
-    "C54910": "recipient_not_found",
-    "C54911": "guest_cannot_receive",
-    "C54912": "recipient_total_mismatch",
-    "C54913": "no_allowance_for_period",
-    "C54914": "allocation_below_spent",
-    "C54915": "no_approval_route",
-    "C54916": "approver_unresolvable_at_step",
-    "C54917": "not_pending_for_decider",
-    "C54918": "prize_pool_empty",
-    "C54919": "decline_note_required",
-    "C54920": "item_not_found",
-    "C54921": "person_not_found",
+    "C5491": "insufficient_points",
+    "C5492": "person_inactive",
+    "C5493": "double_refund_blocked",
+    "C5494": "self_recognition_blocked",
+    "C5495": "item_already_",
+    "C5496": "points_out_of_range",
+    "C549A": "recipient_not_found",
+    "C549B": "guest_cannot_receive",
+    "C549C": "recipient_total_mismatch",
+    "C549D": "no_allowance_for_period",
+    "C549E": "allocation_below_spent",
+    "C549F": "no_approval_route",
+    "C549G": "approver_unresolvable_at_step",
+    "C549H": "not_pending_for_decider",
+    "C549K": "prize_pool_empty",
+    "C549L": "decline_note_required",
+    "C549M": "item_not_found",
+    "C549N": "person_not_found",
+    "C549P": "self_admin_blocked",
+    "C549Q": "insufficient_privilege",
+    "C549R": "account_not_found",
+    "C549S": "hold_journal_missing",
+    "C549T": "hold_lines_missing",
+    "C549U": "no_budget_policy",
 }
 
 
@@ -92,6 +106,8 @@ def _error_code(exc: DBAPIError) -> str:
 
     1. e.orig.sqlstate — the sole mapping key: every FN raises WITH a custom
        ERRCODE (0019_fn_errcodes) and the mapping above resolves the code.
+       Dynamic raises ('item_already_%') are completed from the message's
+       first word, falling back to the marker prefix if that ever fails.
     2. Transitional bridge for pre-ERRCODE databases (existing dev/staging
        environments where the head state predates 0019): the business code is
        the first word of the primary message ("insufficient_points: ...").
@@ -100,7 +116,12 @@ def _error_code(exc: DBAPIError) -> str:
     orig = exc.orig
     sqlstate = str(getattr(orig, "sqlstate", None) or "P0001")
     if sqlstate in _SQLSTATE_TO_CODE:
-        return _SQLSTATE_TO_CODE[sqlstate]
+        code = _SQLSTATE_TO_CODE[sqlstate]
+        if code.endswith("_"):
+            first = _pg_message(orig).split(":", 1)[0].strip()
+            if first.startswith(code) and first.isidentifier():
+                return first
+        return code
     if sqlstate != "P0001":
         return sqlstate
     message = _pg_message(orig)
@@ -143,7 +164,10 @@ class RecognitionService:
         actor_id is the RESOLVED caller (never body-supplied — see the router's
         get_actor_id dependency). idempotency_key dedupes client retries:
         the replay branch returns the original recognition."""
-        if points != 0 and actor_id in to_user_ids:
+        if actor_id in to_user_ids:
+            # mirrors fn_submit_recognition unconditionally — even a
+            # zero-point self-recognition is blocked by the fn, so the
+            # pre-check must not widen that (reviewer: adapter parity)
             raise RecognitionDomainError(
                 "self_recognition_blocked", "the giver cannot also be a recipient"
             )

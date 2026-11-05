@@ -50,9 +50,14 @@ def test_known_business_codes_map() -> None:
 def test_every_sqlstate_code_maps_to_http() -> None:
     """Every code raised in the fns (all of _SQLSTATE_TO_CODE's values) maps
     to an HTTP status above 400 — the router table can never drift into a
-    silent 500 for a mapped business failure (reviewer ask)."""
+    silent 500 for a mapped business failure (reviewer ask). The only
+    explicit 500s are the coded integrity faults (INTEGRITY_FAULTS)."""
+    from app.api.v1.recognitions import INTEGRITY_FAULTS
     from app.services.recognition_service import _SQLSTATE_TO_CODE
     for code in _SQLSTATE_TO_CODE.values():
+        if code in INTEGRITY_FAULTS:
+            assert _code_status(code) == status.HTTP_500_INTERNAL_SERVER_ERROR, code
+            continue
         assert _code_status(code) != status.HTTP_500_INTERNAL_SERVER_ERROR, code
         assert _code_status(code) in {
             status.HTTP_403_FORBIDDEN,
@@ -60,6 +65,15 @@ def test_every_sqlstate_code_maps_to_http() -> None:
             status.HTTP_422_UNPROCESSABLE_ENTITY,
             status.HTTP_404_NOT_FOUND,
         }, code
+
+
+def test_admin_authority_codes_are_403() -> None:
+    assert _code_status("self_admin_blocked") == status.HTTP_403_FORBIDDEN
+    assert _code_status("insufficient_privilege") == status.HTTP_403_FORBIDDEN
+
+
+def test_account_not_found_is_404() -> None:
+    assert _code_status("account_not_found") == status.HTTP_404_NOT_FOUND
 
 
 def test_review_flagged_codes_no_longer_500() -> None:

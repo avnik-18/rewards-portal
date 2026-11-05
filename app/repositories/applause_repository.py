@@ -155,28 +155,8 @@ class ApplauseRepository:
         )
         return str(status.scalar())
 
-    async def person_dashboard(self, person: Any) -> dict[str, Any]:
-        """Everything the person dashboard needs, from the DB surface.
-
-        Note: balances are derived NOT stored — the wallet balances cached by
-        triggers must be read directly here; ledger history comes from the
-        ledger table itself (SELECT FROM ledger WHERE user_id=:person).
-        """
-        result = await self._session.execute(
-            text(
-                "SELECT u.id, u.employee_code, u.full_name, u.title, u.department, "
-                "u.joined_on, u.employment_status::text, m.full_name AS manager_name "
-                "FROM users u LEFT JOIN users m ON m.id = u.manager_id "
-                "WHERE u.id = :person"
-            ),
-            dict(person=person),
-        )
-        row = result.mappings().first()
-        if row is None:
-            return {}
-        return dict(row)
-
     async def pending_approvals(self, referent: Any) -> AsyncIterator[dict[str, Any]]:
+
         """Approvals currently pending on a person's inbox, shaped exactly as
         the PendingApprovalRow DTO expects (alias ai.id -> approval_item_id;
         snapshot.base_points may be absent for items whose approval snapshot
@@ -196,7 +176,3 @@ class ApplauseRepository:
         )
         for row in rows.mappings():
             yield dict(row)
-
-
-class ValidationError(Exception):
-    """Wrapping fn_* SQL errors — services translate it into HTTPException."""

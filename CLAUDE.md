@@ -14,10 +14,10 @@ workstream's deliverable, folded in after its design phase). Front-end:
 read its screen source for domain rules, never `data.ts` (retired as a spec).
 This repo is the **only** thing allowed to talk to Postgres.
 
-**Status: core slice live + deployed-concept reviewed.** 19 Alembic revisions
+**Status: core slice live + deployed-concept reviewed.** 21 Alembic revisions
 (schema incl. fn_* business functions) + recognition/approval API on
 `feature/initial-backend` (verified: `verify.sh` + 44-check DB gate +
-21 pytest). PR under review by the lead; re-review fixes are landing as
+25 pytest). PR under review by the lead; re-review fixes are landing as
 separate commits on the same branch.
 
 ## Where the business logic lives — DECIDED
@@ -37,8 +37,9 @@ Consequences for daily work:
   Python mirror of routing/chain/ledger math — do not (re)introduce one.
 - The old service stubs (`approval_service.py`, `wallet_service.py`,
   `reports_service.py`) are DELETED. To change business rules: hand-write a
-  new Alembic revision that redefines the fn; `app/models/schema.py` is a
-  generated mirror, never hand-edit.
+  new Alembic revision that redefines the fn. The ORM models are a generated
+  mirror of the migrated schema, split per bounded context under `app/models/`
+  (`people.py`, `recognition.py`, `media.py`, …) — never hand-edit.
 - fn error semantics contract: fns raise with `USING ERRCODE = 'C549xx'`
   (mapping table `_SQLSTATE_TO_CODE` in
   `app/services/recognition_service.py`), surfaced app-wide by the

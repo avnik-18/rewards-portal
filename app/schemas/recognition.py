@@ -4,9 +4,10 @@ The actor identity is NEVER part of these DTOs — it comes from the auth
 dependency (app.core.actor.get_actor_id), never from the body.
 """
 
+from typing import Self
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 
 
 class RecognizeRequest(BaseModel):
@@ -21,21 +22,22 @@ class RecognizeRequest(BaseModel):
     @field_validator("to_user_ids", "cc_user_ids")
     @classmethod
     def no_hidden_duplicates(cls, v: list[UUID], info: ValidationInfo) -> list[UUID]:
-        """Rejects same-person duplicates and to/cc overlap — the fn only catches
-        self-recognition, leaving repeated recipients to stretch routing unnaturally (reviewer)."""
+        """Rejects same-person duplicates — the fn only catches self-recognition,
+        leaving repeated recipients to stretch routing unnaturally (reviewer)."""
         seen = set(v)
         if len(seen) != len(v):
             raise ValueError(f"duplicate recipient in '{info.field_name}'")
         return v
 
-    @field_validator("to_user_ids")
-    @classmethod
-    def to_and_cc_disjoint(cls, v: list[UUID], info: ValidationInfo) -> list[UUID]:
-        cc = info.data.get("cc_user_ids", [])
-        overlap = set(v) & set(cc)
+    @model_validator(mode="after")
+    def to_and_cc_disjoint(self) -> Self:
+        # runs after ALL fields are set — a field_validator on to_user_ids
+        # could not see cc_user_ids (Pydantic v2 runs validators in field
+        # order), so the overlap check was dead code (reviewer)
+        overlap = set(self.to_user_ids) & set(self.cc_user_ids)
         if overlap:
             raise ValueError("a recipient cannot also be in cc")
-        return v
+        return self
 
     @field_validator("message", mode="before")
     @classmethod
