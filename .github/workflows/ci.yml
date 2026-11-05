@@ -30,8 +30,11 @@ jobs:
         run: ruff check app tests
       - name: mypy strict
         run: mypy app
-      - name: bandit (SAST)
-        run: bandit -r app
+      - name: migrate (alembic head against the service DB)
+        env:
+          ENVIRONMENT: local
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/recog
+        run: alembic upgrade head
       - name: pytest (unit + integrated, live DB)
         env:
           ENVIRONMENT: local

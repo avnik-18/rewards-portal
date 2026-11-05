@@ -49,7 +49,10 @@ def db_exec_file(sql_file_path: str) -> None:
     """Read a .sql file from disk and execute it against the DB."""
     sql_text = Path(sql_file_path).read_text(encoding="utf-8")
     with _SYNC_ENGINE.connect() as c:
-        c.execute(text(sql_text))
+        # raw driver execution: text() would capture ':1' inside literals
+        # like '{"min":1}' as a bind parameter (CI: "A value is required for
+        # bind parameter '1'") — a .sql file must be passed through verbatim.
+        c.exec_driver_sql(sql_text)
         c.commit()
 
 
