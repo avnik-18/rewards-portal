@@ -36,19 +36,13 @@ from fastapi.testclient import TestClient  # noqa: E402
 from app.main import create_app  # noqa: E402
 
 
-def _db_ready() -> bool:
-    """Probe the ACTUAL configured DATABASE_URL (never a hardcoded fallback)."""
-    try:
-        from sqlalchemy import create_engine, text  # noqa: E402
-
-        engine = create_engine(DATABASE_URL.replace("+asyncpg", "+psycopg2"))
-        with engine.connect() as c:
-            c.execute(text("SELECT 1"))
-        return True
-    except Exception:
-        return False
-
-
+from tests.integration.db_helpers import (
+    DB_READY as DB_READY,
+    db_exec as _db_exec,
+    db_exec_file as _db_exec_file,
+    seed_demo_if_missing as _seed_demo_if_missing,
+    reset_allowances as _reset_allowances,
+)
 DB_READY = _db_ready()
 
 

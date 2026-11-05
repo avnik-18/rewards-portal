@@ -35,7 +35,7 @@ jobs:
       - name: pytest (unit + integrated, live DB)
         env:
           ENVIRONMENT: local
-          DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/recog
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/recog
           PG_CONTAINER: ""
         run: pytest tests/ --no-cov -q
       - name: db-verify (44 invariants)
