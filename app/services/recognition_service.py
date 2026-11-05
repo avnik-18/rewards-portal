@@ -41,16 +41,27 @@ class RecognitionDomainError(Exception):
 
 
 def _pg_message(orig: Any) -> str:
-    """Primary message of the wrapped pg error, dialect-agnostic.
+    """Primary message of the pg error, dialect-agnostic.
 
-    psycopg2: `.diag.message_primary`. asyncpg: no diag object and no
-    `.message` — the postgres-authored text is the exception's own string."""
-    diag = getattr(orig, "diag", None)
-    if diag is not None:
-        return str(getattr(diag, "message_primary", None) or "")
-    direct = getattr(orig, "message", None)
-    if direct:
-        return str(direct)
+    psycopg2: `.diag.message_primary`. The asyncpg dialect exposes only
+    SQLAlchemy's adapter wrapper, whose own args carry the rendered
+    "<class ...>: message" string — the postgres-authored text lives on
+    the original asyncpg exception in the cause chain (plain `RaiseError`):
+    prefer `.message` / first arg of chain members over any render."""
+    chain: list[Any] = [getattr(orig, "__cause__", None),
+                        getattr(orig, "__context__", None), orig]
+    for err in chain:
+        if err is None:
+            continue
+        diag = getattr(err, "diag", None)
+        if diag is not None:
+            return str(getattr(diag, "message_primary", None) or "")
+        direct = getattr(err, "message", None)
+        if direct:
+            return str(direct)
+        args = getattr(err, "args", None)
+        if args and not str(args[0]).startswith("<class '"):
+            return str(args[0])
     return str(orig)
 
 

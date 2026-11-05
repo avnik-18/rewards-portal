@@ -8,9 +8,9 @@ same DATABASE_URL, no Docker coupling (reviewer).
 """
 
 import os
+import sys  # noqa: F401
 from pathlib import Path
 
-import sys  # noqa: F401
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/recog")
@@ -20,12 +20,19 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import create_app  # noqa: E402
 from tests.integration.db_helpers import (  # noqa: E402
-    db_exec_file as _db_exec_file,
-    db_exec as _db_exec,
-    seed_demo_if_missing,
     allowance_balance as _allowance_balance,
-    wallet_balance as _wallet_balance,
+)
+from tests.integration.db_helpers import (
+    db_exec as _db_exec,
+)
+from tests.integration.db_helpers import (
     db_ready as DB_READY,
+)
+from tests.integration.db_helpers import (
+    seed_demo_if_missing,
+)
+from tests.integration.db_helpers import (
+    wallet_balance as _wallet_balance,
 )
 
 

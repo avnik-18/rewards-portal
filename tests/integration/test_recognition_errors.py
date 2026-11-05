@@ -6,7 +6,6 @@ try/except: this file pins the repaired behavior for every raise site.
 """
 
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -14,56 +13,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 TEST_DB = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/recog"
 os.environ.setdefault("DATABASE_URL", TEST_DB)
-DATABASE_URL = os.environ.get("DATABASE_URL", TEST_DB)
-CONTAINER = os.environ.get("PG_CONTAINER", "recog-api-db-1")
-PG_DB = os.environ.get("PG_DB", "recog")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import create_app  # noqa: E402
-
-
-def _db_ready() -> bool:
-    try:
-        from sqlalchemy import create_engine, text  # noqa: E402
-
-        engine = create_engine(DATABASE_URL.replace("+asyncpg", "+psycopg2"))
-        with engine.connect() as c:
-            c.execute(text("SELECT 1"))
-        return True
-    except Exception:
-        return False
-
-
-DB_READY = _db_ready()
-
-
-def db_exec(q: str) -> str:
-    try:
-        return (
-            subprocess.check_output(
-                ["docker", "exec", CONTAINER, "psql", "-U", "postgres",
-                 "-d", PG_DB, "-Atqc", q]
-            ).decode().strip()
-        )
-    except Exception as e:
-        print(f"WARNING: _psql probe failed ({e!r})", file=sys.stderr)
-        return ""
-
-
-def seed_demo_if_missing() -> None:
-    count = int(db_exec("SELECT count(*) FROM users WHERE employee_code LIKE 'E-%'") or 0)
-    if count < 7:
-        demo_seed = Path(__file__).resolve().parents[2] / "seed" / "demo.sql"
-        db_exec_file(str(demo_seed))
-
-
-def db_exec_file(local_sql: str) -> None:
-    name = Path(local_sql).name
-    subprocess.check_call(["docker", "cp", local_sql, f"{CONTAINER}:/tmp/{name}"])
-    subprocess.check_call(["docker", "exec", CONTAINER, "psql", "-U", "postgres",
-                           "-d", PG_DB, "-f", f"/tmp/{name}"])
+from tests.integration.db_helpers import (  # noqa: E402
+    DB_READY,
+    db_exec,
+    seed_demo_if_missing,
+)
 
 
 @pytest.mark.skipif(not DB_READY, reason="no live applause DB (set DATABASE_URL)")
