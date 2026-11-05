@@ -10,8 +10,8 @@ depends_on = None
 def upgrade() -> None:
     op.execute(r"""
     CREATE EXTENSION IF NOT EXISTS pgcrypto;
-    -- note: pg_partman is a separate install; monthly partitions for system_log
-    -- are created natively in 0011 with default+new partitions reporting.
+    -- note: pgcrypto solves crypt()/digest(); system_log lands (default
+    -- partition, no monthly ranges) in 0014_logs_views.
   """)
 
 def downgrade() -> None:

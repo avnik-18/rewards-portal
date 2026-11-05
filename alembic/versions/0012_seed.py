@@ -9,12 +9,9 @@ depends_on = None
 
 def upgrade() -> None:
     op.execute(r"""
-    -- structural anchors only: a fiscal period that the money core needs,
-    -- plus the SYS_* journal accounts — NO demo/business seed data ships here.
-    INSERT INTO fiscal_period (id, name, starts, ends)
-    VALUES ('11111111-1111-1111-1111-111111111101', 'FY26 Q4', '2026-10-01', '2026-12-31')
-    ON CONFLICT (name) DO NOTHING;
-
+    -- structural anchors only: the SYS_* journal accounts the money core
+    -- posts against. NO reference/business data ships here — fiscal periods
+    -- are reference data and arrive through the admin flow or a seed script.
     INSERT INTO ledger_account (code, kind) VALUES
       ('SYS_BUDGET_FUND', 'system'),
       ('SYS_PENDING',     'system'),
@@ -26,9 +23,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.execute(r"""
-    DELETE FROM ledger_account WHERE kind = 'system' AND code LIKE 'SYS_%';
-    -- remove only the period this revision anchored; other revisions (demo
-    -- seeds) may have added their own, and wiping those is not this downgrade's job
-    DELETE FROM fiscal_period
-    WHERE id = '11111111-1111-1111-1111-111111111101'
-      AND name = 'FY26 Q4'""")
+    DELETE FROM ledger_account WHERE kind = 'system' AND code LIKE 'SYS_%'""")

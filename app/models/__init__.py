@@ -3,6 +3,7 @@ from __future__ import annotations
 from .approvals import ApprovalItem, ApprovalItemStep, ApprovalRule, ApprovalRuleStep
 from .awards import Awards, AwardsNominations, Ballot, JuryAssignment
 from .base import Base  # noqa: F401
+from .media import MediaAsset, media_kind
 from .money import (
     BudgetPolicy,
     FiscalPeriod,
@@ -13,7 +14,7 @@ from .money import (
     PointsWallet,
     ToRecogPoints,
 )
-from .people import ApprovalDelegation, RoleAssignment, TeamMembers, Teams, Users
+from .people import RoleAssignment, TeamMembers, Teams, Users
 from .recognition import (
     EmidsValues,
     RecognitionHistory,
@@ -33,7 +34,6 @@ from .system import (
 __all__ = [
     "AdminSetting",
     "AdminSettingKey",
-    "ApprovalDelegation",
     "ApprovalItem",
     "ApprovalItemStep",
     "ApprovalRule",
@@ -50,6 +50,8 @@ __all__ = [
     "JuryAssignment",
     "Ledger",
     "LedgerAccount",
+    "MediaAsset",
+    "media_kind",
     "MilestoneRule",
     "Notification",
     "OutboxEvent",

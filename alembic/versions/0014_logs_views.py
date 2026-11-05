@@ -23,21 +23,6 @@ def upgrade() -> None:
     CREATE UNIQUE INDEX job_run_running_uniq ON job_run (job_name) WHERE status = 'running';
     CREATE INDEX job_run_recent_idx ON job_run (job_name, started_at DESC);
 
-    -- system_log: native range-partitioned (partition key in PK)
-    CREATE TABLE system_log (
-      at         timestamptz NOT NULL DEFAULT now(),
-      id         bigint NOT NULL DEFAULT nextval(pg_get_serial_sequence('job_run','id')::text)::bigint,
-      level      log_level NOT NULL,
-      service    text NOT NULL,
-      message    text NOT NULL,
-      user_id    uuid REFERENCES users(id),
-      request_id text,
-      error_code text,
-      context    jsonb,
-      hostname   text,
-      deploy_sha text
-    )""")
-    op.execute(r"""
     DROP TABLE IF EXISTS system_log CASCADE;
     CREATE SEQUENCE system_log_id_seq;
     CREATE TABLE system_log (

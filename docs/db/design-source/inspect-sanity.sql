@@ -14,5 +14,5 @@ SELECT 'staff without allowance (expect 0)' AS tbl,
          WHERE COALESCE(u.recognition_eligible, u.employment_status='active')
            AND NOT EXISTS (SELECT 1 FROM to_recog_points t WHERE t.user_id = u.id
                            AND t.balance = t.allocated AND t.allocated = 250)) AS bad;
-SELECT 'dir api superset check' AS tbl,
-       (SELECT count(*) FROM users) || ' users; mock-free fields only' AS bad;
+SELECT 'user census' AS tbl,
+       (SELECT count(*) FROM users) || ' users' AS bad;

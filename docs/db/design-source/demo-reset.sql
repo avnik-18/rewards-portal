@@ -10,6 +10,7 @@ UPDATE awards SET winner_nomination_id = NULL;
 DELETE FROM awards_nominations;
 DELETE FROM awards;
 DELETE FROM recognition_history;
+DELETE FROM media_asset;
 DELETE FROM notification;
 DELETE FROM outbox_event;
 DELETE FROM audit_log;

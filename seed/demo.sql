@@ -1,8 +1,8 @@
 -- OPTIONAL demo seed for development and verification suites.
 -- Ship with an empty database; run this ONLY when you need demo data
--- (it is what `scripts/db-verify.sh` and `scripts/e2e_recognize.py` expect).
+-- (it is what `scripts/db-verify.sh` expects).
 -- Creates: the L3←L2←L1 staff chain + 4 employees, routing rules
--- (>100 → L1, >200 → L1·L2·L3), two admins, emids values, admin settings,
+-- (>100 → L1, >200 → L1·L2·L3), three admins (E-009 program admin), emids values, admin settings,
 -- budget policy, and one quarter of 250/250 allowances for the active period.
 INSERT INTO emids_values (key, label) VALUES
   ('customer_first','Customer First'),
@@ -64,7 +64,8 @@ INSERT INTO users (employee_code, email, full_name, title, department) VALUES
   ('E-RH','rahul@emids.test','Rahul Nair','Engineer','Engineering'),
   ('E-PR','priya@emids.test','Priya Rao','Engineer','Engineering'),
   ('E-AJ','arjun@emids.test','Arjun Pillai','QA Lead','Engineering'),
-  ('E-BR','brooke@emids.test','Brooke Davis','Executive Assistant','Operations')
+  ('E-BR','brooke@emids.test','Brooke Davis','Executive Assistant','Operations'),
+  ('E-009','admin@emids.test','Deepa Menon','Program Admin','People')
 ON CONFLICT (employee_code) DO NOTHING;
 
 UPDATE users SET manager_id = (SELECT id FROM users WHERE employee_code='E-L3') WHERE employee_code='E-L2';
@@ -81,9 +82,52 @@ INSERT INTO approval_rule_step (rule_id, seq, level, subject, fixed_user_id, mod
   ON CONFLICT DO NOTHING;
 
 INSERT INTO role_assignment (user_id, role)
-  SELECT id, 'admin'::app_role FROM users WHERE employee_code IN ('E-L3','E-L1')
+  SELECT id, 'admin'::app_role FROM users WHERE employee_code IN ('E-L3','E-L1','E-009')
   ON CONFLICT DO NOTHING;
+
+-- reference data: the active fiscal period is seeded here, not in a migration —
+-- production periods arrive through the admin flow. The allowance seeding
+-- below needs it, so it must exist before fn_allowance_seed runs.
+INSERT INTO fiscal_period (id, name, starts, ends)
+VALUES ('11111111-1111-1111-1111-111111111101', 'FY26 Q4', '2026-10-01', '2026-12-31')
+ON CONFLICT (name) DO NOTHING;
 
 SELECT fn_allowance_seed(f.id)
   FROM fiscal_period f
  WHERE now()::date BETWEEN f.starts AND f.ends;
+
+-- demo media: one hero carousel video + two news banners (URL links only;
+-- the media lives on the CDN). Guarded per placement kind so a re-run fills
+-- what is missing without resurrecting banners an admin already replaced.
+INSERT INTO media_asset (kind, title, url, poster_url, cta_label, cta_url, sort_order)
+SELECT v.* FROM (VALUES
+  ('hero_carousel_video'::media_kind,
+   'Q4 townhall — season kickoff',
+   'https://cdn.emids.test/media/hero-q4-townhall.mp4',
+   'https://cdn.emids.test/media/hero-q4-townhall-frame.jpg',
+   'Watch the replay'::text,
+   'https://intranet.emids.test/townhall',
+   0)
+) AS v(kind, title, url, poster_url, cta_label, cta_url, sort_order)
+WHERE NOT EXISTS (
+  SELECT 1 FROM media_asset WHERE kind = 'hero_carousel_video');
+
+INSERT INTO media_asset (kind, title, url, poster_url, cta_label, cta_url, sort_order)
+SELECT v.* FROM (VALUES
+  ('news_banner'::media_kind,
+   'Diwali week logistics',
+   'https://cdn.emids.test/media/banners/diwali-2026.png',
+   NULL,
+   'See schedule',
+   'https://intranet.emids.test/diwali-week',
+   1),
+  ('news_banner'::media_kind,
+   'FY26 Q1 award nominations open',
+   'https://cdn.emids.test/media/banners/awards-fy26q1.png',
+   NULL,
+   'Nominate now',
+   'https://intranet.emids.test/awards-nominate',
+   2)
+) AS v(kind, title, url, poster_url, cta_label, cta_url, sort_order)
+WHERE NOT EXISTS (
+  SELECT 1 FROM media_asset WHERE kind = 'news_banner');

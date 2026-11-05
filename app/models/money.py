@@ -8,7 +8,7 @@ from uuid import UUID
 from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Integer, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, account_kind, journal_direction, journal_kind
+from app.models.base import Base, account_kind, journal_direction, journal_kind, journal_status
 
 
 class FiscalPeriod(Base):
@@ -75,12 +75,12 @@ class JournalEntry(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
     kind: Mapped[str] = mapped_column(journal_kind)
     memo: Mapped[str | None] = mapped_column(Text)
-    linked_recognition_id: Mapped[UUID | None] = mapped_column(ForeignKey("recognition_history.id", ondelete="CASCADE"))
+    linked_recognition_id: Mapped[UUID | None] = mapped_column(ForeignKey("recognition_history.id"))
     linked_award_id: Mapped[UUID | None] = mapped_column(ForeignKey("awards.id"))
     linked_user_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
     reverses: Mapped[UUID | None] = mapped_column(ForeignKey("journal_entry.id"))
     reason: Mapped[str | None] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(journal_status)
     created_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime)
 

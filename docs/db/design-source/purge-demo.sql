@@ -2,6 +2,10 @@
 -- tables, functions, triggers, fiscal anchor, SYS ledger accounts.
 -- Every business row (users, rules, settings, workflow history) is deleted.
 -- Idempotent; leaves an EMPTY, ready-for-API database.
+-- The verification suites' results tables are recreated empty so a purge on a
+-- brand-new database (where verify_results/verify2 do not exist yet) runs clean.
+CREATE TABLE IF NOT EXISTS verify_results (check_name text, ok boolean, detail text);
+CREATE TABLE IF NOT EXISTS verify2 (check_name text, ok boolean, detail text);
 DELETE FROM approval_item_step;
 DELETE FROM approval_item;
 UPDATE journal_entry SET linked_recognition_id = NULL, linked_award_id = NULL;
@@ -17,6 +21,11 @@ DELETE FROM notification;
 DELETE FROM outbox_event;
 DELETE FROM audit_log;
 DELETE FROM job_run;
+DELETE FROM media_asset;
+DELETE FROM system_log;
+DELETE FROM system_log_default;
+DELETE FROM team_members;
+DELETE FROM teams;
 DELETE FROM ledger;
 DELETE FROM journal_line;
 DELETE FROM journal_entry;

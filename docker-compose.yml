@@ -1,36 +1,26 @@
-# Two containers, always: the API never bundles Postgres inside itself.
+# DB-only workstream on this branch: one dev Postgres instance whose schema is
+# built by alembic upgrade head. The api service lives on the API branch.
 services:
   db:
     container_name: recog-api-db-1
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: recog
     ports:
-      - "5432:5432"
+      # dev convenience only: reachable from the host loopback, not the LAN
+      - "127.0.0.1:5432:5432"
     volumes:
+      # creates the least-privilege API role; runs on first boot of the volume
+      - ./docker/init-app-role.sql:/docker-entrypoint-initdb.d/10-app-role.sql:ro
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d recog"]
       interval: 5s
       timeout: 3s
       retries: 10
-
-  api:
-    container_name: recog-api-api
-    build: .
-    environment:
-      ENVIRONMENT: local
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/recog
-      LOG_LEVEL: INFO
-      # ENTRA_* / GRAPH_* / OTLP_ENDPOINT: copy real values into .env locally,
-      # don't put them here.
-    ports:
-      - "8000:8000"
-    depends_on:
-      db:
-        condition: service_healthy
 
 volumes:
   pgdata:

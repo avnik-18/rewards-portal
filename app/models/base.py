@@ -52,10 +52,14 @@ account_kind = PgEnum("user_wallet", "system", name="account_kind", create_type=
 journal_kind = PgEnum(
     "allowance_seed", "recognition_hold", "recognition_release", "recognition_refund",
     "payout", "grant", "earning", "milestone", "welcome", "adjustment", "reversal",
-    "expiry", "deactivation_refund",
+    "expiry", "deactiv_refund",
     name="journal_kind", create_type=False,
 )
 journal_direction = PgEnum("debit", "credit", name="journal_direction", create_type=False)
+journal_status = PgEnum(
+    "posted", "void", name="journal_status", create_type=False,
+)
+
 notification_type = PgEnum(
     "praise_received", "approval_pending", "approval_decided", "award_updates",
     "milestone", "redemption", "admin_announcement",

@@ -19,12 +19,11 @@ functions, not hand-write money math.
 | File | What |
 |---|---|
 | `design-plan-v6.md` | design decisions behind the schema |
-| `schema.sql` | DDL dump of a design-time schema snapshot (read-only reference — always treat the migrations as the truth, never edit the dump) |
 | `demo-seed.sql` | demo org + allowances seed (the maintained copy used by the API dev flow is `seed/demo.sql` at the repo root) |
 | `demo-reset.sql` | wipe workflow data, re-seed fresh allowances + accounts |
 | `purge-demo.sql` | hard reset to migration-built structure (no workflow data) |
 | `verify-core.sql` | core runtime suite (22 checks): hold→release→credit, refund-exactly-once, double-spend, idempotency, self/COI blocks, reconcile = 0 |
-| `verify-edges.sql` | edge suites (20 checks): budget RBAC/SoD/clawback, leaver flow, rule conditions, notifications + outbox, all journals balanced |
+| `verify-edges.sql` | edge suites (25 checks): budget RBAC/SoD/clawback, leaver flow, rule conditions, notifications + outbox, media registry, all journals balanced |
 | `inspect-state.sql`, `inspect-sanity.sql` | inspection helpers |
 | `requirements.txt` | this workspace's own tooling requirements |
 

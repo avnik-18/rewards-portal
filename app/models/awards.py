@@ -27,7 +27,7 @@ class Awards(Base):
     nominations_end: Mapped[date | None] = mapped_column(Date)
     voting_end: Mapped[date | None] = mapped_column(Date)
     winner_nomination_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey("awards_nominations.id"), unique=True,
+        ForeignKey("awards_nominations.id"),
     )
     winner_payout_points: Mapped[int | None] = mapped_column(Integer)
     decided_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))

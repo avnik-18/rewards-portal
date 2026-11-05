@@ -110,16 +110,22 @@ BEGIN
   v_i_state := (SELECT count(*) FROM journal_entry j
                  WHERE j.kind='recognition_refund' AND j.linked_recognition_id=v_rec);
   INSERT INTO verify_results VALUES ('C2_refund_once', v_i_state=1, 'refund journals='||v_i_state);
-  v_i_state := (SELECT count(*) FROM notification n JOIN outbox_event o ON o.dedupe_key IS NULL
-                WHERE n.type='approval_decided');
-  INSERT INTO verify_results VALUES ('C2_note_required_ok', true, 'decline with note ok');
+  -- the decline note must have reached the refund journal's reason
+  v_i_state := (SELECT count(*) FROM journal_entry j
+                 WHERE j.kind='recognition_refund' AND j.linked_recognition_id=v_rec
+                   AND j.reason='Wrong person to celebrate — save it.');
+  INSERT INTO verify_results VALUES ('C2_note_required_ok', v_i_state=1, 'decline note recorded='||v_i_state);
 
   -- ---------- C3: double-decline is impossible ----------
   BEGIN
     PERFORM fn_decline_recognition(v_item, v_admin, 'second paragraph attempt');
     INSERT INTO verify_results VALUES ('C3_double_refund_blocked', false, 'no exception raised');
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLSTATE = 'P0001' OR left(SQLSTATE, 4) = 'C549' THEN
     INSERT INTO verify_results VALUES ('C3_double_refund_blocked', true, 'blocked: ' || SQLERRM);
+    ELSE
+      RAISE;  -- an unexpected error inside the suite must fail the suite
+    END IF;
   END;
 
   -- ---------- C4: idempotent submit keyed ----------
@@ -145,13 +151,15 @@ BEGIN
     v_rec := fn_submit_recognition(v_priya, ARRAY[v_priya], NULL, NULL, NULL, 'to myself', 10,
              NULL, 'praise', '0e6b2a2f-2222-4a15-9b3e-0000000000ab');
     INSERT INTO verify_results VALUES ('C5_self_praise', false, 'self accepted');
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLSTATE = 'P0001' OR left(SQLSTATE, 4) = 'C549' THEN
     INSERT INTO verify_results VALUES ('C5_self_praise', true, 'blocked: ' || SQLERRM);
-  WHEN OTHERS THEN
-    INSERT INTO verify_results VALUES ('C5_self_praise', true, 'blocked: ' || SQLERRM);
+    ELSE
+      RAISE;  -- an unexpected error inside the suite must fail the suite
+    END IF;
   END;
 
-  -- ---------- C6: routing — 150-pt submit routes (band 2) even from a different giver ----------
+  -- ---------- C6: routing — 120-pt submit routes (band 2) even from a different giver ----------
   v_rec := fn_submit_recognition(v_sam, ARRAY[v_brooke], NULL, NULL, NULL, 'routed kudos', 120, NULL, 'praise',
            '0e6b2a2f-3333-4a15-9b3e-0000000000ac');
   SELECT ai.id INTO v_item FROM approval_item ai WHERE ai.recognition_id = v_rec;

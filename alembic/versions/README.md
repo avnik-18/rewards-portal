@@ -10,8 +10,12 @@ only — never apply the design copy to a database.
   every upgrade/downgrade is a single Alembic transaction: a failure rolls the
   schema back *and* leaves `alembic_version` untouched (safe to re-run).
 - Offline review (`alembic upgrade head --sql`) emits the full SQL.
+- Large PL/pgSQL function bodies live in `alembic/sql/functions/<revision>_<function>.sql`
+  and are loaded with `op.execute((SQL_DIR / ...).read_text())` — edit that file
+  when changing a function; the revision just wires it in.
 
-`app/models/schema.py` is a hand-mirrored copy of the head schema — never
-hand-edit it and never hand-edit tables; hand-write a new revision here.
+`app/models/` mirrors the head schema one module per bounded context
+(people / money / recognition / approvals / awards / config_audit) — never
+hand-edit tables; hand-write a new revision here.
 
 All schema mutations go through this folder.

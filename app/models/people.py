@@ -11,7 +11,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import (
     Base,
     app_role,
-    delegation_scope,
     person_source,
     person_status,
     team_member_role,
@@ -26,7 +25,7 @@ class Users(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
     employee_code: Mapped[str] = mapped_column(String, unique=True)
     email: Mapped[str] = mapped_column(String, unique=True)
-    external_id: Mapped[UUID | None] = mapped_column(Text)
+    external_id: Mapped[str | None] = mapped_column(Text)
     full_name: Mapped[str] = mapped_column(Text)
     title: Mapped[str | None] = mapped_column(Text)
     department: Mapped[str | None] = mapped_column(Text)
@@ -75,14 +74,3 @@ class RoleAssignment(Base):
     granted_at: Mapped[datetime] = mapped_column(DateTime)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime)
 
-
-class ApprovalDelegation(Base):
-    __tablename__ = "approval_delegation"
-
-    id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("gen_random_uuid()"))
-    delegator_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
-    delegate_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
-    valid_from: Mapped[datetime] = mapped_column(DateTime)
-    valid_to: Mapped[datetime | None] = mapped_column(DateTime)
-    scope: Mapped[str] = mapped_column(delegation_scope, default="all")
-    revoked_at: Mapped[datetime | None] = mapped_column(DateTime)

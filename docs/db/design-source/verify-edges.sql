@@ -21,15 +21,23 @@ BEGIN
   BEGIN
     PERFORM fn_admin_set_budget(v_priya, v_period, 300, v_rahul);
     INSERT INTO verify2 VALUES ('D1_budget_rbac', false, 'no role needed?!');
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLSTATE = 'P0001' OR left(SQLSTATE, 4) = 'C549' THEN
     INSERT INTO verify2 VALUES ('D1_budget_rbac', true, 'blocked: ' || SQLERRM);
+    ELSE
+      RAISE;  -- an unexpected error inside the suite must fail the suite
+    END IF;
   END;
   -- SoD: admin cannot change their own
   BEGIN
     PERFORM fn_admin_set_budget(v_admin, v_period, 300, v_admin);
     INSERT INTO verify2 VALUES ('D1_budget_sod', false, 'self allowed?!');
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLSTATE = 'P0001' OR left(SQLSTATE, 4) = 'C549' THEN
     INSERT INTO verify2 VALUES ('D1_budget_sod', true, 'blocked: ' || SQLERRM);
+    ELSE
+      RAISE;  -- an unexpected error inside the suite must fail the suite
+    END IF;
   END;
   -- grant admin role to sam, raise Priya's quota to 450 (balance tops up 100 -> 300)
   INSERT INTO role_assignment (user_id, role) VALUES (v_sam, 'admin') ON CONFLICT DO NOTHING;
@@ -44,8 +52,12 @@ BEGIN
   BEGIN
     PERFORM fn_admin_set_budget(v_priya, v_period, 90, v_sam);
     INSERT INTO verify2 VALUES ('D1_budget_clawback', false, 'clawback allowed?!');
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLSTATE = 'P0001' OR left(SQLSTATE, 4) = 'C549' THEN
     INSERT INTO verify2 VALUES ('D1_budget_clawback', true, 'blocked: ' || SQLERRM);
+    ELSE
+      RAISE;  -- an unexpected error inside the suite must fail the suite
+    END IF;
   END;
 
   -- ---------- D2: routed praise + budget audit trail ----------
@@ -87,8 +99,12 @@ BEGIN
              'should not pass', 25, NULL, 'praise',
              'aaaa0000-0000-4000-8000-000000000003'::uuid);
     INSERT INTO verify2 VALUES ('D3_blocked_after', false, 'leaver submitted!');
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLSTATE = 'P0001' OR left(SQLSTATE, 4) = 'C549' THEN
     INSERT INTO verify2 VALUES ('D3_blocked_after', true, 'blocked: ' || SQLERRM);
+    ELSE
+      RAISE;  -- an unexpected error inside the suite must fail the suite
+    END IF;
   END;
 
   -- ---------- D4: condition-gated rules (annotate the existing band-3 rule) ----------
@@ -101,8 +117,12 @@ BEGIN
     INSERT INTO approval_rule (kind, version, min_points, max_points, priority, condition, is_active)
     VALUES ('points_recognition', 1, 401, 500, 4, '{"nope":true}'::jsonb, true);
     INSERT INTO verify2 VALUES ('D4_bad_condition_rejected', false, 'bad shape accepted');
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLSTATE = 'P0001' OR left(SQLSTATE, 4) = 'C549' THEN
     INSERT INTO verify2 VALUES ('D4_bad_condition_rejected', true, 'rejected: ' || SQLERRM);
+    ELSE
+      RAISE;  -- an unexpected error inside the suite must fail the suite
+    END IF;
   END;
   -- two recipients, 210 pts -> the conditional rule (priority 2) wins
   UPDATE to_recog_points SET balance = allocated;  -- deterministic spend base
@@ -118,8 +138,12 @@ BEGIN
               'conditional skipped', 210, NULL, 'praise',
               'aaaa0000-0000-4000-8000-000000000005'::uuid);
     INSERT INTO verify2 VALUES ('D4_condition_not_matched', false, 'unconditional match happened');
-  EXCEPTION WHEN raise_exception THEN
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLSTATE = 'P0001' OR left(SQLSTATE, 4) = 'C549' THEN
     INSERT INTO verify2 VALUES ('D4_condition_not_matched', true, 'no route: ' || SQLERRM);
+    ELSE
+      RAISE;  -- an unexpected error inside the suite must fail the suite
+    END IF;
   END;
   -- restore the band-3 rule for later checks
   UPDATE approval_rule SET condition = NULL, version_note = 'L1 -> L2 -> L3 (finance head)'
@@ -127,7 +151,8 @@ BEGIN
 
   -- ---------- D5: notifications + outbox dedupe ----------
   RAISE NOTICE 'START D5';
-  -- an approved release must have queued a praise notification (routed praise: 150 = band 2)
+  -- praise notifications are queued by fn_release_recognition (D1's auto-band
+  -- release already ran) — this counts DISTINCT praise dedupe keys taken so far
   UPDATE to_recog_points SET balance = allocated;  -- deterministic spend base
   v_rec := fn_submit_recognition(v_priya, ARRAY[v_brooke], NULL, NULL, NULL,
             'notify release test', 150, NULL, 'praise',
@@ -147,6 +172,44 @@ BEGIN
   PERFORM fn_notify(v_priya, 'praise_received', 'in_app', '{"x":1}'::jsonb, 'dedupe-test-1');
   v_i := (SELECT count(*) FROM notification WHERE dedupe_key='dedupe-test-1');
   INSERT INTO verify2 VALUES ('D5_notify_dedupe', v_i = 1, 'rows=' || v_i);
+
+  -- ---------- D7: media placement registry (0020_media_asset) ----------
+  RAISE NOTICE 'START D7';
+  -- https-only URL / poster / cta_url
+  BEGIN
+    INSERT INTO media_asset (kind, title, url)
+      VALUES ('news_banner', 'bad link', 'http://cdn.emids.test/x.png');
+    INSERT INTO verify2 VALUES ('D7_media_https_only', false, 'http URL accepted');
+  EXCEPTION WHEN check_violation THEN
+    INSERT INTO verify2 VALUES ('D7_media_https_only', true, 'blocked: ' || SQLERRM);
+  END;
+  -- a CTA target without a label is unrenderable
+  BEGIN
+    INSERT INTO media_asset (kind, title, url, cta_url)
+      VALUES ('news_banner', 'x', 'https://cdn.emids.test/x.png', 'https://intranet.emids.test/x');
+    INSERT INTO verify2 VALUES ('D7_media_cta_pair', false, 'cta_url without cta_label accepted');
+  EXCEPTION WHEN check_violation THEN
+    INSERT INTO verify2 VALUES ('D7_media_cta_pair', true, 'blocked: ' || SQLERRM);
+  END;
+  -- a live window cannot end before it starts
+  BEGIN
+    INSERT INTO media_asset (kind, title, url, effective_from, effective_to)
+      VALUES ('news_banner', 'x', 'https://cdn.emids.test/x.png', '2026-01-05', '2026-01-01');
+    INSERT INTO verify2 VALUES ('D7_media_window', false, 'inverted window accepted');
+  EXCEPTION WHEN check_violation THEN
+    INSERT INTO verify2 VALUES ('D7_media_window', true, 'blocked: ' || SQLERRM);
+  END;
+  -- the hero singleton: a second active unwindowed hero violates the partial index
+  BEGIN
+    INSERT INTO media_asset (kind, title, url)
+      VALUES ('hero_carousel_video', 'dup hero', 'https://cdn.emids.test/x.mp4');
+    INSERT INTO verify2 VALUES ('D7_media_hero_unique', false, 'second hero accepted');
+  EXCEPTION WHEN unique_violation THEN
+    INSERT INTO verify2 VALUES ('D7_media_hero_unique', true, 'blocked: ' || SQLERRM);
+  END;
+  -- the demo seed's media shipments are intact after the suite's churn
+  v_i := (SELECT count(*) FROM media_asset);
+  INSERT INTO verify2 VALUES ('D7_media_seed_parity', v_i = 3, 'rows=' || v_i);
 END; $$;
 
 -- sanity: every journal still balances
