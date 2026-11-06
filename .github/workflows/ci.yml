@@ -41,8 +41,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/recog
           PG_CONTAINER: ""
         run: pytest tests/ --no-cov -q
-      - name: db-verify (44 invariants)
+      - name: db-verify (44 invariants, blocking)
         run: bash scripts/db-verify.sh
         env:
           CONTAINER: ""
-        continue-on-error: true

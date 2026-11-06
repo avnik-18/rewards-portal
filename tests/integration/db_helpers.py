@@ -5,7 +5,6 @@ connection to the same Postgres the app uses. Portable to local compose,
 CI service containers, staging, or cloud DB."""
 
 import os
-import sys
 from pathlib import Path
 
 from sqlalchemy import create_engine, text
@@ -30,18 +29,18 @@ DB_READY = db_ready()
 
 
 def db_exec(q: str) -> str:
-    """Execute a SQL statement and return the string result of the first column."""
-    try:
-        with _SYNC_ENGINE.connect() as c:
-            result = c.execute(text(q))
-            c.commit()
-            if result.returns_rows:
-                row = result.fetchone()
-                if row is not None and len(row) >= 1 and row[0] is not None:
-                    return str(row[0])
-            return ""
-    except Exception as e:
-        print(f"WARNING: db_exec failed: {e!r}", file=sys.stderr)
+    """Execute a SQL statement and return the string result of the first column.
+
+    Raises on failure (a broken helper must fail the test, not silently run
+    it against stale state). Returns "" when the statement yields no row or
+    a NULL first column — the caller decides what that means."""
+    with _SYNC_ENGINE.connect() as c:
+        result = c.execute(text(q))
+        c.commit()
+        if result.returns_rows:
+            row = result.fetchone()
+            if row is not None and row[0] is not None:
+                return str(row[0])
         return ""
 
 

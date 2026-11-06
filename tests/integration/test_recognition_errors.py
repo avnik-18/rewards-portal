@@ -82,7 +82,7 @@ def test_pending_approvals_inbox_shapes_without_500() -> None:
     seed_demo_if_missing()
     recipient_id = db_exec("SELECT id FROM users WHERE employee_code='E-BR'")
     # deterministic allowance headroom for the 0-approval-band recognition
-    assert db_exec("UPDATE to_recog_points SET balance = allocated") is not None
+    db_exec("UPDATE to_recog_points SET balance = allocated")
     with TestClient(create_app()) as client:
         r = client.post("/api/v1/recognitions", headers={"X-Demo-User": "E-PR"}, json={
             "to_user_ids": [recipient_id], "points": 150,

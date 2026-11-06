@@ -46,12 +46,18 @@ class IdentityConfigError(RuntimeError):
 
 
 def require_identity_configured() -> None:
-    """Refuse to start without an explicit identity configuration.
+    """Start-up guard: refuse to boot on any fail-open deployment.
 
-    Called by main.create_app: ENVIRONMENT must be set, and non-local
-    environments must have the Entra values — so a missing variable can no
-    longer fall back to the X-Demo-User demo identity in a deployed
-    environment (the reviewer's fail-open concern)."""
+    Called by main.create_app:
+    - ENVIRONMENT must be set, and non-local environments must have the Entra
+      values — so a missing variable can no longer fall back to the
+      X-Demo-User demo identity in a deployed environment (the reviewer's
+      fail-open concern).
+    - ALLOWED_HOSTS must be an explicit, non-wildcard list outside local
+      (Host-header validation meaningfully on, reviewer comment).
+    - Outside local, Graph email must be configured — LogEmailSender raises
+      on every send, so without this a misconfigured deployment boots fine
+      and then fails every notification at runtime (reviewer fail-late comment)."""
     settings = get_settings()
     if not settings.database_url:
         raise IdentityConfigError(
@@ -69,6 +75,22 @@ def require_identity_configured() -> None:
             "configuration (ENTRA_TENANT_ID / ENTRA_CLIENT_ID / "
             "ENTRA_CLIENT_SECRET / ENTRA_AUTHORITY) — refusing to start"
         )
+    if settings.environment != "local":
+        hosts = [h.strip() for h in settings.allowed_hosts.split(",") if h.strip()]
+        if not hosts or "*" in hosts:
+            raise IdentityConfigError(
+                f"ENVIRONMENT={settings.environment} requires an explicit "
+                "ALLOWED_HOSTS list (comma-separated host names) — refusing "
+                "to start with Host-header validation disabled"
+            )
+        if not (settings.graph_mailbox and settings.graph_client_id
+                and settings.graph_client_secret and settings.graph_tenant_id):
+            raise IdentityConfigError(
+                f"ENVIRONMENT={settings.environment} requires the Graph email "
+                "configuration (GRAPH_MAILBOX / GRAPH_CLIENT_ID / "
+                "GRAPH_CLIENT_SECRET / GRAPH_TENANT_ID) — the log-only sender "
+                "cannot serve notifications in deployment — refusing to start"
+            )
 
 
 async def _load_oidc_config() -> dict[str, Any]:

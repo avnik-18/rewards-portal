@@ -16,10 +16,13 @@ from app.core.config import get_settings
 # a single loop for the process' lifetime; under pytest each TestClient spins
 # its own loop, so a naively cached engine trips 'Event loop is closed' on the
 # second test file. Tracking the owning loop makes engine reuse loop-safe
-# (rebuilds only when the loop changes — never in production).
+# (rebuilds only when the loop changes — never in production). The factory
+# tracks its OWN loop id (not the engine's): otherwise get_engine() on a new
+# loop rebuilds the engine while a cached factory still binds the old one.
 _ENGINE: AsyncEngine | None = None
 _ENGINE_LOOP_ID: int | None = None
 _SESSION_FACTORY: async_sessionmaker[AsyncSession] | None = None
+_FACTORY_LOOP_ID: int | None = None
 
 
 def get_engine() -> AsyncEngine:
@@ -32,10 +35,11 @@ def get_engine() -> AsyncEngine:
 
 
 def get_session_factory() -> async_sessionmaker[AsyncSession]:
-    global _SESSION_FACTORY, _ENGINE_LOOP_ID
+    global _SESSION_FACTORY, _FACTORY_LOOP_ID
     loop_id = id(asyncio.get_running_loop())
-    if _SESSION_FACTORY is None or _ENGINE_LOOP_ID != loop_id:
+    if _SESSION_FACTORY is None or _FACTORY_LOOP_ID != loop_id:
         _SESSION_FACTORY = async_sessionmaker(get_engine(), expire_on_commit=False)
+        _FACTORY_LOOP_ID = loop_id
     return _SESSION_FACTORY
 
 

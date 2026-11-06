@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     # CORS — explicit origins; never "*" with credentials
     cors_origins: str = ""  # comma-separated list
 
+    # Trusted-host list (Host-header validation drives off this). Comma-
+    # separated; "*" is only acceptable for local dev. The start-up guard in
+    # app/core/security.require_identity_configured refuses a non-local boot
+    # with an empty or wildcard list.
+    allowed_hosts: str = ""
+
     # gateway rate-limiting is documented; no hardcoded limiter in v1
 
     # Entra ID SSO — required whenever environment != local

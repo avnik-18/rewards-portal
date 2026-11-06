@@ -38,7 +38,7 @@ def test_retry_with_same_key_replays_original() -> None:
 
     with TestClient(create_app()) as client:
         # deterministic allowance for both actors
-        assert db_exec("UPDATE to_recog_points SET balance = allocated") is not None
+        db_exec("UPDATE to_recog_points SET balance = allocated")
         first_key = key
         body = {"to_user_ids": [recipient_id], "points": 30,
                 "message": "idempotency fixture — auto band"}
