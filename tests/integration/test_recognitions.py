@@ -26,7 +26,7 @@ from tests.integration.db_helpers import (
     db_exec as _db_exec,
 )
 from tests.integration.db_helpers import (
-    db_ready as DB_READY,
+    DB_READY,
 )
 from tests.integration.db_helpers import (
     seed_demo_if_missing,
