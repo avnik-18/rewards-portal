@@ -19,17 +19,15 @@ import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import create_app  # noqa: E402
+from tests.integration.db_helpers import (
+    DB_READY,
+    seed_demo_if_missing,
+)
 from tests.integration.db_helpers import (  # noqa: E402
     allowance_balance as _allowance_balance,
 )
 from tests.integration.db_helpers import (
     db_exec as _db_exec,
-)
-from tests.integration.db_helpers import (
-    DB_READY,
-)
-from tests.integration.db_helpers import (
-    seed_demo_if_missing,
 )
 from tests.integration.db_helpers import (
     wallet_balance as _wallet_balance,

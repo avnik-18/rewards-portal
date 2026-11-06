@@ -25,7 +25,7 @@ _GRAPH_AUTH_URL = "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token"
 _GRAPH_SEND_URL = "https://graph.microsoft.com/v1.0/users/{mailbox}/sendMail"
 _GRAPH_SCOPE = "https://graph.microsoft.com/.default"
 _PII_HASH_LEN = 8
-_TOKEN_BUFFER_MINS = 300
+_TOKEN_REFRESH_BUFFER_SECONDS = 300
 
 _cached_token: str | None = None
 _token_expires_at: float = 0.0
@@ -107,7 +107,7 @@ class GraphMailSender(EmailSender):
         payload = response.json()
         _cached_token = payload["access_token"]
         _token_expires_at = time.time() + max(
-            int(payload.get("expires_in", 3600)) - _TOKEN_BUFFER_MINS, 60
+            int(payload.get("expires_in", 3600)) - _TOKEN_REFRESH_BUFFER_SECONDS, 60
         )
         return _cached_token
 
