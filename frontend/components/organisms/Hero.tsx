@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Pause, Play } from 'lucide-react'
 import { Mascot } from '../atoms'
 
 const RECOGNIZE_PHRASES = [
@@ -83,51 +84,61 @@ function RecognizeCycle({ className = '' }: { className?: string }) {
 }
 
 function HeroBackdrop() {
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [videoMissing, setVideoMissing] = useState(false)
-  // sir: respects prefers-reduced-motion — poster instead of autoplaying video
-  const [reducedMotion, setReducedMotion] = useState(false)
+  // sir's a11y review #4: the poster is the default for SSR AND the first
+  // client paint; <video> mounts only once JS confirms motion is allowed, so
+  // reduced-motion users and no-JS renders never get autoplay at all.
+  const [videoAllowed, setVideoAllowed] = useState(false)
+  const [paused, setPaused] = useState(false)
 
   useEffect(() => {
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const updatePrefersMotion = () => setReducedMotion(motionQuery.matches)
-    updatePrefersMotion()
-    motionQuery.addEventListener('change', updatePrefersMotion)
-    return () => motionQuery.removeEventListener('change', updatePrefersMotion)
+    const syncMotionState = () => setVideoAllowed(!motionQuery.matches)
+    syncMotionState()
+    motionQuery.addEventListener('change', syncMotionState)
+    return () => motionQuery.removeEventListener('change', syncMotionState)
   }, [])
 
-  const showPoster = reducedMotion || videoMissing
-
-  const pauseVideo = (event: ReactMouseEvent<HTMLVideoElement>) => {
-    event.currentTarget.pause()
-  }
-
-  const playVideo = (event: ReactMouseEvent<HTMLVideoElement>) => {
-    void event.currentTarget.play()
+  // WCAG 2.2.2 — autoplaying motion needs a real, keyboard-operable pause
+  // control (click-on-video was neither visible nor reachable at -z-10)
+  const togglePlayback = () => {
+    const videoNode = videoRef.current
+    if (!videoNode) return
+    if (videoNode.paused) void videoNode.play()
+    else videoNode.pause()
   }
 
   return (
     <div className="absolute -inset-x-8 -bottom-10 -top-16 -z-10 overflow-hidden">
-      {showPoster ? (
-        <Image src="/emids-hero.webp" alt="" fill className="object-cover" sizes="100vw" />
+      {videoAllowed && !videoMissing ? (
+        <>
+          <video
+            ref={videoRef}
+            className="absolute inset-0 h-full w-full object-cover"
+            src="/emids-site-hero.mp4"
+            poster="/emids-hero.webp"
+            aria-hidden
+            autoPlay
+            muted
+            loop
+            playsInline
+            onPlay={() => setPaused(false)}
+            onPause={() => setPaused(true)}
+            onError={() => setVideoMissing(true)}
+          />
+          <button
+            type="button"
+            onClick={togglePlayback}
+            aria-pressed={paused}
+            className="absolute right-3 bottom-3 pointer-events-auto z-10 flex items-center gap-2 rounded-full bg-navy-deep/60 px-3 py-1.5 text-[12px] font-semibold text-white/90 backdrop-blur-sm transition hover:bg-navy-deep/80"
+          >
+            {paused ? <Play size={14} aria-hidden /> : <Pause size={14} aria-hidden />}
+            {paused ? 'Play background video' : 'Pause background video'}
+          </button>
+        </>
       ) : (
-        // sir: lazy-load (preload=none) so the 11 MB video is not downloaded on
-        // every dashboard visit — mobile especially; compression targets <2MB
-        // and CDN/LFS follow-up noted in the PR. Click toggles play/pause
-        // (WCAG 2.2.2 — a pause control for autoplaying motion).
-        <video
-          className="absolute inset-0 h-full w-full cursor-pointer object-cover"
-          src="/emids-site-hero.mp4"
-          poster="/emids-hero.webp"
-          preload="none"
-          autoPlay
-          muted
-          loop
-          playsInline
-          onError={() => setVideoMissing(true)}
-          onClick={(clickEvent) =>
-            clickEvent.currentTarget.paused ? void playVideo(clickEvent) : pauseVideo(clickEvent)
-          }
-        />
+        <Image src="/emids-hero.webp" alt="" fill className="object-cover" sizes="100vw" />
       )}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#030d1c]/80 via-[#030d1c]/60 to-[#030d1c]/55" />
     </div>

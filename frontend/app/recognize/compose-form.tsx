@@ -10,7 +10,7 @@ import ToRecipientField from './to-recipient-field'
 import ValuePicker from './value-picker'
 import type { ComposeFormApi } from '@/hooks/use-compose-form'
 import { useComposeForm } from '@/hooks/use-compose-form'
-import type { Person } from '@/lib/mock-data'
+import type { Person } from '@/lib/data-api'
 
 export interface ComposeFormProps {
   /** Recognizable teammates, sorted by name. */

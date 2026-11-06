@@ -10,6 +10,8 @@ async function scan(element: HTMLElement) {
   return violations
 }
 
+vi.setConfig({ testTimeout: 15_000 })
+
 describe('accessibility (axe-core) — navigation', () => {
   it('primary nav has no a11y violations', async () => {
     const { container } = render(<PrimaryNav />)

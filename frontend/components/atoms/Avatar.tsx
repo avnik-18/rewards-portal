@@ -1,4 +1,4 @@
-import { person, initials } from '@/lib/mock-data-parts/people'
+import { person, initials } from '@/lib/data-api'
 
 const GRADIENTS = [
   'from-[#2563eb] to-[#4facfe]',

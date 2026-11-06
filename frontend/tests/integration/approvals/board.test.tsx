@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import ApprovalsBoard from '@/components/organisms/ApprovalsBoard'
 import { APPROVALS } from '@/lib/mock-data'
@@ -29,7 +29,11 @@ describe('ApprovalsBoard', () => {
   })
 
   it('declining is locked until a note is typed — the verdict ships with it', () => {
-    render(<ApprovalsBoard items={APPROVALS} />)
+    // sir's review: the "Next time" pill existed before the click, so the
+    // assertion now proves the BUTTON LEFT and the verdict actually shipped
+    // with the note through onDecide
+    const spy = vi.fn()
+    render(<ApprovalsBoard items={APPROVALS} onDecide={spy} />)
 
     const decline = screen.getByRole('button', { name: 'Next time' }) as HTMLButtonElement
     // no note typed yet: the decline button stays disabled (audit-trail rule)
@@ -38,9 +42,14 @@ describe('ApprovalsBoard', () => {
     fireEvent.change(screen.getByLabelText('Decision note'), { target: { value: 'context lost this sprint' } })
     expect(decline.disabled).toBe(false)
 
+    expect(spy).not.toHaveBeenCalled()
     fireEvent.click(decline)
-    // the recorded pill shows the "Next time" verdict, the action bar is gone
-    expect(screen.getAllByText('Next time').length).toBeGreaterThan(0)
+
+    // the action bar is actually gone: the decline button no longer exists
+    expect(screen.queryByRole('button', { name: 'Next time' })).toBeNull()
+    // the note ships with the verdict — the API's 422 rule is honoured
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith('declined', 'context lost this sprint')
   })
 
   it('history folder lists decided items and empty folders show empty copy', () => {

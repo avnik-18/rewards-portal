@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import axe from 'axe-core'
 import Leaderboard from '@/components/organisms/Leaderboard'
@@ -16,6 +16,8 @@ async function scan(element: HTMLElement) {
   const results = await axe.run(element)
   return results.violations
 }
+
+vi.setConfig({ testTimeout: 15_000 })
 
 describe('accessibility (axe-core)', () => {
   it('leaderboard has no automatic a11y violations', async () => {

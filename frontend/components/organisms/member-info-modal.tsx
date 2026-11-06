@@ -2,8 +2,8 @@
 
 import { Send } from 'lucide-react'
 import { Avatar, Btn, Card, Chip, Modal, CloseX } from '@/components/atoms'
-import { CORE_VALUES, type ValueKey } from '@/lib/mock-data-parts/values'
-import { person } from '@/lib/mock-data-parts/people'
+import { CORE_VALUES, type ValueKey } from '@/lib/data-api'
+import { person } from '@/lib/data-api'
 import type { TeamRow } from '@/lib/data-api'
 
 interface MemberInfoModalProps {

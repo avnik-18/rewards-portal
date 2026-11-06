@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { sendRecognition, type CreatedRecognition } from '@/lib/data-api'
 import { validateRecognition, hasErrors, type FieldErrors } from '@/lib/validate'
-import type { ValueKey } from '@/lib/mock-data'
+import type { ValueKey } from '@/lib/data-api'
 
 /** The form snapshot submit needs at the moment the send is pressed. */
 export interface SendInputSnapshot {

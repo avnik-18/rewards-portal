@@ -1,6 +1,6 @@
 'use client'
 
-import { CORE_VALUES, VALUE_KEYS, VALUE_TEMPLATES } from '@/lib/mock-data-parts/values'
+import { CORE_VALUES, VALUE_KEYS, VALUE_TEMPLATES } from '@/lib/data-api'
 
 /** The value's banner variants, or a fallback image without a value chip. */
 export function imagesForValueLabel(label?: string): string[] {

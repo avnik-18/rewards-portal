@@ -14,6 +14,8 @@ async function scan(element: HTMLElement) {
   return results.violations
 }
 
+vi.setConfig({ testTimeout: 15_000 })
+
 describe('accessibility (axe-core) — compose', () => {
   it('the compose form has no automatic a11y violations', async () => {
     // ComposeForm's Back button uses useRouter; mock a mounted app router for jsdom

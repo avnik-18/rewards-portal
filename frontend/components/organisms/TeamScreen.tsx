@@ -9,7 +9,7 @@ import TeamPeopleTable from './team-people-table'
 import TeamTabChips from './team-tab-chips'
 import MyTree from '@/components/organisms/MyTree'
 import ApprovalsBoard from '@/components/organisms/ApprovalsBoard'
-import type { ApprovalItem } from '@/lib/mock-data'
+import type { ApprovalItem } from '@/lib/data-api'
 import type { TeamRow, RecognitionTreeData } from '@/lib/data-api'
 import { fmtNum } from '@/lib/format'
 

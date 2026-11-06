@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { activeTemplateFor, prefillUpdate, AI_DRAFTS, POINT_PRESETS, personLabel } from '@/lib/compose'
-import { CORE_VALUES, VALUE_TEMPLATES, type ValueKey } from '@/lib/mock-data'
+import { CORE_VALUES, VALUE_TEMPLATES, type ValueKey } from '@/lib/data-api'
 import { useRecipients, type ComposePerson } from './use-recipients'
 import { useSendRecognition } from './use-send-recognition'
 

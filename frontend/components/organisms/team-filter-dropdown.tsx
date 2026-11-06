@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
-import { TEAMS } from '@/lib/mock-data-parts/team'
+import { TEAMS } from '@/lib/data-api'
 
 export type TeamFilter = 'all' | 'humana' | 'dev'
 

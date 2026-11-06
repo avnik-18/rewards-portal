@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { CalendarClock, ChevronLeft, ChevronRight, Users } from 'lucide-react'
 import { Card } from '../atoms'
-import type { Slide } from '@/lib/mock-data'
+import type { Slide } from '@/lib/data-api'
 
 export default function EoQShowcase({ slides }: { slides: Slide[] }) {
   const [onScreen, setOnScreen] = useState(0)

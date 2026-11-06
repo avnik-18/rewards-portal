@@ -2,7 +2,7 @@ import { Trophy } from 'lucide-react'
 import { Avatar } from '../atoms'
 import { Card } from '../atoms'
 import { fmtNum } from '@/lib/format'
-import type { LeaderRow } from '@/lib/mock-data'
+import type { LeaderRow } from '@/lib/data-api'
 
 export interface LeaderboardProps {
   /** Leaderboard rows, already sorted best-first; names resolved by the data layer. */

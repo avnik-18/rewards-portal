@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { Avatar, Card } from '@/components/atoms'
 import TemplateCard from '@/components/molecules/TemplateCard'
 import { kindLabel, type ApprovalVerdict } from '@/lib/approval'
-import { CORE_VALUES } from '@/lib/mock-data-parts/values'
-import { person } from '@/lib/mock-data-parts/people'
-import type { ApprovalItem } from '@/lib/mock-data'
+import { CORE_VALUES } from '@/lib/data-api'
+import { person } from '@/lib/data-api'
+import type { ApprovalItem } from '@/lib/data-api'
 
 const VERDICT_LABEL: Record<ApprovalVerdict, string> = {
   approved: 'Approved',

@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 import { Avatar } from '@/components/atoms'
 import { EMAIL_RE } from '@/lib/compose'
 import type { ComposeFormApi } from '@/hooks/use-compose-form'
-import { person } from '@/lib/mock-data-parts/people'
+import { person } from '@/lib/data-api'
 
 /** The "cc" field: auto-added managers, chosen extras, typed filter. */
 export default function CcRecipientField({ form }: { form: ComposeFormApi }) {

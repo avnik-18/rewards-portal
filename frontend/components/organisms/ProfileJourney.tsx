@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { Avatar, Card, Chip, Segmented, SectionTitle } from '@/components/atoms'
-import { CORE_VALUES } from '@/lib/mock-data-parts/values'
-import { person } from '@/lib/mock-data-parts/people'
-import type { Post } from '@/lib/mock-data'
+import { CORE_VALUES } from '@/lib/data-api'
+import { person } from '@/lib/data-api'
+import type { Post } from '@/lib/data-api'
 
 export interface ProfileJourneyProps {
   /** Recognitions this person received, newest first. */

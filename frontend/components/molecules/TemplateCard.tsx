@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { Avatar } from '@/components/atoms'
-import type { CoreValue } from '@/lib/mock-data'
+import type { CoreValue } from '@/lib/data-api'
 
 export interface TemplateCardProps {
   tpl?: { name: string; emoji: string }

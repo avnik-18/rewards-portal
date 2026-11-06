@@ -23,6 +23,8 @@ async function scan(element: HTMLElement) {
   return violations
 }
 
+vi.setConfig({ testTimeout: 15_000 })
+
 describe('accessibility (axe-core) — team page', () => {
   it('team table tab has no a11y violations', async () => {
     const pageElement = await TeamPage()

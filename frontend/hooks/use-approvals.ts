@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { ApprovalItem } from '@/lib/mock-data'
+import type { ApprovalItem } from '@/lib/data-api'
 import type { ApprovalDecision, ApprovalVerdict } from '@/lib/approval'
 
 /**

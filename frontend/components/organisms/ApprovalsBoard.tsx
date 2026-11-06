@@ -5,8 +5,8 @@ import { CheckCircle2, UserCheck } from 'lucide-react'
 import ApprovalListItem from '@/components/molecules/ApprovalListItem'
 import ApprovalDetail from '@/components/organisms/approval-detail'
 import { useApprovals } from '@/hooks/use-approvals'
-import { filterForTab } from '@/lib/approval'
-import type { ApprovalItem } from '@/lib/mock-data'
+import { filterForTab, type ApprovalVerdict } from '@/lib/approval'
+import type { ApprovalItem } from '@/lib/data-api'
 
 const TABS = [
   { key: 'inbox', label: 'To approve' },
@@ -20,13 +20,15 @@ export interface ApprovalsBoardProps {
   items: ApprovalItem[]
   /** Person id whose steps this viewer approves; defaults to the signed-in user. */
   viewerId?: string
+  /** Test/observer hook — fires with every decision taken in the board. */
+  onDecide?: (verdict: ApprovalVerdict, note: string) => void
 }
 
 /**
  * Client island: three-folder inbox with a reading pane. List + counts come
  * from lib/approval.ts pure helpers; decisions live in useApprovals.
  */
-export default function ApprovalsBoard({ items, viewerId = 'me' }: ApprovalsBoardProps) {
+export default function ApprovalsBoard({ items, viewerId = 'me', onDecide }: ApprovalsBoardProps) {
   const { decided, decideItem } = useApprovals(items)
   const [tab, setTab] = useState<Tab>('inbox')
   const [selectedId, setSelectedId] = useState<string | null>(items[0]?.id ?? null)
@@ -100,7 +102,10 @@ export default function ApprovalsBoard({ items, viewerId = 'me' }: ApprovalsBoar
               key={selected.id}
               item={selected}
               verdict={decided[selected.id]?.verdict}
-              onDecide={(verdict, note) => decideItem(selected, verdict, note)}
+              onDecide={(verdict, note) => {
+                decideItem(selected, verdict, note)
+                onDecide?.(verdict, note)
+              }}
               viewerId={viewerId}
             />
           ) : (

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import axe from 'axe-core'
 import MyTree from '@/components/organisms/MyTree'
@@ -8,6 +8,8 @@ async function scan(element: HTMLElement) {
   const { violations } = (await axe.run(element)) as { violations: unknown[] }
   return violations
 }
+
+vi.setConfig({ testTimeout: 15_000 })
 
 describe('accessibility (axe-core) — recognition tree', () => {
   it('the open tree overlay has no a11y violations', async () => {

@@ -1,7 +1,7 @@
 import { Trophy } from 'lucide-react'
 import { Card } from '@/components/atoms'
 import LedgerItem from '@/components/molecules/LedgerItem'
-import type { LedgerEntry } from '@/lib/mock-data'
+import type { LedgerEntry } from '@/lib/data-api'
 
 export interface RewardsLedgerProps {
   entries: LedgerEntry[]

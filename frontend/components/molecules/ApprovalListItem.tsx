@@ -1,6 +1,6 @@
 import { Avatar } from '@/components/atoms'
-import { person } from '@/lib/mock-data-parts/people'
-import type { ApprovalItem } from '@/lib/mock-data'
+import { person } from '@/lib/data-api'
+import type { ApprovalItem } from '@/lib/data-api'
 
 export interface ApprovalListItemProps {
   item: ApprovalItem

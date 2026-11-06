@@ -3,9 +3,9 @@
 import { Eye, Send } from 'lucide-react'
 import type { RefObject } from 'react'
 import { Avatar, Btn, Card, Chip } from '@/components/atoms'
-import { CORE_VALUES } from '@/lib/mock-data-parts/values'
-import { TEAMS, type TeamId } from '@/lib/mock-data-parts/team'
-import { person, personDisplayName } from '@/lib/mock-data-parts/people'
+import { CORE_VALUES } from '@/lib/data-api'
+import { TEAMS, type TeamId } from '@/lib/data-api'
+import { person, personDisplayName } from '@/lib/data-api'
 import type { TeamRow } from '@/lib/data-api'
 
 const TEAM_CHIP: Record<TeamId, string> = {

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { personLabel, EMAIL_RE } from '@/lib/compose'
-import { person } from '@/lib/mock-data'
+import { person } from '@/lib/data-api'
 
 /** A directory row the composer can search and pick from. */
 export interface ComposePerson {

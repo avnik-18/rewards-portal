@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+next-env.d.ts
+out/
+
+# build / typecheck artifacts
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+dist/
+
+# test artifacts
+test-results/
+playwright-report/
+coverage/
+.vite/
+last-run.json
+
+# tooling
+.eslintcache
+.prettierrc/
+*.log
+
+# scratch
+*.local

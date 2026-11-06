@@ -3,7 +3,7 @@
 import { ArrowRight } from 'lucide-react'
 import { fmtNum } from '@/lib/format'
 import { useCountUp } from '@/lib/use-count-up'
-import type { RewardSummary } from '@/lib/mock-data'
+import type { RewardSummary } from '@/lib/data-api'
 
 export interface RewardsBalanceHeroProps {
   summary: RewardSummary

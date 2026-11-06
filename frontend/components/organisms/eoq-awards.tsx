@@ -1,6 +1,6 @@
 import { Trophy } from 'lucide-react'
 import { Card } from '@/components/atoms'
-import type { EoQAward } from '@/lib/mock-data'
+import type { EoQAward } from '@/lib/data-api'
 
 export interface MyEoQAwardsProps {
   awards: EoQAward[]

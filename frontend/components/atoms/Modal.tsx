@@ -19,17 +19,30 @@ export interface ModalProps {
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
+/** The modal body is position:fixed, so offsetParent is always null in real
+ *  browsers — visibility is hidden-ness, not layout ancestors. */
+const isShown = (el: HTMLElement) => {
+  if (el.hidden) return false
+  const style = window.getComputedStyle(el)
+  return style.display !== 'none' && style.visibility !== 'hidden'
+}
+
 export function Modal({ open, onClose, children, wide = false, label = 'Dialog' }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
-  const lastFocused = useRef<HTMLElement | null>(null)
+  // sir's review: callers pass inline arrow onClose, so the open-effect must
+  // read the latest callback without re-running — a re-run while open would
+  // clobber the stored trigger and steal focus back to the first control
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
 
   useEffect(() => {
-    if (!open) {
-      // sir: focus returns to the trigger on close
-      lastFocused.current?.focus?.()
-      return
-    }
-    lastFocused.current = document.activeElement as HTMLElement
+    if (!open) return
+    // The trigger is whatever had focus when the dialog opened; focus returns
+    // to it on unmount, which also covers callers that close by unmounting
+    // the whole modal (no '!open' branch ever runs for them).
+    const trigger = document.activeElement as HTMLElement | null
 
     const dialogNode = dialogRef.current
     // sir: initial focus — first focusable element inside the dialog
@@ -38,14 +51,12 @@ export function Modal({ open, onClose, children, wide = false, label = 'Dialog' 
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose()
+        onCloseRef.current()
         return
       }
       // sir: focus trap — Tab cycles inside the dialog only
       if (e.key !== 'Tab' || !dialogNode) return
-      const focusable = Array.from(dialogNode.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
-        (el) => el.offsetParent !== null,
-      )
+      const focusable = Array.from(dialogNode.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(isShown)
       if (focusable.length === 0) return
       const firstEl = focusable[0]
       const lastEl = focusable[focusable.length - 1]
@@ -64,8 +75,9 @@ export function Modal({ open, onClose, children, wide = false, label = 'Dialog' 
     return () => {
       window.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = previousOverflow
+      trigger?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
   return ReactDOM.createPortal(
@@ -76,7 +88,7 @@ export function Modal({ open, onClose, children, wide = false, label = 'Dialog' 
       aria-modal="true"
       aria-label={label}
     >
-      <div className="absolute inset-0 bg-navy-deep/50 backdrop-blur-[3px]" onClick={onClose} />
+      <div className="absolute inset-0 bg-navy-deep/50 backdrop-blur-[3px]" onClick={() => onCloseRef.current()} />
       <div
         className={`relative m-auto w-full ${wide ? 'max-w-3xl' : 'max-w-lg'} overflow-hidden rounded-t-3xl bg-white shadow-lift sm:rounded-3xl max-h-[92vh] flex flex-col animate-rise`}
       >

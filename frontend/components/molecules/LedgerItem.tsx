@@ -2,7 +2,7 @@ import { Award, ArrowDownLeft, ArrowUpRight, ShoppingBag } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { ledgerKindLabel } from '@/lib/rewards'
 import { fmtNum } from '@/lib/format'
-import type { LedgerEntry } from '@/lib/mock-data'
+import type { LedgerEntry } from '@/lib/data-api'
 
 interface KindStyle {
   icon: ReactNode

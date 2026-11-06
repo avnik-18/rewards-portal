@@ -10,21 +10,21 @@ const config = [
     ignores: ['node_modules/', 'coverage/', 'playwright-report/', 'test-results/'],
   },
   {
-    // sir's review: the UI layer must not reach the mock-data barrel directly.
-    // Pages/components read datasets through lib/data-api.ts; while the data
-    // layer is still mocks, direct imports are allowed ONLY from the specific
-    // domain module they need (lib/mock-data-parts/*). Type-only imports stay
-    // permitted so the façade swap does not have to land in one commit.
-    files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}'],
+    // sir's review #3: the rule now meets its own claim. app/, components/ and
+    // hooks/ read ONLY through '@/lib/data-api' (value AND dataset imports —
+    // type-only imports stay permitted on the façade swap path, because every
+    // façade type is re-exported from lib/data-api.ts). lib/data-api* owns the
+    // mock imports and is the single swap point when the FastAPI backend lands.
+    files: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'hooks/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
           patterns: [
             {
-              group: ['@/lib/mock-data'],
-              allowTypeImports: true,
-              message: "Read through '@/lib/data-api' (or the specific '@/lib/mock-data-parts/*' module) instead.",
+              group: ['@/lib/mock-data', '@/lib/mock-data-parts/*'],
+              allowTypeImports: false,
+              message: "Read (and define) through '@/lib/data-api' — the façade is the only layer allowed to import mock data.",
             },
           ],
         },
@@ -45,6 +45,10 @@ const config = [
       },
     },
     rules: {
+      // sir's review: every source file stays under 200 lines — enforced, not
+      // just reviewed. styles/**.css is split into partials but outside this
+      // parser's reach.
+      'max-lines': ['error', { max: 199, skipBlankLines: true, skipComments: false }],
       // PR review comment #2: descriptive names, enforced
       // - functions: camelCase (lowercase-initial ones — React components
       //   stay PascalCase and are filtered out)

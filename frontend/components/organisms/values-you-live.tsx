@@ -1,5 +1,5 @@
 import { Card } from '@/components/atoms'
-import { CORE_VALUES, type ValueLived } from '@/lib/mock-data-parts/values'
+import { CORE_VALUES, type ValueLived } from '@/lib/data-api'
 
 export interface ValuesYouLiveProps {
   values: ValueLived[]
