@@ -21,5 +21,6 @@ scripts/*
 !scripts/verify.sh
 !scripts/db-verify.sh
 !scripts/db-test-race.sh
+!scripts/dbexec.py
 !scripts/test-in-docker.sh
 !scripts/e2e_recognize.py

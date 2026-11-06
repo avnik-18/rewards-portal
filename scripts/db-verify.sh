@@ -4,8 +4,8 @@
 # 22/22 core + 25/25 edge + 2/2 race.
 #
 # Order: alembic upgrade head → self-heal check → purge → seed → suites → races → purge.
-#   bash scripts/db-verify.sh               # DB_NAME=recog; container auto-detected
-#   DB_NAME=x bash scripts/db-verify.sh
+#   bash scripts/db-verify.sh               # local compose default (DATABASE_URL asyncpg)
+#   DATABASE_URL=... bash scripts/db-verify.sh   # any reachable Postgres
 #   AUTO_SEED=0                             # no seed step (suites fail empty)
 #   CONFIRM_REBUILD=yes                     # allow the self-heal DROP SCHEMA/CASCADE
 set -u -o pipefail
@@ -25,14 +25,14 @@ for _v in "$DB_NAME" "$DB_USER" "$DB_PASS"; do
   fi
 done
 
-# container: env override → compose `db` → any running postgres:15-alpine.
-# Always print what was picked — a wrong autodetect means the purge below
-# runs against the wrong instance, so override CONTAINER on shared machines.
-CONTAINER=${CONTAINER:-$(docker ps --format '{{.Names}} {{.Image}}' \
-  | grep 'postgres:15-alpine' | grep -E 'db|applause' | head -1 | cut -d' ' -f1)}
-if [ -z "$CONTAINER" ]; then echo "no postgres container running"; exit 1; fi
-echo "container: $CONTAINER  db: $DB_NAME"
-run_sql() { docker exec -i "$CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" "$@"; }
+# Connection = DATABASE_URL, no docker exec (lead review: Docker/compose is
+# what RUNS Postgres; everything reading it goes through the same connection
+# string the app and alembic use — works against local compose, a CI service
+# container, Testcontainers or a cloud database alike). When DATABASE_URL is
+# not supplied, build the local compose default from DB_* parts.
+if [ -z "${DATABASE_URL:-}" ]; then
+  export DATABASE_URL="postgresql+asyncpg://${DB_USER}:${DB_PASS}@127.0.0.1:${DB_PORT}/${DB_NAME}"
+fi
 
 ALEMBIC=${ALEMBIC:-}
 if [ -z "$ALEMBIC" ]; then
@@ -40,7 +40,13 @@ if [ -z "$ALEMBIC" ]; then
   elif command -v alembic >/dev/null 2>&1; then ALEMBIC=alembic;
   else echo "ABORT: alembic not found (pip install -e \".[dev]\" first)"; exit 1; fi
 fi
-export DATABASE_URL="postgres://${DB_USER}:${DB_PASS}@127.0.0.1:${DB_PORT}/${DB_NAME}"
+PYTHON=${PYTHON:-}
+if [ -z "$PYTHON" ]; then
+  if [ -x ".venv/bin/python" ]; then PYTHON=".venv/bin/python";
+  elif command -v python3 >/dev/null 2>&1; then PYTHON=python3;
+  else echo "ABORT: no python found (pip install -e \".[dev]\" first)"; exit 1; fi
+fi
+run_sql() { "$PYTHON" "$DIR/scripts/dbexec.py" "$@"; }
 # revision docstrings carry typographic dashes; a POSIX-C locale would make
 # Python refuse to print them — pin UTF-8 mode for the alembic calls
 export PYTHONUTF8=1
@@ -57,7 +63,7 @@ TABLE_COUNT=$(run_sql -Atqc "SELECT count(*) FROM information_schema.tables WHER
 case "$TABLE_COUNT" in ''|*[!0-9]*) echo "ABORT: could not count public tables"; exit 1;; esac
 if [ "$TABLE_COUNT" -lt 35 ]; then
   if [ "${CONFIRM_REBUILD:-}" != "yes" ]; then
-    echo "ABORT: public schema looks incomplete ($TABLE_COUNT entries) on '$CONTAINER/$DB_NAME'."
+    echo "ABORT: public schema looks incomplete ($TABLE_COUNT entries) on '$DB_NAME'."
     echo "A rebuild DROPS EVERYTHING in it — re-run with CONFIRM_REBUILD=yes if that is intended."
     exit 1
   fi

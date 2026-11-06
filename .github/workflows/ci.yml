@@ -44,4 +44,6 @@ jobs:
       - name: db-verify (44 invariants, blocking)
         run: bash scripts/db-verify.sh
         env:
-          CONTAINER: ""
+          # same asyncpg URL as migrate/pytest — the verify scripts read the
+          # database through DATABASE_URL, never through docker exec
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/recog
