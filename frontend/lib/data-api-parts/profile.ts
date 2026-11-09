@@ -26,7 +26,7 @@ export async function getProfile(id: string): Promise<ProfilePayload | null> {
     dept: teamMember.dept,
     office: teamMember.office,
     tenure: teamMember.tenure,
-    managerName: teamMember.managerId ? person(teamMember.managerId)?.name ?? null : null,
+    managerName: teamMember.managerId ? (person(teamMember.managerId)?.name ?? null) : null,
     received,
     given,
   }

@@ -47,4 +47,23 @@ describe('useCountUp', () => {
     // the updated target replaces it (animated — includes rAF ticks in between)
     await waitFor(() => expect(getByText('900')).toBeTruthy())
   }, 15_000)
+
+  it('prefers-reduced-motion settles on the new target after one frame, no animation', async () => {
+    const original = window.matchMedia
+    window.matchMedia = ((query: string) => ({
+      ...original(query),
+      matches: true,
+    })) as typeof window.matchMedia
+    try {
+      const { getByText } = render(<ChangeAfterFrame initial={100} changed={400} durationMs={80} />)
+      // hydration shows the settled number
+      expect(getByText('100')).toBeTruthy()
+      // one frame later the number settles on the new target — no tick ramp
+      await waitFor(() => expect(getByText('400')).toBeTruthy())
+      await new Promise(requestAnimationFrame)
+      expect(getByText('400')).toBeTruthy()
+    } finally {
+      window.matchMedia = original
+    }
+  }, 15_000)
 })

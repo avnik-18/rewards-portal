@@ -1,5 +1,3 @@
-'use client'
-
 import { Send } from 'lucide-react'
 import { Avatar, Btn, Card, Chip, Modal, CloseX } from '@/components/atoms'
 import { CORE_VALUES, type ValueKey } from '@/lib/data-api'
@@ -16,7 +14,7 @@ interface MemberInfoModalProps {
 
 /** "View info" detail for one team member — quarter stats + primary value. */
 export default function MemberInfoModal({ viewRow, onClose, onOpenProfile, onPraise }: MemberInfoModalProps) {
-  const viewPerson = viewRow ? person(viewRow.id) ?? null : null
+  const viewPerson = viewRow ? (person(viewRow.id) ?? null) : null
   const viewValue = viewRow ? CORE_VALUES[viewRow.valuesTop as ValueKey] : null
   return (
     <Modal open={!!viewRow} onClose={onClose} label="Team member info">

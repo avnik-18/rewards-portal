@@ -4,9 +4,11 @@
 
 const DEFAULT_BASE = 'https://recognition.company.com'
 
-/** Canonical base of the public recognition site; override per environment. */
+/** Canonical base of the public recognition site; override per environment
+ *  with VITE_RECOGNITION_BASE_URL (.env — import.meta.env exists in the
+ *  browser build, unlike the Next-era process.env this previously read). */
 export function recognitionBase(): string {
-  const configured = process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL?.trim()
+  const configured = (import.meta.env.VITE_RECOGNITION_BASE_URL ?? '').trim()
   return configured || DEFAULT_BASE
 }
 

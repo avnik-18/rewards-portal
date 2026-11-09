@@ -32,7 +32,7 @@ export function Btn({ variant = 'primary', size = 'md', icon, className = '', ch
   )
 }
 
-export interface IconBtnProps extends ButtonHTMLAttributes<HTMLButtonElement> {}
+export type IconBtnProps = ButtonHTMLAttributes<HTMLButtonElement>
 
 export function IconBtn({ children, className = '', ...rest }: IconBtnProps) {
   return (

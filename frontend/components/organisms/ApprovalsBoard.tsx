@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, createElement } from 'react'
 import { CheckCircle2, UserCheck } from 'lucide-react'
 import ApprovalListItem from '@/components/molecules/ApprovalListItem'
@@ -35,7 +33,8 @@ export default function ApprovalsBoard({ items, viewerId = 'me', onDecide }: App
 
   const list = filterForTab(items, tab, decided)
   // keep a decided item in the reading pane even if it left the current folder
-  const selected = list.find((item) => item.id === selectedId) ?? items.find((item) => item.id === selectedId) ?? list[0] ?? null
+  const selected =
+    list.find((item) => item.id === selectedId) ?? items.find((item) => item.id === selectedId) ?? list[0] ?? null
 
   const counts: Record<Tab, number> = {
     inbox: filterForTab(items, 'inbox', decided).length,

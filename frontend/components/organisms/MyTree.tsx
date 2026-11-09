@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 import { Check, ChevronDown, GitBranch, X } from 'lucide-react'

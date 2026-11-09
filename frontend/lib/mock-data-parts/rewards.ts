@@ -84,4 +84,3 @@ export const LEDGER: LedgerEntry[] = [
   { id: 'le5', kind: 'grant', label: 'Manager grant · spot bonus', when: 'Oct', amount: 400 },
   { id: 'le6', kind: 'award', label: 'Milestone · 1 year at emids', when: 'Sep', amount: 500 },
 ]
-

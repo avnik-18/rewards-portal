@@ -1,5 +1,3 @@
-'use client'
-
 import { useCountUp } from '@/lib/use-count-up'
 import { fmtNum } from '@/lib/format'
 import { Trophy } from 'lucide-react'

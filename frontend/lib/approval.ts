@@ -23,8 +23,7 @@ export const isActionable = (item: ApprovalItem, viewerId = 'me'): boolean =>
   openSteps(item.route)[0]?.owner === viewerId
 
 /** Verdict-only view of stored decisions, for folder filtering. */
-export const verdictOf = (decision: ApprovalDecision | undefined): ApprovalVerdict | undefined =>
-  decision?.verdict
+export const verdictOf = (decision: ApprovalDecision | undefined): ApprovalVerdict | undefined => decision?.verdict
 
 /** True only for items whose first open step belongs to the viewer. */
 export const isUndecided = (decision: ApprovalDecision | undefined): boolean => decision === undefined

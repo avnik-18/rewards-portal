@@ -4,7 +4,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { '@': import.meta.dirname },
+    alias: [
+      // root-level layers first, then src/ pages — mirrors the tsconfig path fallback
+      { find: /^@\/(components|lib|hooks|public)(\/.+)$/, replacement: import.meta.dirname + '/$1$2' },
+      { find: /^@\/(.+)$/, replacement: import.meta.dirname + '/src/$1' },
+    ],
   },
   test: {
     environment: 'jsdom',
@@ -21,16 +25,16 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      // sir's review: hooks/ and app/ hold the most logic-heavy code — they
+      // sir's review: hooks/ and src/ hold the most logic-heavy code — they
       // are measured against the 90% gate along with components and lib
-      include: [
-        'components/**/*.tsx',
-        'lib/**/*.ts',
-        'hooks/**/*.ts',
-        'app/**/*.tsx',
-        'app/**/*.ts',
+      include: ['components/**/*.tsx', 'lib/**/*.ts', 'hooks/**/*.ts', 'src/**/*.tsx', 'src/**/*.ts'],
+      exclude: [
+        'components/atoms/index.ts',
+        'lib/mock-data.ts',
+        'lib/mock-data-parts/**',
+        // the createRoot entry mounts the whole app — e2e renders it, jsdom cannot
+        'src/main.tsx',
       ],
-      exclude: ['components/atoms/index.ts', 'lib/mock-data.ts', 'lib/mock-data-parts/**'],
       thresholds: { statements: 90, branches: 90, functions: 90, lines: 90 },
     },
   },

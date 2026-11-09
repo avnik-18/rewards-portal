@@ -1,5 +1,3 @@
-'use client'
-
 import { ArrowRight } from 'lucide-react'
 import { fmtNum } from '@/lib/format'
 import { useCountUp } from '@/lib/use-count-up'

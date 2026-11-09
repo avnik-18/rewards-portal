@@ -1,4 +1,4 @@
-import type { ValueKey } from "./values"
+import type { ValueKey } from './values'
 export type ReactionKey = 'clap' | 'celebrate' | 'heart' | 'highfive' | 'insight'
 
 export interface PostComment {

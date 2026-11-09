@@ -7,10 +7,4 @@ export { person, initials, personDisplayName } from '../mock-data-parts/people'
 
 export { TEAMS, type TeamId } from '../mock-data-parts/team'
 
-export {
-  CORE_VALUES,
-  VALUE_KEYS,
-  VALUE_TEMPLATES,
-  type ValueKey,
-  type ValueLived,
-} from '../mock-data-parts/values'
+export { CORE_VALUES, VALUE_KEYS, VALUE_TEMPLATES, type ValueKey, type ValueLived } from '../mock-data-parts/values'

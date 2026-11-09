@@ -1,7 +1,4 @@
-'use client'
-
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link, useLocation } from 'react-router-dom'
 import { Home, Users, Gift } from 'lucide-react'
 
 const NAV = [
@@ -12,7 +9,7 @@ const NAV = [
 
 /** Desktop primary navbar — highlighted by the actual route (client island). */
 export default function PrimaryNav() {
-  const pathname = usePathname()
+  const pathname = useLocation().pathname
 
   return (
     <nav className="relative hidden flex-1 items-stretch gap-1 overflow-x-auto lg:flex" aria-label="Primary">
@@ -21,7 +18,7 @@ export default function PrimaryNav() {
         return (
           <Link
             key={item.href}
-            href={item.href}
+            to={item.href}
             aria-current={active ? 'page' : undefined}
             className={`relative flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 text-[13px] font-semibold transition outline-none focus-visible:bg-brand-soft/50 ${
               active ? 'text-navy' : 'text-muted hover:text-ink'

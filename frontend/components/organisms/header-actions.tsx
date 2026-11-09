@@ -1,7 +1,4 @@
-'use client'
-
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import { Bell } from 'lucide-react'
 import { Avatar } from '@/components/atoms'
@@ -59,7 +56,7 @@ export default function HeaderActions() {
             <div className="my-1 h-px bg-line" />
             {/* sir: Log out is hidden until real auth exists — never show a silent no-op */}
             <Link
-              href="/profile"
+              to="/profile"
               onClick={() => setMenuOpen(false)}
               className="block w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-ink transition hover:bg-slate-50"
             >

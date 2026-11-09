@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Avatar, Card, Chip, Segmented, SectionTitle } from '@/components/atoms'
 import { CORE_VALUES } from '@/lib/data-api'

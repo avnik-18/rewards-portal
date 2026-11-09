@@ -93,4 +93,43 @@ describe('Modal (a11y island)', () => {
     expect(document.activeElement).toBe(trigger)
     view.unmount()
   })
+
+  it('non-Tab keys in the dialog fall through the trap safely', () => {
+    const { view } = openModal(false)
+    fireEvent.keyDown(window, { key: 'ArrowDown' })
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    view.unmount()
+  })
+
+  it('a dialog whose focusables are all hidden still handles Tab without exploding', () => {
+    const label = 'Hidden content dialog'
+    function EmptyHarness() {
+      return (
+        <Modal open onClose={() => {}} label={label}>
+          <p>nothing focusable here</p>
+          <button type="button" hidden>
+            invisible
+          </button>
+        </Modal>
+      )
+    }
+    render(<EmptyHarness />)
+    expect(screen.getByRole('dialog', { name: label })).toBeTruthy()
+    // Tab runs the focusable filter — the hidden button drops out, cycle is a no-op
+    fireEvent.keyDown(window, { key: 'Tab' })
+    fireEvent.keyDown(window, { key: 'Tab', shiftKey: true })
+    expect(screen.getByText('nothing focusable here')).toBeTruthy()
+  })
+
+  it('defaults the accessible label when none is provided', () => {
+    function Bare() {
+      return (
+        <Modal open onClose={() => {}}>
+          <button type="button">Only control</button>
+        </Modal>
+      )
+    }
+    render(<Bare />)
+    expect(screen.getByRole('dialog', { name: 'Dialog' })).toBeTruthy()
+  })
 })

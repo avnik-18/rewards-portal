@@ -1,10 +1,9 @@
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { linkedinShareUrl, recognitionPageUrl, recognitionBase } from '@/lib/linkedin'
 
-const REAL_BASE = process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL
-
-afterAll(() => {
-  process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL = REAL_BASE
+afterEach(() => {
+  // vi.stubEnv intercepts import.meta.env reads — clear overrides per test
+  vi.unstubAllEnvs()
 })
 
 describe('recognitionPageUrl', () => {
@@ -17,7 +16,7 @@ describe('recognitionPageUrl', () => {
   })
 
   it('follows the environment override', () => {
-    process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL = 'https://pilot.company.com'
+    vi.stubEnv('VITE_RECOGNITION_BASE_URL', 'https://pilot.company.com')
     expect(recognitionPageUrl('rc1')).toBe('https://pilot.company.com/recognition/rc1')
   })
 })
@@ -42,14 +41,14 @@ describe('linkedinShareUrl', () => {
   })
 
   it('rejects URLs outside the configured recognition origin', () => {
-    process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL = 'https://recognition.company.com'
+    vi.stubEnv('VITE_RECOGNITION_BASE_URL', 'https://recognition.company.com')
     for (const bad of ['http://recognition.company.com/recognition/rc1', 'https://evil.com/recognition/rc1']) {
       expect(() => linkedinShareUrl(bad)).toThrow('Invalid recognition URL')
     }
   })
 
-  it('allows the overriden origin end to end, protocol included', () => {
-    process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL = 'http://localhost:8080'
+  it('allows the overridden origin end to end, protocol included', () => {
+    vi.stubEnv('VITE_RECOGNITION_BASE_URL', 'http://localhost:8080')
     const page = recognitionPageUrl('rc1')
     const share = new URL(linkedinShareUrl(page))
     expect(share.searchParams.get('url')).toBe(page)
@@ -58,7 +57,7 @@ describe('linkedinShareUrl', () => {
 
 describe('recognitionBase', () => {
   it('falls back to the production default when unset or blank', () => {
-    process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL = '  '
+    vi.stubEnv('VITE_RECOGNITION_BASE_URL', '  ')
     expect(recognitionBase()).toBe('https://recognition.company.com')
   })
 })

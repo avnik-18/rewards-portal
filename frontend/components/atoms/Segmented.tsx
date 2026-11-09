@@ -1,5 +1,3 @@
-'use client'
-
 export interface SegmentedOption<T extends string> {
   key: T
   label: string

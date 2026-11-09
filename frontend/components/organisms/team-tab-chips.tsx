@@ -1,5 +1,3 @@
-'use client'
-
 import type { ReactNode } from 'react'
 import { CalendarCheck, Users } from 'lucide-react'
 import type { TeamTab } from './TeamScreen'

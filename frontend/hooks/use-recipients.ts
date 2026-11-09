@@ -1,5 +1,3 @@
-'use client'
-
 import { useMemo, useState } from 'react'
 import { personLabel, EMAIL_RE } from '@/lib/compose'
 import { person } from '@/lib/data-api'
@@ -38,10 +36,13 @@ export function useRecipients(people: ComposePerson[]) {
     const needle = query.trim().toLowerCase()
     if (!needle) return []
     return people
-      .filter((candidate) =>
-        !toSel.includes(candidate.id) &&
-        !ccSel.includes(candidate.id) &&
-        (candidate.name.toLowerCase().includes(needle) || candidate.title.toLowerCase().includes(needle) || candidate.email.toLowerCase().includes(needle)),
+      .filter(
+        (candidate) =>
+          !toSel.includes(candidate.id) &&
+          !ccSel.includes(candidate.id) &&
+          (candidate.name.toLowerCase().includes(needle) ||
+            candidate.title.toLowerCase().includes(needle) ||
+            candidate.email.toLowerCase().includes(needle)),
       )
       .slice(0, 6)
   }

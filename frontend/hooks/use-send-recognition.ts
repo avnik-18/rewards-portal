@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { sendRecognition, type CreatedRecognition } from '@/lib/data-api'
 import { validateRecognition, hasErrors, type FieldErrors } from '@/lib/validate'

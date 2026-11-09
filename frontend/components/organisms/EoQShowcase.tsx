@@ -1,7 +1,4 @@
-'use client'
-
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { CalendarClock, ChevronLeft, ChevronRight, Users } from 'lucide-react'
 import { Card } from '../atoms'
 import type { Slide } from '@/lib/data-api'
@@ -29,15 +26,7 @@ export default function EoQShowcase({ slides }: { slides: Slide[] }) {
             aria-hidden={!active}
             className={`absolute inset-0 flex flex-col justify-between transition-opacity duration-700 ${active ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
           >
-            <Image
-              src={s.img}
-              alt=""
-              aria-hidden="true"
-              fill
-              className="object-cover"
-              priority={i === 0}
-              sizes="(max-width: 768px) 100vw, 50vw"
-            />
+            <img src={s.img} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute inset-0 bg-navy-deep/55" />
             <div className="relative p-5">
               <span className="flex items-center gap-1.5 text-[10.5px] font-extrabold font-mono uppercase tracking-[0.16em] text-gold">

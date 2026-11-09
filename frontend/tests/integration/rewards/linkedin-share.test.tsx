@@ -1,15 +1,8 @@
-import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import RecognitionsReceived from '@/components/organisms/recognitions-received'
 import LinkedInShareButton from '@/components/molecules/LinkedInShareButton'
-import { recognitionPageUrl } from '@/lib/linkedin'
 import { RECEIVED } from '@/lib/mock-data'
-
-const REAL_BASE = process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL
-
-afterAll(() => {
-  process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL = REAL_BASE
-})
 
 const TIP = 'Share this recognition on LinkedIn.'
 
@@ -22,7 +15,7 @@ describe('LinkedInShareButton inside RecognitionsReceived', () => {
 
   afterEach(() => {
     openSpy.mockRestore()
-    process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL = 'https://recognition.company.com'
+    vi.unstubAllEnvs()
   })
 
   it('appears only on shareable records (the private rc3 has no button)', () => {
@@ -55,7 +48,7 @@ describe('LinkedInShareButton inside RecognitionsReceived', () => {
   })
 
   it('shows a friendly message and opens nothing when the config is broken', () => {
-    process.env.NEXT_PUBLIC_RECOGNITION_BASE_URL = 'not a url'
+    vi.stubEnv('VITE_RECOGNITION_BASE_URL', 'not a url')
     // the plain button (no context) drops straight to the LinkedIn tab — the broken config falls back politely
     render(<LinkedInShareButton recognitionId="rc1" />)
 

@@ -50,4 +50,6 @@ export function prefillUpdate(args: {
 }
 
 export const activeTemplateFor = (valueKey: ValueKey | null, tplId: string | null): PraiseTemplate | null =>
-  valueKey ? (VALUE_TEMPLATES[valueKey].find((template) => template.id === tplId) ?? VALUE_TEMPLATES[valueKey][0] ?? null) : null
+  valueKey
+    ? (VALUE_TEMPLATES[valueKey].find((template) => template.id === tplId) ?? VALUE_TEMPLATES[valueKey][0] ?? null)
+    : null

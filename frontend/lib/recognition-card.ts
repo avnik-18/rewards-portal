@@ -2,15 +2,6 @@
 // as a single PNG data URL using the 2D canvas — no external libraries.
 
 import { CORE_VALUES, VALUE_KEYS } from './mock-data'
-import type { ValueKey } from './mock-data'
-
-const VALUE_SOLID: Record<ValueKey, string> = {
-  customerFirst: '#0fa3a3',
-  innovation: '#ff8938',
-  collaboration: '#7a5af8',
-  ownership: '#17b26a',
-  winningMindset: '#ff5a5f',
-}
 
 export interface RecognitionCardArt {
   /** Banner image URL (the picked template variant). */
@@ -149,7 +140,7 @@ export async function drawRecognitionCard(art: RecognitionCardArt): Promise<stri
     if (key) {
       ctx.font = '700 17px Inter, sans-serif'
       const vw = ctx.measureText(art.valueLabel).width + 28
-      let vx = W - 70 - vw
+      const vx = W - 70 - vw
       ctx.fillStyle = '#e6f4f8'
       ctx.fillStyle = 'rgba(13,147,132,0.12)'
       roundRect(ctx, vx, avY - 16, vw, 32, 16)

@@ -1,8 +1,5 @@
-'use client'
-
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
+import { Link } from 'react-router-dom'
 import { Pause, Play } from 'lucide-react'
 import { Mascot } from '../atoms'
 
@@ -138,7 +135,7 @@ function HeroBackdrop() {
           </button>
         </>
       ) : (
-        <Image src="/emids-hero.webp" alt="" fill className="object-cover" sizes="100vw" />
+        <img src="/emids-hero.webp" alt="" className="absolute inset-0 h-full w-full object-cover" />
       )}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#030d1c]/80 via-[#030d1c]/60 to-[#030d1c]/55" />
     </div>
@@ -162,7 +159,7 @@ export default function Hero({ name }: { name: string }) {
           </h1>
           <div className="flex flex-wrap items-center gap-4">
             <Link
-              href="/recognize"
+              to="/recognize"
               aria-label="Recognize a teammate"
               className="inline-flex w-[300px] shrink-0 items-center justify-center rounded-xl bg-[#4b94a0] px-4 py-3 text-[12.5px] font-extrabold font-mono uppercase tracking-[0.12em] text-[#06222e] transition hover:brightness-110"
             >

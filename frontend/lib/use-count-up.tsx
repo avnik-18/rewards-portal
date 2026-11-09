@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useRef, useState } from 'react'
 
 /** Counts from 0 to target when the value changes after mount — the

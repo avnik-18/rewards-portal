@@ -24,7 +24,7 @@ export async function getShowcaseSlides(): Promise<Slide[]> {
 
 export async function getPeople(): Promise<Person[]> {
   return Object.values(PEOPLE)
-    .filter((teamMember) => teamMember.id !== "me")
+    .filter((teamMember) => teamMember.id !== 'me')
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
@@ -43,16 +43,17 @@ export interface RecognitionTreeData {
   members: TreeMember[]
 }
 
-const leaderboardPointsOf = (memberId: string) => TEAM_LEADERBOARD.find((leaderRow) => leaderRow.id === memberId)?.pts ?? 0
+const leaderboardPointsOf = (memberId: string) =>
+  TEAM_LEADERBOARD.find((leaderRow) => leaderRow.id === memberId)?.pts ?? 0
 
 /** Membership is derived from whatever team buckets exist — adding a team
  *  needs no change here. Falls back to the first bucket for ids outside all
  *  teams (should not happen for people validated against the directory). */
 const teamMembershipOf = (memberId: string): TeamId => {
-  const entry = (Object.entries(TEAM_STATS) as [TeamId, TeamMemberStat[]][]).find(
-    ([, members]) => members.some((member) => member.id === memberId),
+  const entry = (Object.entries(TEAM_STATS) as [TeamId, TeamMemberStat[]][]).find(([, members]) =>
+    members.some((member) => member.id === memberId),
   )
-  return entry?.[0] ?? ((Object.keys(TEAM_STATS) as TeamId[])[0])
+  return entry?.[0] ?? (Object.keys(TEAM_STATS) as TeamId[])[0]
 }
 
 /** The subtree under the signed-in user in ORG_TREE. */

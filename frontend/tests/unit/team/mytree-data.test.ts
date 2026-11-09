@@ -40,7 +40,7 @@ describe('recognition tree data', () => {
     const ptsOf = (id: string) => TEAM_LEADERBOARD.find((row) => row.id === id)?.pts ?? NaN
     for (const member of tree.members) {
       expect(member.pts).toBe(ptsOf(member.id))
-      const humana = TEAM_STATS.humana.some((stat) => stat.id === member.id )
+      const humana = TEAM_STATS.humana.some((stat) => stat.id === member.id)
       expect(member.teamId).toBe(humana ? 'humana' : 'dev')
       expect(member.teamName.length).toBeGreaterThan(0)
       expect(PEOPLE[member.id].name).toBe(member.name)

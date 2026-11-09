@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { activeTemplateFor, prefillUpdate, AI_DRAFTS, POINT_PRESETS, personLabel } from '@/lib/compose'
 import { CORE_VALUES, VALUE_TEMPLATES, type ValueKey } from '@/lib/data-api'

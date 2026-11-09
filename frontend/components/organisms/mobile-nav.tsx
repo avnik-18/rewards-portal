@@ -1,7 +1,4 @@
-'use client'
-
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link, useLocation } from 'react-router-dom'
 import { Gift, Home, PartyPopper, Users } from 'lucide-react'
 
 const NAV = [
@@ -12,7 +9,7 @@ const NAV = [
 
 /** Mobile secondary nav — rounded chips under the header (lg:hidden). */
 export function MobileChipNav() {
-  const pathname = usePathname()
+  const pathname = useLocation().pathname
 
   return (
     <nav
@@ -24,7 +21,7 @@ export function MobileChipNav() {
         return (
           <Link
             key={item.href}
-            href={item.href}
+            to={item.href}
             aria-current={active ? 'page' : undefined}
             className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition ${
               active ? 'bg-brand text-white' : 'bg-slate-100 text-muted'
@@ -40,7 +37,7 @@ export function MobileChipNav() {
 
 /** Mobile bottom bar (lg:hidden): Home · gold Praise FAB · Rewards · My Team. */
 export function MobileBottomBar() {
-  const pathname = usePathname()
+  const pathname = useLocation().pathname
 
   return (
     <nav
@@ -51,7 +48,7 @@ export function MobileBottomBar() {
         <MobileTab href="/" icon={<Home size={21} aria-hidden />} label="Home" active={pathname === '/'} />
         <div className="relative flex justify-center">
           <Link
-            href="/recognize"
+            to="/recognize"
             aria-label="Recognize a teammate"
             className="absolute -top-6 flex h-14 w-14 animate-pulse-dot items-center justify-center rounded-full bg-gold text-[#3d2b00] shadow-fab transition active:scale-95"
           >
@@ -59,8 +56,19 @@ export function MobileBottomBar() {
           </Link>
           <span className="pt-2 text-xs font-semibold text-gold-ink">Praise</span>
         </div>
-        <MobileTab href="/rewards" icon={<Gift size={21} aria-hidden />} label="Rewards" active={pathname === '/rewards'} />
-        <MobileTab href="/team" icon={<Users size={21} aria-hidden />} label="My Team" active={pathname === '/team'} badge />
+        <MobileTab
+          href="/rewards"
+          icon={<Gift size={21} aria-hidden />}
+          label="Rewards"
+          active={pathname === '/rewards'}
+        />
+        <MobileTab
+          href="/team"
+          icon={<Users size={21} aria-hidden />}
+          label="My Team"
+          active={pathname === '/team'}
+          badge
+        />
       </div>
     </nav>
   )
@@ -81,7 +89,7 @@ function MobileTab({
 }) {
   return (
     <Link
-      href={href}
+      to={href}
       className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[10.5px] font-semibold transition ${
         active ? 'text-brand' : 'text-muted'
       }`}

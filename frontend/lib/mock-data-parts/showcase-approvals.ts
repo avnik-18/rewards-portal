@@ -1,4 +1,4 @@
-import type { ValueKey } from "./values"
+import type { ValueKey } from './values'
 export interface Slide {
   key: string
   img: string

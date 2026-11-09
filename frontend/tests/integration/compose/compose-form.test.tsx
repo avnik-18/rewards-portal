@@ -1,17 +1,15 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import type { ReactElement } from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { AppRouterContext as AppRouterContextProvider } from 'next/dist/shared/lib/app-router-context.shared-runtime'
-import { ComposeForm } from '@/app/recognize/compose-form'
+import { MemoryRouter } from 'react-router-dom'
+import { ComposeForm } from '@/recognize/compose-form'
 import { PEOPLE } from '@/lib/mock-data'
 
 const people = Object.values(PEOPLE).filter((person) => person.id !== 'me')
 
-const mockRouter = { back: vi.fn(), push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }
-
-/** ComposeForm's Back button uses useRouter; jsdom has no mounted app router. */
+/** ComposeForm's Back button navigates through React Router memory routing. */
 function renderWithRouter(ui: ReactElement) {
-  return render(<AppRouterContextProvider.Provider value={mockRouter as never}>{ui}</AppRouterContextProvider.Provider>)
+  return render(<MemoryRouter>{ui}</MemoryRouter>)
 }
 
 async function fillValidForm() {
@@ -81,7 +79,7 @@ describe('ComposeForm (integration)', () => {
     expect(await screen.findByText('Kenji Watanabe')).toBeTruthy()
     fireEvent.click(screen.getByText('Kenji Watanabe'))
 
-    // chip appears in the cc row; input placeholder swaps to “Add more…”
+    // chip appears in the cc row; input placeholder swaps to "Add more…"
     expect(screen.getAllByText(/Kenji/).length).toBeGreaterThan(0)
     expect(screen.getByPlaceholderText('Add more…')).toBeTruthy()
   })

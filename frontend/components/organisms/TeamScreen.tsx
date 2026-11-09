@@ -1,7 +1,5 @@
-'use client'
-
 import { useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
 import { GitBranch, PartyPopper } from 'lucide-react'
 import MemberInfoModal from './member-info-modal'
 import TeamFilterDropdown from './team-filter-dropdown'
@@ -27,7 +25,7 @@ export interface TeamScreenProps {
 }
 
 export default function TeamScreen({ rows, approvals, approvalsCount, tree }: TeamScreenProps) {
-  const router = useRouter()
+  const navigate = useNavigate()
   const [tab, setTab] = useState<TeamTab>('team')
   const [teamFilter, setTeamFilter] = useState<'all' | 'humana' | 'dev'>('humana')
   const [viewId, setViewId] = useState<string | null>(null)
@@ -38,8 +36,8 @@ export default function TeamScreen({ rows, approvals, approvalsCount, tree }: Te
     if (headRef.current && bodyRef.current) headRef.current.scrollLeft = bodyRef.current.scrollLeft
   }
 
-  const openProfile = (id: string) => router.push(`/profile?id=${id}`)
-  const onPraise = (id: string) => router.push(`/recognize?to=${id}`)
+  const openProfile = (id: string) => navigate(`/profile?id=${id}`)
+  const onPraise = (id: string) => navigate(`/recognize?to=${id}`)
 
   const visibleRows = teamFilter === 'all' ? rows : rows.filter((row) => row.team === teamFilter)
   const quarterTotal = visibleRows.reduce((sum, row) => sum + row.given + row.received, 0)

@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Check, ChevronDown } from 'lucide-react'
 import { TEAMS } from '@/lib/data-api'
@@ -7,15 +5,10 @@ import { TEAMS } from '@/lib/data-api'
 export type TeamFilter = 'all' | 'humana' | 'dev'
 
 /** Team dropdown — "All Teams" plus every team from the directory. */
-export default function TeamFilterDropdown({
-  team,
-  onTeam,
-}: {
-  team: TeamFilter
-  onTeam: (team: TeamFilter) => void
-}) {
+export default function TeamFilterDropdown({ team, onTeam }: { team: TeamFilter; onTeam: (team: TeamFilter) => void }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const activeTeamName = team === 'all' ? 'All Teams' : (TEAMS.find((teamRecord) => teamRecord.id === team)?.name ?? 'All Teams')
+  const activeTeamName =
+    team === 'all' ? 'All Teams' : (TEAMS.find((teamRecord) => teamRecord.id === team)?.name ?? 'All Teams')
 
   return (
     <div className="relative">

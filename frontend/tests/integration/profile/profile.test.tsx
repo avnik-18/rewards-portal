@@ -1,18 +1,20 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import ProfilePage, { type ProfilePageProps } from '@/app/profile/page'
+import { MemoryRouter } from 'react-router-dom'
+import ProfilePage from '@/profile/page'
 
-async function renderProfile(id?: string) {
-  const searchParams = Promise.resolve<{ id?: string }>({}) as ProfilePageProps['searchParams']
-  const pageElement = await ProfilePage({
-    searchParams: id ? (Promise.resolve({ id }) as unknown as ProfilePageProps['searchParams']) : searchParams,
-  })
-  return render(pageElement as never)
+function renderProfile(id?: string) {
+  return render(
+    <MemoryRouter initialEntries={[id ? `/profile?id=${id}` : '/profile']}>
+      <ProfilePage />
+    </MemoryRouter>,
+  )
 }
 
 describe('ProfilePage — ditto of the old profile screen', () => {
   it('renders the member header, points stats and the Recognize action', async () => {
-    await renderProfile('p1')
+    renderProfile('p1')
+    await screen.findByRole('heading', { name: /Aarav Sharma/ })
 
     expect(screen.getByRole('heading', { name: /Aarav Sharma/ })).toBeTruthy()
     expect(screen.getByText('Reports to Ayan')).toBeTruthy()
@@ -24,7 +26,8 @@ describe('ProfilePage — ditto of the old profile screen', () => {
   })
 
   it('the journey switches between Received and Given with counts', async () => {
-    await renderProfile('p1')
+    renderProfile('p1')
+    await screen.findByRole('heading', { name: /Aarav Sharma/ })
 
     // q1 praises Aarav; he gave nothing — the empty state speaks for it
     fireEvent.click(await screen.findByText(/Given 0/))
@@ -35,11 +38,18 @@ describe('ProfilePage — ditto of the old profile screen', () => {
   })
 
   it('the signed-in profile shows the You chip instead of Recognize', async () => {
-    await renderProfile('me')
+    renderProfile('me')
+    expect(await screen.findByText('You')).toBeTruthy()
 
-    expect(screen.getByText('You')).toBeTruthy()
     expect(screen.queryByRole('link', { name: /Recognize/ })).toBeNull()
     // points earned adds the wallet bonus only on me
     expect(screen.getByText('1,240')).toBeTruthy() // 0 received-points + wallet
+  })
+
+  it("an unknown id renders the not-found card, never another person's profile", async () => {
+    renderProfile('ghost-id')
+
+    expect(await screen.findByText(/This page doesn't exist/)).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: /Aarav Sharma/ })).toBeNull()
   })
 })

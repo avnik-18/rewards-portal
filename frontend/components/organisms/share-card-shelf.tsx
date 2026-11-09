@@ -1,5 +1,3 @@
-'use client'
-
 import TemplateCard from '@/components/molecules/TemplateCard'
 
 interface ShareCardShelfProps {

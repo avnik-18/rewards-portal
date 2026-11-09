@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Sparkles, X, Linkedin } from 'lucide-react'
 import { Modal } from '@/components/atoms'
@@ -143,7 +141,9 @@ export default function ShareComposer({
 
         <div className="mt-4 flex items-center justify-end">
           <button
-            onClick={() => { void prepareForLinkedIn().then(openLinkedIn) }}
+            onClick={() => {
+              void prepareForLinkedIn().then(openLinkedIn)
+            }}
             className="inline-flex items-center gap-2 rounded-xl bg-[#0A66C2] px-6 py-3 text-[14px] font-extrabold text-white transition hover:brightness-110"
           >
             <Linkedin size={16} aria-hidden /> Post

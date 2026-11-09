@@ -1,28 +1,20 @@
-import { describe, it, expect, vi } from 'vitest'
-import type { ReactElement } from 'react'
+import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { AppRouterContext as AppRouterContextProvider } from 'next/dist/shared/lib/app-router-context.shared-runtime'
-import TeamPage from '@/app/team/page'
+import { MemoryRouter } from 'react-router-dom'
+import TeamPage from '@/team/page'
 import TeamPeopleTable from '@/components/organisms/team-people-table'
 import type { TeamRow } from '@/lib/data-api'
 
-const mockRouter = {
-  back: vi.fn(),
-  forward: vi.fn(),
-  push: vi.fn(),
-  replace: vi.fn(),
-  refresh: vi.fn(),
-  prefetch: vi.fn(),
-}
-
-// TeamScreen's profile/praise navigation uses useRouter; mock a mounted app router for jsdom.
-function renderWithRouter(ui: ReactElement) {
-  return render(<AppRouterContextProvider.Provider value={mockRouter as never}>{ui}</AppRouterContextProvider.Provider>)
-}
-
+// TeamScreen renders in one commit once the mock data hook resolves, so
+// waiting for the first chip means the whole screen is steady for getBy calls.
 async function renderTeamPage() {
-  const pageElement = await TeamPage()
-  renderWithRouter(pageElement as never)
+  const view = render(
+    <MemoryRouter>
+      <TeamPage />
+    </MemoryRouter>,
+  )
+  await screen.findByRole('button', { name: /My team info/i })
+  return view
 }
 
 describe('TeamPage — ditto of the old team screen', () => {
@@ -85,6 +77,53 @@ describe('TeamPage — ditto of the old team screen', () => {
     expect(dlg.textContent).toContain('Recognitions received')
     expect(dlg.textContent).toContain('Bengaluru')
     fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+  })
+
+  it('opens the recognition tree overlay and closes it again', async () => {
+    await renderTeamPage()
+
+    fireEvent.click(screen.getByRole('button', { name: /Recognition Tree/i }))
+    const tree = await screen.findByRole('dialog', { name: 'Recognition tree' })
+    expect(tree.textContent).toContain('· you')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close Recognition Tree' }))
+    expect(screen.queryByRole('dialog', { name: 'Recognition tree' })).toBeNull()
+  })
+
+  it('the tree team filter dropdown closes on outside click and applies a pick', async () => {
+    await renderTeamPage()
+
+    fireEvent.click(screen.getByRole('button', { name: /Recognition Tree/i }))
+    await screen.findByRole('dialog', { name: 'Recognition tree' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by team' }))
+    expect(screen.getByRole('button', { name: 'Filter by team' }).getAttribute('aria-expanded')).toBe('true')
+
+    // pick PACCA AI — the dropdown closes and the active label swaps
+    fireEvent.click(screen.getByRole('button', { name: /PACCA AI/ }))
+    expect(screen.queryByRole('button', { name: /All Teams/ })).toBeNull()
+
+    // reopen and dismiss by mousedown outside the dropdown (the listener is mousedown)
+    fireEvent.click(screen.getByRole('button', { name: 'Filter by team' }))
+    fireEvent.mouseDown(document.body)
+    expect(screen.getByRole('button', { name: 'Filter by team' }).getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('the horizontal header scrolls in lockstep with the table body', async () => {
+    const { container } = await renderTeamPage()
+    await screen.findByText('Designation')
+
+    const bodyEl = container.querySelector<HTMLDivElement>('.rail-scroll.rounded-b-2xl')
+    expect(bodyEl).toBeTruthy()
+    if (!bodyEl) return
+    bodyEl.scrollLeft = 120
+    fireEvent.scroll(bodyEl)
+
+    // the sticky head element mirrors whatever offset the body carries in jsdom
+    const headEl = container.querySelector<HTMLDivElement>('.sticky.top-16')
+    expect(headEl).toBeTruthy()
+    if (!headEl) return
+    expect(headEl.scrollLeft).toBe(bodyEl.scrollLeft)
   })
 })
 

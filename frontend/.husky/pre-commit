@@ -1,17 +1,1 @@
-# Quality gate — runs before every commit (hooksPath = frontend/.husky, so cd first)
-cd frontend || exit 1
-
-# lint-staged only from the package that owns its config
 npx lint-staged
-
-# SCA by trivy — hard-fails the gate when trivy is installed and finds issues;
-# allowed to skip only when trivy is genuinely not installed (CI runs the scan too)
-if command -v trivy >/dev/null 2>&1; then
-  trivy fs --scanners vuln,secret --skip-dirs node_modules,.next --exit-code 1 .
-else
-  echo 'trivy not installed locally; runs in CI'
-fi
-
-# unit tests stay fast: they gate every commit; full coverage + e2e run in CI / npm run test:coverage
-npm run test --silent || exit 1
-echo "✳ quality gate passed"

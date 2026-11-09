@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import { Avatar, Card } from '@/components/atoms'
 import TemplateCard from '@/components/molecules/TemplateCard'
@@ -46,9 +44,7 @@ export default function ApprovalDetail({ item, verdict, onDecide, viewerId }: Ap
             {kindLabel(item.kind, item.points)}
           </p>
           {verdict && (
-            <span
-              className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${VERDICT_CLASS[verdict]}`}
-            >
+            <span className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${VERDICT_CLASS[verdict]}`}>
               {VERDICT_LABEL[verdict]}
             </span>
           )}
@@ -56,9 +52,7 @@ export default function ApprovalDetail({ item, verdict, onDecide, viewerId }: Ap
         <div className="mt-2 flex items-center gap-3">
           <Avatar id={item.fromId} size={42} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-extrabold">
-              {person(item.fromId)?.name ?? 'Unknown teammate'}
-            </p>
+            <p className="truncate text-[15px] font-extrabold">{person(item.fromId)?.name ?? 'Unknown teammate'}</p>
             <p className="truncate text-[12px] text-white/65">{person(item.fromId)?.title}</p>
           </div>
         </div>

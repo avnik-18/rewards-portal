@@ -20,5 +20,11 @@ export interface RewardsPayload {
 }
 
 export async function getRewards(): Promise<RewardsPayload> {
-  return { summary: REWARDS_SUMMARY, received: RECEIVED, ledger: LEDGER, valuesLived: VALUES_LIVED, eoqAwards: MY_EOQ_AWARDS }
+  return {
+    summary: REWARDS_SUMMARY,
+    received: RECEIVED,
+    ledger: LEDGER,
+    valuesLived: VALUES_LIVED,
+    eoqAwards: MY_EOQ_AWARDS,
+  }
 }

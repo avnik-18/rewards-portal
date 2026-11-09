@@ -1,19 +1,22 @@
+# dependencies
 node_modules/
-.next/
-out/
-*.tsbuildinfo
-next-env.d.ts
-.env*
-!.env.example
-.DS_Store
-npm-debug.log*
 
+# build output
+dist/
+dist-ssr/
+
+# test + tooling output
 coverage/
 playwright-report/
 test-results/
-/tmp/
+*.tsbuildinfo
+.next/
 
-# sir's review #1: build artifacts were committed at the repo root — keep the
-# outer workspace's caches out of the repo, wherever it is opened from
-node_modules/.vite/
-.last-run.json
+# logs
+npm-debug.log*
+*.log
+
+# editor/system
+.vscode/
+.idea/
+.DS_Store

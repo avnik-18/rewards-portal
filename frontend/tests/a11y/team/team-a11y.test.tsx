@@ -1,21 +1,12 @@
 import { describe, it, expect, vi } from 'vitest'
-import type { ReactElement } from 'react'
-import { render } from '@testing-library/react'
+import type { ReactNode } from 'react'
+import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import axe from 'axe-core'
-import { AppRouterContext as AppRouterContextProvider } from 'next/dist/shared/lib/app-router-context.shared-runtime'
-import TeamPage from '@/app/team/page'
+import TeamPage from '@/team/page'
 
-const mockRouter = {
-  back: vi.fn(),
-  forward: vi.fn(),
-  push: vi.fn(),
-  replace: vi.fn(),
-  refresh: vi.fn(),
-  prefetch: vi.fn(),
-}
-
-function renderWithRouter(ui: ReactElement) {
-  return render(<AppRouterContextProvider.Provider value={mockRouter as never}>{ui}</AppRouterContextProvider.Provider>)
+function renderWithRouter(ui: ReactNode) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>)
 }
 
 async function scan(element: HTMLElement) {
@@ -27,8 +18,9 @@ vi.setConfig({ testTimeout: 15_000 })
 
 describe('accessibility (axe-core) — team page', () => {
   it('team table tab has no a11y violations', async () => {
-    const pageElement = await TeamPage()
-    const { container } = renderWithRouter(pageElement as never)
+    const { container } = renderWithRouter(<TeamPage />)
+    // the screen mounts in one commit once the mock data hook resolves
+    await screen.findByRole('button', { name: /My team info/i })
     expect(await scan(container)).toHaveLength(0)
   })
 })

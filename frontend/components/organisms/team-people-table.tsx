@@ -1,5 +1,3 @@
-'use client'
-
 import { Eye, Send } from 'lucide-react'
 import type { RefObject } from 'react'
 import { Avatar, Btn, Card, Chip } from '@/components/atoms'
@@ -61,9 +59,7 @@ export default function TeamPeopleTable({
                 className={`grid grid-cols-[56px_minmax(230px,1.35fr)_minmax(200px,1fr)_170px_210px] items-center gap-4 border-b border-line px-5 py-3.5 transition hover:bg-brand-soft/25 ${index === visible.length - 1 ? 'rounded-b-2xl border-b-0' : ''}`}
                 style={{ animation: `rise .35s ${index * 40}ms both` }}
               >
-                <span className="tnum text-[13px] font-extrabold text-muted">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
+                <span className="tnum text-[13px] font-extrabold text-muted">{String(index + 1).padStart(2, '0')}</span>
                 <button
                   onClick={() => onOpenProfile(row.id)}
                   className="group flex min-w-0 items-center gap-3 text-left"
@@ -80,7 +76,9 @@ export default function TeamPeopleTable({
                     )}
                   </span>
                 </button>
-                <span className="truncate text-[13px] font-medium text-muted">{person(row.id)?.title ?? 'Unknown'}</span>
+                <span className="truncate text-[13px] font-medium text-muted">
+                  {person(row.id)?.title ?? 'Unknown'}
+                </span>
                 <span>
                   <Chip className={`${memberValue.soft} ${memberValue.ink}`}>{memberValue.label}</Chip>
                 </span>

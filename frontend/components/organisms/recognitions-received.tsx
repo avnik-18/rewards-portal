@@ -1,4 +1,3 @@
-'use client'
 export { RewardsLedger } from './rewards-ledger'
 
 import { useState } from 'react'

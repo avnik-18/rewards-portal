@@ -25,7 +25,9 @@ export default function Leaderboard({ rows }: LeaderboardProps) {
         </div>
         {top.map((teamRow, rowIndex) => {
           const parts =
-            teamRow.name.split(' ').length > 1 ? `${teamRow.name.split(' ')[0]} ${teamRow.name.split(' ').at(-1)![0]}.` : teamRow.name
+            teamRow.name.split(' ').length > 1
+              ? `${teamRow.name.split(' ')[0]} ${teamRow.name.split(' ').at(-1)![0]}.`
+              : teamRow.name
           return (
             <div
               key={teamRow.id}

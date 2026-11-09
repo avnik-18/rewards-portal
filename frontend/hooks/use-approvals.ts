@@ -1,5 +1,3 @@
-'use client'
-
 import { useState } from 'react'
 import type { ApprovalItem } from '@/lib/data-api'
 import type { ApprovalDecision, ApprovalVerdict } from '@/lib/approval'
@@ -17,8 +15,7 @@ export function useApprovals(items: ApprovalItem[]) {
     setDecided((existing) => ({ ...existing, [id]: { verdict, note } }))
   }
 
-  const decideItem = (item: ApprovalItem, verdict: ApprovalVerdict, note = '') =>
-    decide(item.id, verdict, note)
+  const decideItem = (item: ApprovalItem, verdict: ApprovalVerdict, note = '') => decide(item.id, verdict, note)
 
   return { decided, decide, decideItem }
 }
