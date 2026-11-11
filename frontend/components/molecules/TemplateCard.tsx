@@ -20,7 +20,15 @@ export default function TemplateCard({ url, previewValue, recipients, points, ms
     >
       {url && (
         <div className="border-b border-line bg-brand-soft/30">
-          <img src={url} alt="" className="block min-h-[150px] w-full object-cover" />
+          <img
+            src={url}
+            alt=""
+            width={1100}
+            height={314}
+            loading="lazy"
+            decoding="async"
+            className="block min-h-[150px] w-full object-cover"
+          />
         </div>
       )}
       <div className={`${pad} ${big ? 'py-5' : 'py-4'}`}>

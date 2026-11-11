@@ -12,8 +12,8 @@ export type { ComposePerson }
  * helpers). The returned shape IS ComposeFormApi; every field component reads
  * the same object as before, so the split stays invisible to them.
  */
-export function useComposeForm(people: ComposePerson[]) {
-  const recipients = useRecipients(people)
+export function useComposeForm(people: ComposePerson[], initialToId?: string) {
+  const recipients = useRecipients(people, initialToId)
   const { toSel, labels } = recipients
   const [valueKey, setValueKey] = useState<ValueKey | null>(null)
   const [tplId, setTplId] = useState<string | null>(null)

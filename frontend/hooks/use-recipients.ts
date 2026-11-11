@@ -18,8 +18,13 @@ const nextEmailId = () => `email-${Date.now()}-${++emailSeq}`
  * Recipient half of the composer: the To/CC selection, typed-email labels,
  * both search queries, directory match results and the auto-collected managers.
  */
-export function useRecipients(people: ComposePerson[]) {
-  const [toSel, setToSel] = useState<string[]>([])
+export function useRecipients(people: ComposePerson[], initialToId?: string) {
+  // Preset recipient as INITIAL state (not a mount effect): ?to= changes
+  // remount via the caller's key, and a stale ?to= that isn't in the
+  // directory is never preselected (sir's review).
+  const [toSel, setToSel] = useState<string[]>(() =>
+    initialToId && people.some((candidate) => candidate.id === initialToId) ? [initialToId] : [],
+  )
   const [ccSel, setCcSel] = useState<string[]>([])
   const [labels, setLabels] = useState<Record<string, string>>({}) // typed email keyed by generated id
   const [q, setQ] = useState('')

@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { drawRecognitionCard, type RecognitionCardArt } from '@/lib/recognition-card'
 import { CORE_VALUES, VALUE_KEYS } from '@/lib/mock-data'
 
-// jsdom has no real canvas — fake the 2d context so the drawing routine's
+// jsdom has no real canvas â€” fake the 2d context so the drawing routine's
 // logic (wrap, banner, initials, points badge, value chip) can be exercised.
 class RecordingCtx {
   ops: string[] = []
@@ -78,21 +78,21 @@ async function stubCanvas(ctx: RecordingCtx | null, toDataUrl: () => string) {
   }
 }
 
-// jsdom creates detached Image elements and never resolves their loads —
+// jsdom creates detached Image elements and never resolves their loads â€”
 // capture each constructed Image and dispatch the event ourselves.
 let createdImages: HTMLImageElement[] = []
 
 function installImageSpy() {
   createdImages = []
-  const OriginalImage = window.Image
+  const originalImage = window.Image
   const spy = vi.fn(function FakeImage(...args: ConstructorParameters<typeof Image>) {
-    const img = new OriginalImage(...args)
+    const img = new originalImage(...args)
     createdImages.push(img)
     return img
   })
   Object.defineProperty(window, 'Image', { value: spy, configurable: true, writable: true })
   return () => {
-    Object.defineProperty(window, 'Image', { value: OriginalImage, configurable: true, writable: true })
+    Object.defineProperty(window, 'Image', { value: originalImage, configurable: true, writable: true })
   }
 }
 
@@ -148,7 +148,7 @@ describe('drawRecognitionCard', () => {
     expect(ctx.ops.join('|')).toContain('measure:+25 pts')
     expect(ctx.ops.join('|')).toContain(`fill:${CORE_VALUES[VALUE_KEYS[0]].label}`)
 
-    // lines wrap before the width limit — several fills in the body region
+    // lines wrap before the width limit â€” several fills in the body region
     const bodyFills = ctx.ops.filter((op) => op.startsWith('fill:') && !op.includes('PM') && !op.includes('Priya'))
     expect(bodyFills.length).toBeGreaterThan(0)
   })

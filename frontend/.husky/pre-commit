@@ -1,1 +1,14 @@
+# Quality gate — runs before every commit (hooksPath = frontend/.husky, so cd first)
+cd frontend || exit 1
+
 npx lint-staged
+
+# Fail the gate on findings when trivy is installed locally; only skipped with
+# a message when trivy is absent (CI always scans).
+if command -v trivy >/dev/null 2>&1; then
+  npm run scan:sca
+else
+  echo 'trivy not installed locally; runs in CI'
+fi
+
+npm run test

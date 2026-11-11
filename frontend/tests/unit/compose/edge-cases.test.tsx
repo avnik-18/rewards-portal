@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+﻿import { describe, it, expect, vi, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { usePageData } from '@/hooks/use-page-data'
 import { useComposeForm } from '@/hooks/use-compose-form'
@@ -11,30 +11,37 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-describe('usePageData — cancellation branch', () => {
+describe('usePageData â€” cancellation branch', () => {
   it('a result landing after unmount never overwrites state', async () => {
-    // loader resolves on the NEXT macro task — long enough to unmount first
+    // loader resolves on the NEXT macro task â€” long enough to unmount first
     let release: (value: { value: number }) => void = () => {}
     const hanging = new Promise<{ value: number }>((resolve) => {
       release = resolve
     })
 
-    const { result, unmount } = renderHook(() => usePageData(() => hanging))
+    const { result, unmount } = renderHook(() => usePageData(() => hanging, []))
     unmount()
     act(() => release({ value: 7 }))
-    // cancelled before the data landed — the hook never adopts it
-    expect(result.current).toBeFalsy()
+    // cancelled before the data landed â€” the hook never adopts it
+    expect(result.current.data).toBeFalsy()
+    expect(result.current.error).toBeFalsy()
   })
 })
 
 const manRecognition: CreatedRecognition = { id: 'rec-x' } as unknown as CreatedRecognition
-const sendRecognitionMock = vi.fn(() => Promise.resolve(manRecognition))
+const sendCalls: unknown[] = []
 vi.mock('@/lib/data-api', async (importOriginal) => {
   const mod = await importOriginal<typeof import('@/lib/data-api')>()
-  return { ...mod, sendRecognition: (...args: unknown[]) => sendRecognitionMock(...(args as [])) }
+  return {
+    ...mod,
+    sendRecognition: (input: unknown) => {
+      sendCalls.push(input)
+      return Promise.resolve(manRecognition)
+    },
+  }
 })
 
-describe('useComposeForm — artUrl fallback beyond the variant list', () => {
+describe('useComposeForm â€” artUrl fallback beyond the variant list', () => {
   it('an out-of-range variant falls back to the first template URL at send time', async () => {
     const dirPeople = Object.values(PEOPLE)
       .filter((entry) => entry.id !== 'me')
@@ -58,8 +65,8 @@ describe('useComposeForm — artUrl fallback beyond the variant list', () => {
     await act(async () => {
       await result.current.submit()
     })
-    // the first template URL ships — no undefined art even with a broken variant index
-    const call = sendRecognitionMock.mock.calls.at(-1)?.[0] as { artUrl?: string } | undefined
+    // the first template URL ships â€” no undefined art even with a broken variant index
+    const call = sendCalls.at(-1) as { artUrl?: string } | undefined
     expect(call?.artUrl).toBeTypeOf('string')
     expect((call?.artUrl ?? '').startsWith('/xoxo/')).toBe(true)
   })
@@ -73,7 +80,7 @@ describe('buildPostDraft — value-less drafts', () => {
   })
 })
 
-describe('drawRecognitionCard — banner load failure', () => {
+describe('drawRecognitionCard â€” banner load failure', () => {
   it('still returns the postcard when the banner image fails to load', async () => {
     const ctx: Record<string, unknown> = {
       fillStyle: '',
@@ -97,7 +104,7 @@ describe('drawRecognitionCard — banner load failure', () => {
       createLinearGradient: () => ({ addColorStop: vi.fn() }),
     }
 
-    const OriginalImage = window.Image
+    const originalImage = window.Image
     const toDataUrl = vi.fn(() => 'data:image/png;base64,ok')
     const getContextSpy = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(function (
       this: HTMLCanvasElement,
@@ -109,7 +116,7 @@ describe('drawRecognitionCard — banner load failure', () => {
     // capture the banner img and fire its ERROR event this time
     const images: HTMLImageElement[] = []
     window.Image = function FakeImage(...args: ConstructorParameters<typeof Image>) {
-      const img = new OriginalImage(...args)
+      const img = new originalImage(...args)
       images.push(img)
       return img
     } as unknown as typeof Image
@@ -129,7 +136,7 @@ describe('drawRecognitionCard — banner load failure', () => {
       expect(toDataUrl).toHaveBeenCalled()
       expect(ctx.drawImage).not.toHaveBeenCalled()
     } finally {
-      window.Image = OriginalImage
+      window.Image = originalImage
       getContextSpy.mockRestore()
     }
   })

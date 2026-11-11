@@ -29,6 +29,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Build (tsc -b + Vite output — the only place the production build is checked)
+        run: npm run build
+
       - name: Tests with coverage (90% gate)
         run: npm run test:coverage
 

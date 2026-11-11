@@ -5,9 +5,15 @@ import MyEoQAwards from '@/components/organisms/eoq-awards'
 import { RewardsLedger } from '@/components/organisms/rewards-ledger'
 import { getRewards } from '@/lib/data-api'
 import { usePageData } from '@/hooks/use-page-data'
+import { usePageTitle } from '@/hooks/use-page-title'
+import { ErrorState, LoadingSkeleton } from '../load-ui'
 
 export default function RewardsPage() {
-  const payload = usePageData(getRewards)
+  usePageTitle('My Rewards')
+  const { data: payload, error, isLoading } = usePageData(getRewards, [])
+
+  if (isLoading) return <LoadingSkeleton label="Loading your rewards…" />
+  if (error) return <ErrorState error={error} />
   if (!payload) return null
   const { summary, received, ledger, valuesLived, eoqAwards } = payload
 

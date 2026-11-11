@@ -26,7 +26,15 @@ export default function EoQShowcase({ slides }: { slides: Slide[] }) {
             aria-hidden={!active}
             className={`absolute inset-0 flex flex-col justify-between transition-opacity duration-700 ${active ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
           >
-            <img src={s.img} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
+            <img
+              src={s.img}
+              alt=""
+              width={1100}
+              height={314}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
             <div className="absolute inset-0 bg-navy-deep/55" />
             <div className="relative p-5">
               <span className="flex items-center gap-1.5 text-[10.5px] font-extrabold font-mono uppercase tracking-[0.16em] text-gold">

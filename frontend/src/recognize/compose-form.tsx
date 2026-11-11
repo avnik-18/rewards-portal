@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import ComposeHeading from './compose-heading'
 import CcRecipientField from './cc-recipient-field'
 import MessageField from './message-field'
@@ -19,17 +18,10 @@ export interface ComposeFormProps {
 
 /** The composer shell: heading + the six single-purpose sections + grid. */
 export function ComposeForm({ people, initialToId }: ComposeFormProps) {
-  const form: ComposeFormApi = useComposeForm(people)
-
-  // Preset recipient once (Praise buttons land here with ?to=<id>) — but only
-  // when the id exists in the directory, sir's review said validate before
-  // preselecting (garbage ?to= must not create a ghost recipient chip)
-  useEffect(() => {
-    // sir's review: validate the preset against the directory — but keep the UI
-    // silent when the link is stale (the picker below invites a fresh pick)
-    if (initialToId && people.some((candidate) => candidate.id === initialToId)) form.addToSel(initialToId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // The preset is seeded as the hook's INITIAL state (validated against the
+  // directory inside the hook), so a changed ?to= simply remounts via the
+  // page-level key — no mount-only effect, no eslint-disable (sir's review).
+  const form: ComposeFormApi = useComposeForm(people, initialToId)
 
   const sendDisabled = !form.canSend || form.isBusy() || form.status === 'sent'
 

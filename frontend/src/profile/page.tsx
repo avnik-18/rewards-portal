@@ -5,6 +5,9 @@ import ProfileJourney from '@/components/organisms/ProfileJourney'
 import { getProfile, WELCOME_BONUS_POINTS } from '@/lib/data-api'
 import { fmtNum } from '@/lib/format'
 import { usePageData } from '@/hooks/use-page-data'
+import { usePageTitle } from '@/hooks/use-page-title'
+import { ErrorState, LoadingSkeleton } from '../load-ui'
+import NotFound from '../not-found'
 
 /* Featured gold button, ditto of Btn variant="gold" in the old profile header. */
 const GOLD_BTN =
@@ -13,19 +16,18 @@ const GOLD_BTN =
 export default function ProfilePage() {
   const [searchParams] = useSearchParams()
   const id = searchParams.get('id') ?? 'me'
-  // sir's PR review: unknown ids render 404, never another person's profile
-  const profile = usePageData(() => getProfile(id))
-  if (!profile) {
-    return (
-      <div className="mx-auto max-w-xl py-20 text-center">
-        <h1 className="text-2xl font-extrabold tracking-tight text-navy">This page doesn't exist</h1>
-        <p className="mt-1 text-[15px] text-muted">Check the link, or go back to the dashboard.</p>
-        <Link to="/" className="mt-4 inline-block text-sm font-semibold text-brand hover:underline">
-          Go to dashboard
-        </Link>
-      </div>
-    )
-  }
+
+  // sir's PR review: unknown ids render 404, never another person's profile —
+  // and [id] refetches when ?id= changes (React Router reuses this component).
+  const { data: profile, error, isLoading } = usePageData(() => getProfile(id), [id])
+  usePageTitle(profile ? profile.name : 'Profile')
+
+  // Loading and 404 are different states: undefined = fetch running (skeleton),
+  // null = getProfile says nobody has that id (404, announced after load only).
+  if (isLoading) return <LoadingSkeleton label="Loading profile…" />
+  if (error) return <ErrorState error={error} />
+  if (!profile) return <NotFound />
+
   const isMe = profile.id === 'me'
   const pointsEarned =
     profile.received.filter((credit) => credit.points).reduce((sum, credit) => sum + (credit.points ?? 0), 0) +

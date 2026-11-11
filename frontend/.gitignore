@@ -1,6 +1,11 @@
 # dependencies
 node_modules/
 
+# local env files — secrets must never be committed (sir's review)
+.env
+.env.*
+!.env.example
+
 # build output
 dist/
 dist-ssr/
