@@ -1,3 +1,4 @@
+/* Hero mascot (spark character) */
 .mascot-bob {
   animation: mascot-bob 5.5s ease-in-out infinite;
   transform-origin: 50% 60%;
@@ -117,25 +118,5 @@
   50% {
     opacity: 0.85;
     transform: scale(1.15);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mascot-bob,
-  .mascot-wave,
-  .mascot-face,
-  .mascot-halo,
-  .mascot-twinkle,
-  .mascot-celebr,
-  .mascot-sparkle,
-  .hero-shine,
-  .say-shimmer,
-  .kicker-shimmer {
-    animation: none !important;
-  }
-  .hero-slide-cycle {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
   }
 }

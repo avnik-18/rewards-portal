@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import PrimaryNav from '@/components/organisms/primary-nav'
 import HeaderActions from '@/components/organisms/header-actions'
 import { MobileChipNav, MobileBottomBar } from '@/components/organisms/mobile-nav'
-import './globals.css'
+// globals.css is imported once in src/main.tsx — no duplicate here.
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (
