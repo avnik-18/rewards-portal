@@ -34,8 +34,15 @@ _TENANT_ID = str(uuid.uuid4())
 
 def _token(oid: str = "sso-oid-123", aud: str = AUD, iss: str = ISSUER) -> str:
     return pyjwt.encode(
-        {"sub": "portal-sub", "oid": oid, "aud": aud, "iss": iss,
-             "exp": 9999999999, "iat": 1_600_000_000, "nbf": 1_600_000_000},
+        {
+            "sub": "portal-sub",
+            "oid": oid,
+            "aud": aud,
+            "iss": iss,
+            "exp": 9999999999,
+            "iat": 1_600_000_000,
+            "nbf": 1_600_000_000,
+        },
         key=_PRIVATE_KEY,
         algorithm="RS256",
         headers={"kid": _KID},
