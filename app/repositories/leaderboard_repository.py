@@ -39,7 +39,7 @@ class LeaderboardRepository:
                 "  GROUP BY u.id, u.full_name"
                 ")"
                 "SELECT id, full_name, points, "
-                "       rank() OVER (ORDER BY points DESC) AS rank"
+                "       rank() OVER (ORDER BY points DESC) AS rank "
                 "FROM scored ORDER BY points DESC, full_name LIMIT :limit"
             ),
             dict(limit=limit),

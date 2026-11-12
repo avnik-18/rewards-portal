@@ -29,12 +29,9 @@ class FakeShowcaseRepository:
 async def test_days_to_close_uses_injected_today_nearest_future_end() -> None:
     repo = FakeShowcaseRepository(
         [
-            dict(award_id=uuid4(), name="EoQ Nov",
-                 nominations_end=date(2026, 11, 30), prize_points=5000),
-            dict(award_id=uuid4(), name="EoQ Dec",
-                 nominations_end=date(2026, 12, 15), prize_points=5000),
-            dict(award_id=uuid4(), name="No close",
-                 nominations_end=None, prize_points=2000),
+            dict(award_id=uuid4(), name="EoQ Nov", nominations_end=date(2026, 11, 30), prize_points=5000),
+            dict(award_id=uuid4(), name="EoQ Dec", nominations_end=date(2026, 12, 15), prize_points=5000),
+            dict(award_id=uuid4(), name="No close", nominations_end=None, prize_points=2000),
         ],
         {"assigned": True, "cast": False},
     )
@@ -65,8 +62,7 @@ async def test_stale_past_close_never_wins_the_countdown() -> None:
 
 async def test_past_close_and_no_awards_return_empty_showcase() -> None:
     closed_repo = FakeShowcaseRepository(
-        [dict(award_id=uuid4(), name="Closed Evaluations",
-              nominations_end=date(2026, 10, 1), prize_points=5000)],
+        [dict(award_id=uuid4(), name="Closed Evaluations", nominations_end=date(2026, 10, 1), prize_points=5000)],
         {"assigned": False, "cast": False},
     )
 

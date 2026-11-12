@@ -36,10 +36,7 @@ async def test_rows_pass_through_with_rank_points_and_order_untouched() -> None:
 
 
 async def test_limit_forwards_to_repository() -> None:
-    rows = [
-        dict(user_id=uuid4(), name=f"P{index}", points=100 - index, rank=index)
-        for index in range(1, 11)
-    ]
+    rows = [dict(user_id=uuid4(), name=f"P{index}", points=100 - index, rank=index) for index in range(1, 11)]
     repo = FakeLeaderboardRepository(rows)
 
     entries = await LeaderboardService(repo).top(actor_id=uuid4(), limit=3)

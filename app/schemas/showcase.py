@@ -11,7 +11,7 @@ class JuryStatus(BaseModel):
 
 
 class ShowcaseResponse(BaseModel):
-    """What the awardsousel needs: clock, categories, prize pot, caller's jury state."""
+    """What the awards carousel needs: clock, categories, prize pot, caller's jury state."""
 
     days_to_nominations_close: int | None
     open_categories: int
