@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.actor import get_actor_id
 from app.db.session import get_session
 from app.repositories.leaderboard_repository import LeaderboardRepository
-from app.schemas.leaderboard import LeaderboardResponse
+from app.schemas.leaderboard import LeaderboardEntryResponse, LeaderboardResponse
 from app.services.leaderboard_service import LeaderboardService
 
 router = APIRouter(tags=["leaderboard"])
@@ -30,4 +30,14 @@ async def leaderboard(
     service: Annotated[LeaderboardService, Depends(_service)],
     limit: Annotated[int, Query(ge=1, le=50)] = 5,
 ) -> LeaderboardResponse:
-    return await service.top(caller_id=actor_id, limit=limit)
+    rows = await service.top(actor_id=actor_id, limit=limit)
+    entries = [
+        LeaderboardEntryResponse(
+            rank=row["rank"],
+            name=row["name"],
+            points=row["points"],
+            is_me=row["user_id"] == actor_id,
+        )
+        for row in rows
+    ]
+    return LeaderboardResponse(entries=entries)

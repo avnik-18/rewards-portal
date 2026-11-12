@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.actor import get_actor_id
 from app.db.session import get_session
 from app.repositories.showcase_repository import ShowcaseRepository
-from app.schemas.showcase import ShowcaseResponse
+from app.schemas.showcase import JuryStatus, ShowcaseResponse
 from app.services.showcase_service import ShowcaseService
 
 router = APIRouter(tags=["awards"])
@@ -29,4 +29,11 @@ async def showcase(
     actor_id: Annotated[UUID, Depends(get_actor_id)],
     service: Annotated[ShowcaseService, Depends(_service)],
 ) -> ShowcaseResponse:
-    return await service.showcase(caller_id=actor_id)
+    numbers = await service.showcase_numbers(actor_id=actor_id)
+    jury = numbers["my_jury"]
+    return ShowcaseResponse(
+        days_to_nominations_close=numbers["days_to_nominations_close"],
+        open_categories=numbers["open_categories"],
+        cycle_prize_total=numbers["cycle_prize_total"],
+        my_jury=JuryStatus(cast=jury["cast"], assigned=jury["assigned"]),
+    )

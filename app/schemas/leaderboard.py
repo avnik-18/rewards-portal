@@ -1,4 +1,4 @@
-"""Leaderboard DTOs — mirrors the dashboard contract (docs/api-contract.md, Table 3).
+"""Leaderboard DTOs — dashboard deliverable #4 (top peer-point receivers).
 
 The frontend façade adapts fields (points→pts, is_me→id); components never see
 backend shapes directly.

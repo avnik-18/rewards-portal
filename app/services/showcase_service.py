@@ -1,47 +1,42 @@
-"""Showcase business rules — thin above ShowcaseRepository.
+"""Showcase adapter — thin above ShowcaseRepository.
 
-Do the date arithmetic in code (single today seam → testable); the repository
-stays SQL-only.EXPOSES three numbers plus the caller's jury flags.
+Date arithmetic happens here (single today seam → testable): the repository's
+WHERE clause already excludes stale/closed awards (phase bound on both
+branches), so every nominations_end that reaches this code is either NULL or
+>= today — the countdown filters future dates BEFORE the min() as a second
+line of defence, so a mixed-past/list future can never clamp the real
+nearest close to None (Shourya's MAJOR 1 + 2). Returns raw rows; the router
+builds ShowcaseResponse.
 """
 
 from datetime import date
-from typing import Any, Protocol, cast
+from typing import Any
 from uuid import UUID
 
-from app.schemas.showcase import JuryStatus, ShowcaseResponse
-
-
-class ShowcaseReader(Protocol):
-    """Just the read surface the service needs — lets fakes stand in for the repo."""
-
-    async def live_awards(self) -> list[dict[str, Any]]: ...
-
-    async def jury_flags(self, caller_id: UUID, award_ids: list[UUID]) -> dict[str, bool]: ...
+from app.repositories.showcase_repository import ShowcaseRepository
 
 
 class ShowcaseService:
-    def __init__(self, repo: ShowcaseReader) -> None:
+    def __init__(self, repo: ShowcaseRepository) -> None:
         self._repo = repo
 
-    async def showcase(self, caller_id: UUID, today: date | None = None) -> ShowcaseResponse:
+    async def showcase_numbers(self, actor_id: UUID, today: date | None = None) -> dict[str, Any]:
         today = today or date.today()
-        awards: list[dict[str, Any]] = await self._repo.live_awards()
+        awards = await self._repo.live_awards()
 
         open_categories = len(awards)
         cycle_prize_total = sum(award["prize_points"] for award in awards)
         close_dates = [
-            cast(date, award["nominations_end"])
+            award["nominations_end"]
             for award in awards
-            if award["nominations_end"] is not None
+            if award["nominations_end"] is not None and award["nominations_end"] >= today
         ]
         days_to_close = min((close - today).days for close in close_dates) if close_dates else None
-        if days_to_close is not None and days_to_close < 0:
-            days_to_close = None  # closes in the past are no longer "days to close"
 
-        jury_flags = await self._repo.jury_flags(caller_id, [award["award_id"] for award in awards])
-        return ShowcaseResponse(
-            days_to_nominations_close=days_to_close,
-            open_categories=open_categories,
-            cycle_prize_total=cycle_prize_total,
-            my_jury=JuryStatus(cast=jury_flags["cast"], assigned=jury_flags["assigned"]),
-        )
+        jury_flags = await self._repo.jury_flags(actor_id, [award["award_id"] for award in awards])
+        return {
+            "days_to_nominations_close": days_to_close,
+            "open_categories": open_categories,
+            "cycle_prize_total": cycle_prize_total,
+            "my_jury": jury_flags,
+        }

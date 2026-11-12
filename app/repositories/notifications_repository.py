@@ -1,7 +1,10 @@
 """Repository for notification badge queries — SQL only, never HTTP errors.
 
-`read_at IS NULL` is the unread definition; rows keep their own user scope so
-no other viewer's badge can ever bleed into this count.
+`read_at IS NULL AND delivery_status IN ('queued', 'sent')` is the unread
+definition — matching the schema's partial index on those predicates, so a
+failed delivery never permanently inflates the badge (Shourya's review
+round). Rows keep their own user scope so no other viewer's badge can ever
+bleed into this count.
 """
 
 from uuid import UUID
@@ -20,7 +23,8 @@ class NotificationsRepository:
         result = await self._session.execute(
             text(
                 "SELECT COUNT(*)::int FROM notification "
-                "WHERE user_id = :user_id AND read_at IS NULL"
+                "WHERE user_id = :user_id AND read_at IS NULL "
+                "  AND delivery_status IN ('queued', 'sent')"
             ),
             dict(user_id=user_id),
         )

@@ -29,4 +29,4 @@ async def unread_count(
     actor_id: Annotated[UUID, Depends(get_actor_id)],
     service: Annotated[NotificationsService, Depends(_service)],
 ) -> UnreadCountResponse:
-    return await service.unread_count(caller_id=actor_id)
+    return UnreadCountResponse(unread_count=await service.unread_count(actor_id=actor_id))

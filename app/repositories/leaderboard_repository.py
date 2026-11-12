@@ -1,10 +1,15 @@
 """Repository for the dashboard leaderboard — SQL only, never HTTP errors.
 
-Proven SQL (docs/api-contract.md Table 3, verified against the live DB via
-lb-demo.sql): counts peer points RECEIVED from approved recognitions this
-quarter. Exclusions come for free — EoQ prize payouts and allowance/system
-grant credits only ever touch the ledger, never recognition_recipients, so
-they can never appear here. Keep both invariants when touching this SQL.
+Counts peer points RECEIVED from approved recognitions this calendar quarter
+(the same table the allowances domain quantizes by fiscal_period; the quarter
+here is the stat-tile contract, evaluated in the server time zone — keep this
+assumption visible when the fiscal-period anchor lands). Exclusions come for
+free — EoQ prize payouts and allowance/system grant credits only ever touch
+the ledger, never recognition_recipients, so they can never appear here.
+
+Equal points share the same rank (rank(), not row_number()) and the output is
+ordered deterministically (points DESC, then full_name) so ties can't swap
+places between page loads. Keep both invariants when touching this SQL.
 """
 
 from typing import Any
@@ -20,10 +25,10 @@ class LeaderboardRepository:
         self._session = session
 
     async def top_receivers(self, limit: int) -> list[dict[str, Any]]:
-        """Peer points received this quarter, best first, capped at limit."""
+        """Top peer-point receivers, best first, capped at limit."""
         result = await self._session.execute(
             text(
-                "WITH rows AS ("
+                "WITH scored AS ("
                 "  SELECT u.id, u.full_name, SUM(rr.points)::int AS points"
                 "  FROM recognition_recipients rr"
                 "  JOIN recognition_history rh ON rh.id = rr.recognition_id"
@@ -34,12 +39,12 @@ class LeaderboardRepository:
                 "  GROUP BY u.id, u.full_name"
                 ")"
                 "SELECT id, full_name, points, "
-                "       row_number() OVER (ORDER BY points DESC) AS rank "
-                "FROM rows ORDER BY points DESC LIMIT :limit"
+                "       rank() OVER (ORDER BY points DESC) AS rank"
+                "FROM scored ORDER BY points DESC, full_name LIMIT :limit"
             ),
             dict(limit=limit),
         )
         return [
-            dict(userId=row["id"], name=row["full_name"], points=row["points"], rank=row["rank"])
+            dict(user_id=row["id"], name=row["full_name"], points=row["points"], rank=row["rank"])
             for row in result.mappings().all()
         ]

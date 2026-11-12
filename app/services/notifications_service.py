@@ -1,21 +1,13 @@
-"""Notifications badge rules — thin above NotificationsRepository."""
+"""Notifications badge adapter — thin above NotificationsRepository."""
 
-from typing import Protocol
 from uuid import UUID
 
-from app.schemas.notifications import UnreadCountResponse
-
-
-class NotificationsReader(Protocol):
-    """Just the read surface the service needs — lets fakes stand in for the repo."""
-
-    async def unread_count(self, user_id: UUID) -> int: ...
+from app.repositories.notifications_repository import NotificationsRepository
 
 
 class NotificationsService:
-    def __init__(self, repo: NotificationsReader) -> None:
+    def __init__(self, repo: NotificationsRepository) -> None:
         self._repo = repo
 
-    async def unread_count(self, caller_id: UUID) -> UnreadCountResponse:
-        count = await self._repo.unread_count(caller_id)
-        return UnreadCountResponse(unread_count=count)
+    async def unread_count(self, actor_id: UUID) -> int:
+        return await self._repo.unread_count(actor_id)
