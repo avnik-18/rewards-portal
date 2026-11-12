@@ -33,6 +33,7 @@ from app.schemas.recognition import (
     DecideRequest,
     DecisionResponse,
     PendingApprovalRow,
+    RecognitionsCountResponse,
     RecognizeRequest,
     RecognizeResponse,
 )
@@ -136,3 +137,16 @@ async def pending_approvals(
 ) -> list[PendingApprovalRow]:
     rows = await service.pending_for(actor_id)
     return [PendingApprovalRow.model_validate(r) for r in rows]
+
+
+@router.get("/recognitions/count", response_model=RecognitionsCountResponse)
+async def recognitions_count(
+    actor_id: Annotated[UUID, Depends(get_actor_id)],
+    service: Annotated[RecognitionService, Depends(_service)],
+) -> RecognitionsCountResponse:
+    """Org-wide total over recognition_history (any status).
+
+    The actor identity gates the call but never scopes the query — the
+    number is the program-lifetime org total the Home screen displays.
+    A like-count, not HR-scoped data (design note; RBAC open by default)."""
+    return RecognitionsCountResponse(total=await service.recognition_count())

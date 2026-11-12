@@ -85,6 +85,17 @@ class ApplauseRepository:
             raise
         return (str(result.scalar()), False)
 
+    async def recognition_count(self) -> int:
+        """Org-wide total: every recognition_history row, any status.
+
+        No scope/filter — the total the frontend displays. Plain read:
+        count(*) is O(rows); a cached counter is the documented production
+        follow-up (PROD-DEPLOYMENT.md on the db-workstream branch)."""
+        result = await self._session.execute(
+            text("SELECT count(*) FROM recognition_history")
+        )
+        return int(result.scalar_one())
+
     async def user_id_by_code(self, employee_code: str) -> Any:
         """Resolve an employee_code to a users.id (the dev-mode X-Demo-User path)."""
         result = await self._session.execute(

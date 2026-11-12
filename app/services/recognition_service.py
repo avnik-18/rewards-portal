@@ -135,6 +135,12 @@ class RecognitionService:
     def __init__(self, repo: ApplauseRepository) -> None:
         self._repo = repo
 
+    async def recognition_count(self) -> int:
+        """Org-wide total — straight adapter over the read, no error
+        translation possible (recognition_history reads cannot raise
+        business codes)."""
+        return await self._repo.recognition_count()
+
     async def submit_recognition(
         self, actor_id: UUID, to_user_ids: list[UUID], cc_user_ids: list[UUID],
         value_id: UUID | None, message: str, points: int,
