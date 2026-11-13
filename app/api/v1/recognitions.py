@@ -144,7 +144,7 @@ async def recognitions_count(
     actor_id: Annotated[UUID, Depends(get_actor_id)],
     service: Annotated[RecognitionService, Depends(_service)],
 ) -> RecognitionsCountResponse:
-    """Org-wide total over recognition_history (any status).
+    """Org-wide total of APPROVED recognitions in recognition_history.
 
     The actor identity gates the call but never scopes the query — the
     number is the program-lifetime org total the Home screen displays.

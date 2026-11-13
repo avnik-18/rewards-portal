@@ -7,9 +7,12 @@ before import — same helpers as test_identity_stats.py.
 Contract under test (description in the API design conversation / the same
 spec mirrored from the DB workstream):
 1. shape: the entire body is {"total": <int>} — nothing else
-2. the count is the ACTUAL recognition_history row count (cross-checked
-   against SQL, never an invented constant)
-3. delta: one auto-band submission moves the total by exactly +1
+2. the count is the ACTUAL approved-row count (WHERE status = 'approved';
+   cross-checked against SQL, never an invented constant — pending /
+   declined / returned / cancelled recognitions do not happen from the
+   reader's point of view)
+3. delta: one auto-band submission (auto-approved on landing) moves the
+   total by exactly +1
 4. identity gates: no header → 400; unknown demo user → 404 (the shared
    get_actor_id dependency, not count-specific)
 """
@@ -47,9 +50,42 @@ def test_recognitions_count_flow() -> None:
         assert set(body.keys()) == {"total"}
         assert isinstance(body["total"], int) and body["total"] >= 0
 
-        # 2) the count is the real table count, not a constant
-        truth = int(db_exec("SELECT count(*) FROM recognition_history"))
+        # 2) the count is the real APPROVED-row count, not a constant — and
+        # the check DISCRIMINATES: send one approved row to 'declined'
+        # out-of-band (restore in finally) so the filtered and unfiltered
+        # counts split; if the filter were missing, total would stay pinned
+        # to the whole-table count and fail the != below.
+        truth = int(db_exec(
+            "SELECT count(*) FROM recognition_history WHERE status = 'approved'"))
         assert body["total"] == truth
+
+        discriminating = db_exec(
+            "SELECT id::text FROM recognition_history "
+            "WHERE status = 'approved' LIMIT 1")
+        if discriminating:
+            try:
+                db_exec("UPDATE recognition_history SET status = 'declined' "
+                        "WHERE id = :probe", {"probe": discriminating})
+                truth_after = int(db_exec(
+                    "SELECT count(*) FROM recognition_history "
+                    "WHERE status = 'approved'"))
+                everything = int(db_exec(
+                    "SELECT count(*) FROM recognition_history"))
+                r = client.get("/api/v1/recognitions/count",
+                               headers={"X-Demo-User": "E-PR"})
+                assert r.status_code == 200, r.text
+                moved = r.json()["total"]
+                assert moved == truth_after, (
+                    "endpoint must track the approved-only truth after a row "
+                    "leaves the approved set")
+                assert everything > truth_after, (
+                    "probe failed to split approved vs whole-table counts — "
+                    "this cross-check covers nothing")
+            finally:
+                # the probe row was picked with status='approved', so
+                # restoring that exact status is identity, not a guess
+                db_exec("UPDATE recognition_history SET status = 'approved' "
+                        "WHERE id = :probe", {"probe": discriminating})
 
         # 3) delta: one auto-band submission moves the total by exactly +1
         # (points 5 = the cheapest auto-band send: a repeated run on a
