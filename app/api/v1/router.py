@@ -2,8 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import (health, leaderboard, me, media, notifications,
-                        recognitions, showcase)
+from app.api.v1 import health, leaderboard, me, media, notifications, recognitions, showcase
 
 api_router = APIRouter()
 api_router.include_router(health.router)
