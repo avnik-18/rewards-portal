@@ -13,10 +13,12 @@ Contract under test (settled with the design-review agent against
    get_actor_id dependency, not media-specific)
 3. no live hero → 404 {"detail": "hero_not_published"} (deactivate the
    seeded hero; 200 again after reactivation)
-4. windowed hero invisible: a past effective_to removes the row from the
-   reader rule — 404, then 200 after NULLing the window back
-5. singleton: the partial unique index exists; serving 200 implies exactly
-   one live hero; a second active unwindowed hero cannot be inserted
+4. window semantics end-to-end (the API's decided display-window rule —
+   wider than the 0020 index comment's draft): an EXPIRED window hides the
+   row (404), a MID-WINDOW campaign hero is SERVED and outranks the
+   evergreen one, and falls back when its window ends
+5. singleton: the partial unique index exists; serving 200 still resolves
+   to exactly one row; a second active unwindowed hero cannot be inserted
 6. surface sanity: GET-only (POST → 405) in OpenAPI
 """
 
@@ -86,9 +88,8 @@ def test_media_hero_flow() -> None:
         assert client.get("/api/v1/media/hero",
                           headers={"X-Demo-User": "E-PR"}).status_code == 200
 
-        # 4) windowed hero invisible: a past effective_to hides the row under
-        # the documented reader rule (a windowed hero is never publicly
-        # served — flagged to the schema owner, kept verbatim in the API)
+        # 4) window semantics end-to-end under the decided reader rule
+        # (a) an EXPIRED window is not served
         try:
             db_exec("UPDATE media_asset SET effective_to = now() - "
                     "interval '1 hour' WHERE id = :i", {"i": truth_id})
@@ -97,6 +98,26 @@ def test_media_hero_flow() -> None:
         finally:
             db_exec("UPDATE media_asset SET effective_to = NULL "
                     "WHERE id = :i", {"i": truth_id})
+
+        # (b) a MID-WINDOW campaign hero is served in the evergreen's place
+        try:
+            campaign = db_exec(
+                "INSERT INTO media_asset (kind, title, url, sort_order, "
+                "effective_from, effective_to) VALUES "
+                "('hero_carousel_video', 'campaign-hero-probe', "
+                "'https://cdn.emids.test/hero-campaign-probe.mp4', 0, "
+                "now(), now() + interval '2 hours') RETURNING id::text")
+            r = client.get("/api/v1/media/hero", headers={"X-Demo-User": "E-PR"})
+            assert r.status_code == 200, r.text
+            assert r.json()["id"] == campaign, (
+                "mid-window campaign must outrank the evergreen hero")
+            # (c) its window ending falls straight back to the evergreen
+            db_exec("UPDATE media_asset SET effective_to = now() "
+                    "WHERE id = :i", {"i": campaign})
+            r = client.get("/api/v1/media/hero", headers={"X-Demo-User": "E-PR"})
+            assert r.status_code == 200 and r.json()["id"] == truth_id
+        finally:
+            db_exec("DELETE FROM media_asset WHERE id = :i", {"i": campaign})
 
         # 5) singleton: the partial unique index is live; a second active
         # unwindowed hero cannot exist

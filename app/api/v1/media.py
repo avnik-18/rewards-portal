@@ -6,9 +6,11 @@ rows are the placement registry (0020_media_asset): the media itself lives on
 the CDN and admins swap links, so any live row is guaranteed https and (if it
 has an action) CTA-paired by the table's CHECKs.
 
-No live hero (registry empty, deactivated, windowed, or only future-dated) is
-the 404 hero_not_published contract — the frontend falls back to a static
-asset on it."""
+No live hero (registry empty, deactivated, expired window, or only
+future-dated) is the 404 hero_not_published contract — the frontend falls
+back to a static asset on it. A hero mid-window that overlaps the evergreen
+one is served in its place (display-window semantics — see
+MediaRepository.live_hero for the decided rule)."""
 
 from typing import Annotated
 from uuid import UUID
