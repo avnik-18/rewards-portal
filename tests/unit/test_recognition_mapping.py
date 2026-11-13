@@ -22,9 +22,13 @@ def test_not_pending_for_decider_is_403() -> None:
 
 
 def test_item_already_family_is_409() -> None:
-    for code in ("item_already_pending", "item_already_approved",
-                 "item_already_declined", "item_already_returned",
-                 "item_already_cancelled"):
+    for code in (
+        "item_already_pending",
+        "item_already_approved",
+        "item_already_declined",
+        "item_already_returned",
+        "item_already_cancelled",
+    ):
         assert _code_status(code) == status.HTTP_409_CONFLICT, code
 
 
@@ -54,6 +58,7 @@ def test_every_sqlstate_code_maps_to_http() -> None:
     explicit 500s are the coded integrity faults (INTEGRITY_FAULTS)."""
     from app.api.v1.recognitions import INTEGRITY_FAULTS
     from app.services.recognition_service import _SQLSTATE_TO_CODE
+
     for code in _SQLSTATE_TO_CODE.values():
         if code in INTEGRITY_FAULTS:
             assert _code_status(code) == status.HTTP_500_INTERNAL_SERVER_ERROR, code

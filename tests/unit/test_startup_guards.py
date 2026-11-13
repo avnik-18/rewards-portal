@@ -63,18 +63,14 @@ def test_wildcard_or_empty_hosts_refused_outside_local(
     assert "ALLOWED_HOSTS" in str(err.value)
 
 
-def test_missing_graph_email_refused_outside_local(
-    monkeypatch: pytest.MonkeyPatch, prod_env: None
-) -> None:
+def test_missing_graph_email_refused_outside_local(monkeypatch: pytest.MonkeyPatch, prod_env: None) -> None:
     _prod_env(monkeypatch, GRAPH_MAILBOX="", GRAPH_CLIENT_ID="")
     with pytest.raises(sec.IdentityConfigError) as err:
         sec.require_identity_configured()
     assert "GRAPH" in str(err.value)
 
 
-def test_local_without_email_and_hosts_still_boots(
-    monkeypatch: pytest.MonkeyPatch, prod_env: None
-) -> None:
+def test_local_without_email_and_hosts_still_boots(monkeypatch: pytest.MonkeyPatch, prod_env: None) -> None:
     """local keeps the dev allowances (X-Demo-User, log-only email)."""
     monkeypatch.setenv("ENVIRONMENT", "local")
     monkeypatch.delenv("ALLOWED_HOSTS", raising=False)
