@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 .env
 .claude/settings.local.json
+.claude/launch.json
 dist/
 build/
 .pytest_cache/
