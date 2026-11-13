@@ -80,3 +80,13 @@ class PendingApprovalRow(BaseModel):
     submitter_name: str
     points: int
     note: str | None = None
+
+
+class RecognitionsCountResponse(BaseModel):
+    """GET /recognitions/count — the org-wide total, any status.
+
+    Every recognition_history row counts (a created recognition shows even
+    while pending or declined). No period/user/status scoping — the total is
+    the program-lifetime count the Home screen displays."""
+
+    total: int = Field(ge=0)

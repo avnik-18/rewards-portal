@@ -28,14 +28,16 @@ def db_ready() -> bool:
 DB_READY = db_ready()
 
 
-def db_exec(q: str) -> str:
+def db_exec(q: str, params: dict | None = None) -> str:
     """Execute a SQL statement and return the string result of the first column.
 
     Raises on failure (a broken helper must fail the test, not silently run
     it against stale state). Returns "" when the statement yields no row or
-    a NULL first column — the caller decides what that means."""
+    a NULL first column — the caller decides what that means. Params are
+    bound (never interpolated) — pass them for anything driving from test
+    state; the raw-string form stays for literal fixtures."""
     with _SYNC_ENGINE.connect() as c:
-        result = c.execute(text(q))
+        result = c.execute(text(q), params or {})
         c.commit()
         if result.returns_rows:
             row = result.fetchone()
