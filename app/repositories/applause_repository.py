@@ -33,6 +33,8 @@ class ApplauseRepository:
         to_users: list[Any],
         cc_users: list[Any] | None,
         value_id: Any,
+        template_id: Any,
+        art_url: Any,
         message: str,
         points: int,
         idempotency_key: Any = None,
@@ -55,8 +57,8 @@ class ApplauseRepository:
                 result = await self._session.execute(
                     text(
                         "SELECT fn_submit_recognition("
-                        ":from_user, :to_users, :cc_users, :value_id, NULL, "
-                        ":message, :points, NULL, 'praise'::recognition_kind, "
+                        ":from_user, :to_users, :cc_users, :value_id, :template_id, "
+                        ":message, :points, :art_url, 'praise'::recognition_kind, "
                         ":idempotency_key) AS id"
                     ),
                     dict(
@@ -64,18 +66,18 @@ class ApplauseRepository:
                         to_users=to_users,
                         cc_users=cc_users,
                         value_id=value_id,
+                        template_id=template_id,
+                        art_url=art_url,
                         message=message,
                         points=points,
                         idempotency_key=idempotency_key,
                     ),
                 )
         except DBAPIError as e:
-            if (str(getattr(e.orig, "sqlstate", None) or "") == "23505"
-                    and idempotency_key is not None):
+            if str(getattr(e.orig, "sqlstate", None) or "") == "23505" and idempotency_key is not None:
                 original_id = (
                     await self._session.execute(
-                        text("SELECT id FROM recognition_history "
-                             "WHERE idempotency_key = :key"),
+                        text("SELECT id FROM recognition_history WHERE idempotency_key = :key"),
                         dict(key=idempotency_key),
                     )
                 ).scalar()
@@ -93,10 +95,7 @@ class ApplauseRepository:
         reader's point of view (deploy-decision: approved-only semantics).
         No user scope; a cached counter is the documented production
         follow-up (PROD-DEPLOYMENT.md on the db-workstream branch)."""
-        result = await self._session.execute(
-            text("SELECT count(*) FROM recognition_history "
-                 "WHERE status = 'approved'")
-        )
+        result = await self._session.execute(text("SELECT count(*) FROM recognition_history WHERE status = 'approved'"))
         return int(result.scalar_one())
 
     async def user_id_by_code(self, employee_code: str) -> Any:
@@ -157,10 +156,7 @@ class ApplauseRepository:
 
         DB failures propagate as raised (DBAPIError) — service translates."""
         await self._session.execute(
-            text(
-                "SELECT fn_item_decide("
-                "CAST(:item AS uuid), CAST(:decider AS uuid), :approve, :note)"
-            ),
+            text("SELECT fn_item_decide(CAST(:item AS uuid), CAST(:decider AS uuid), :approve, :note)"),
             dict(item=item, decider=decider, approve=approve, note=note),
         )
         status = await self._session.execute(
@@ -170,7 +166,6 @@ class ApplauseRepository:
         return str(status.scalar())
 
     async def pending_approvals(self, referent: Any) -> AsyncIterator[dict[str, Any]]:
-
         """Approvals currently pending on a person's inbox, shaped exactly as
         the PendingApprovalRow DTO expects (alias ai.id -> approval_item_id;
         snapshot.base_points may be absent for items whose approval snapshot
