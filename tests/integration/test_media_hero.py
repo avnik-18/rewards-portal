@@ -38,8 +38,8 @@ from sqlalchemy.exc import IntegrityError  # noqa: E402
 
 from app.main import create_app  # noqa: E402
 from tests.integration.db_helpers import (  # noqa: E402
-    DB_READY,
     _SYNC_ENGINE,
+    DB_READY,
     db_exec,
     seed_demo_if_missing,
 )
@@ -89,6 +89,12 @@ def test_media_hero_flow() -> None:
                           headers={"X-Demo-User": "E-PR"}).status_code == 200
 
         # 4) window semantics end-to-end under the decided reader rule
+        # Backdate the evergreen window first: the seed relies on the
+        # effective_from DEFAULT now(), so on a fresh DB the fixture's
+        # expired-window update (effective_to < effective_from) fails the
+        # media_asset_window_chk when the seed is younger than an hour.
+        db_exec("UPDATE media_asset SET effective_from = "
+                "now() - interval '90 days' WHERE id = :i", {"i": truth_id})
         # (a) an EXPIRED window is not served
         try:
             db_exec("UPDATE media_asset SET effective_to = now() - "
