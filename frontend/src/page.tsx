@@ -2,7 +2,7 @@ import Hero from '@/components/organisms/Hero'
 import { StatCards } from '@/components/organisms/StatCards'
 import EoQShowcase from '@/components/organisms/EoQShowcase'
 import Leaderboard from '@/components/organisms/Leaderboard'
-import { getMe, getDashboardStats, getLeaderboard, getShowcaseSlides } from '@/lib/data-api'
+import { getMe, getDashboardStats, getLeaderboard, getShowcaseSlides, getHeroMedia } from '@/lib/data-api'
 import { usePageData } from '@/hooks/use-page-data'
 import { usePageTitle } from '@/hooks/use-page-title'
 import { ErrorState, LoadingSkeleton } from './load-ui'
@@ -13,8 +13,11 @@ export default function DashboardPage() {
   const stats = usePageData(getDashboardStats, [])
   const leaderboard = usePageData(getLeaderboard, [])
   const slides = usePageData(getShowcaseSlides, [])
+  // The hero media is best-effort: getHeroMedia resolves null when nothing
+  // is published OR the backend is unreachable, so it never blocks the page.
+  const heroMedia = usePageData(getHeroMedia, [])
 
-  if (me.isLoading || stats.isLoading || leaderboard.isLoading || slides.isLoading) {
+  if (me.isLoading || stats.isLoading || leaderboard.isLoading || slides.isLoading || heroMedia.isLoading) {
     return <LoadingSkeleton />
   }
   const failure = me.error ?? stats.error ?? leaderboard.error ?? slides.error
@@ -24,7 +27,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <Hero name={me.data.name} />
+      <Hero name={me.data.name} media={heroMedia.data ?? undefined} />
 
       <div className="mb-3 -mx-2.5 lg:-mx-[30px]">
         <p className="text-[11px] font-extrabold font-mono uppercase tracking-[0.2em] text-brand">My activity</p>

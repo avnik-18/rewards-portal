@@ -77,6 +77,54 @@ describe('Hero (integration)', () => {
     }
   })
 
+  it('plays the media-registry video when the API serves a live hero', () => {
+    vi.useFakeTimers()
+    render(
+      <MemoryRouter>
+        <Hero
+          name="Ayan"
+          media={{
+            id: 'd3ad0m-e',
+            title: 'Q4 townhall — season kickoff',
+            url: 'https://cdn.emids.test/media/hero-q4-townhall.mp4',
+            poster_url: 'https://cdn.emids.test/hero-frame.jpg',
+            cta_label: 'Watch the replay',
+            cta_url: 'https://intranet.emids.test/townhall',
+          }}
+        />
+      </MemoryRouter>,
+    )
+
+    const video = document.querySelector('video') as HTMLVideoElement | null
+    expect(video?.getAttribute('src')).toBe('https://cdn.emids.test/media/hero-q4-townhall.mp4')
+    expect(video?.getAttribute('poster')).toBe('https://cdn.emids.test/hero-frame.jpg')
+  })
+
+  it('keeps the bundled poster when the registry row carries no poster', () => {
+    vi.useFakeTimers()
+    render(
+      <MemoryRouter>
+        <Hero
+          name="Ayan"
+          media={{
+            id: 'd3ad0m-e',
+            title: 'Q4 townhall — season kickoff',
+            url: 'https://embed.wistia.com/deliveries/95422e5b5fe4bf5888f2a9e4feee0ef237a1faa1.mp4',
+            poster_url: null,
+            cta_label: null,
+            cta_url: null,
+          }}
+        />
+      </MemoryRouter>,
+    )
+
+    const video = document.querySelector('video') as HTMLVideoElement | null
+    expect(video?.getAttribute('src')).toBe(
+      'https://embed.wistia.com/deliveries/95422e5b5fe4bf5888f2a9e4feee0ef237a1faa1.mp4',
+    )
+    expect(video?.getAttribute('poster')).toBe('/emids-hero.webp')
+  })
+
   it('the keyboard-operable pause control toggles the background video', async () => {
     vi.useFakeTimers()
     // a jsdom video never fires play/pause events — the controls rely on them

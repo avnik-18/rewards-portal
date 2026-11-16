@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Pause, Play } from 'lucide-react'
 import { Mascot } from '../atoms'
+import type { HeroMedia } from '@/lib/data-api'
 
 const RECOGNIZE_PHRASES = [
   'Recognize a teammate',
@@ -80,7 +81,12 @@ function RecognizeCycle({ className = '' }: { className?: string }) {
   )
 }
 
-function HeroBackdrop() {
+function HeroBackdrop({ media }: { media?: HeroMedia }) {
+  // DB-driven first: the media registry row's video/poster (poster falls
+  // back to the bundled webp since the DB column is nullable); when no
+  // live row is served (null) the bundled assets below are the fallback.
+  const videoUrl = media?.url ?? '/emids-site-hero.mp4'
+  const posterUrl = media?.poster_url ?? '/emids-hero.webp'
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoMissing, setVideoMissing] = useState(false)
   // sir's a11y review #4: the poster is the default for SSR AND the first
@@ -112,9 +118,10 @@ function HeroBackdrop() {
         <>
           <video
             ref={videoRef}
+            key={videoUrl}
             className="absolute inset-0 h-full w-full object-cover"
-            src="/emids-site-hero.mp4"
-            poster="/emids-hero.webp"
+            src={videoUrl}
+            poster={posterUrl}
             aria-hidden
             autoPlay
             muted
@@ -142,11 +149,11 @@ function HeroBackdrop() {
   )
 }
 
-export default function Hero({ name }: { name: string }) {
+export default function Hero({ name, media }: { name: string; media?: HeroMedia }) {
   return (
     <div className="relative isolate mb-16 mt-2.5 -mx-2.5 lg:-mx-[30px]">
       <div className="relative isolate flex min-h-[360px] items-center overflow-hidden rounded-[28px] shadow-[0_18px_44px_-20px_rgba(3,13,28,0.55)]">
-        <HeroBackdrop />
+        <HeroBackdrop media={media} />
         <div className="relative z-10 flex w-full flex-col items-start justify-center gap-6 px-7 py-8 sm:px-9 xl:px-10 xl:py-10">
           <h1 className="max-w-3xl text-[50px] font-extrabold leading-[1.06] tracking-[-0.03em]">
             <span

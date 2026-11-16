@@ -1,6 +1,17 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Dashboard (Playwright integration)', () => {
+  // CI has no backend: answer the two live-data calls in-test. Anything the
+  // backend isn't serving yet stays 404 (hero falls back to the static asset).
+  test.beforeEach(async ({ page }) => {
+    await page.route('**/api/v1/recognitions/count', (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ total: 279 }) }),
+    )
+    await page.route('**/api/v1/media/hero', (route) =>
+      route.fulfill({ status: 404, contentType: 'application/json', body: '{"detail":"hero_not_published"}' }),
+    )
+  })
+
   test('greets the user and shows the full server-rendered dashboard', async ({ page }) => {
     await page.goto('/')
 
@@ -37,8 +48,7 @@ test.describe('Dashboard (Playwright integration)', () => {
     await expect(page.getByText(/Nominations close in 19 days/)).toBeVisible()
   })
 
-  test('page streams server-rendered HTML before hydration', async ({ page }) => {
-    // HTML arrives with content present — no client fetch required for the shell data
+  test('dashboard renders fully once the api-backed tiles resolve', async ({ page }) => {
     const response = await page.goto('/')
     expect(response?.ok()).toBeTruthy()
     const html = await page.content()

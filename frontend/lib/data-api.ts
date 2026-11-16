@@ -4,6 +4,7 @@
 // no component changes.
 
 export { getMe, WELCOME_BONUS_POINTS, getDashboardStats } from './data-api-parts/me'
+export { getHeroMedia, type HeroMedia } from './data-api-parts/hero'
 export {
   getLeaderboard,
   getShowcaseSlides,
