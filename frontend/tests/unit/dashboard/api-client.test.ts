@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { apiFetch } from '@/lib/api-client'
+import { ApiError, apiFetch } from '@/lib/api-client'
+import { getDemoUsers } from '@/lib/data-api'
 import { getHeroMedia } from '@/lib/data-api'
 
 const fetchMock = vi.fn()
@@ -14,6 +15,7 @@ const ORIGINAL_USER = envBag.VITE_DEMO_USER
 beforeEach(() => {
   envBag.VITE_API_BASE_URL = 'http://rewards.test/api/v1'
   delete envBag.VITE_DEMO_USER
+  window.localStorage.clear() // pristine: no picked demo identity from setup
   fetchMock.mockClear()
   vi.stubGlobal('fetch', fetchMock)
 })
@@ -46,9 +48,56 @@ describe('apiFetch', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('raises a small error on any non-2xx', async () => {
-    fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) })
-    await expect(apiFetch('/media/hero')).rejects.toThrow('HTTP 500')
+  it('raises ApiError on any non-2xx — the snake_case {detail} becomes the stable code', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Server Error',
+      json: async () => ({ detail: 'double_refund_blocked' }),
+    })
+    const err = (await apiFetch('/media/hero').catch((e: unknown) => e)) as ApiError
+    expect(err).toBeInstanceOf(ApiError)
+    expect(err.status).toBe(500)
+    expect(err.code).toBe('double_refund_blocked')
+    expect(err.message).toContain('double_refund_blocked')
+  })
+
+  it('prose detail stays code-free; a non-JSON proxy body falls back to statusText', async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 409,
+      statusText: 'Conflict',
+      json: async () => ({ detail: 'actor does not own this recognition' }),
+    })
+    const prose = (await apiFetch('/me').catch((e: unknown) => e)) as ApiError
+    expect(prose.code).toBeUndefined()
+    expect(prose.message).toBe('actor does not own this recognition')
+
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 502,
+      statusText: 'Bad Gateway',
+      json: async () => {
+        throw new Error('not json')
+      },
+    })
+    const proxy = (await apiFetch('/me').catch((e: unknown) => e)) as ApiError
+    expect(proxy.message).toBe('Bad Gateway')
+  })
+})
+
+describe('getDemoUsers (login directory)', () => {
+  it('returns the parsed directory rows verbatim', async () => {
+    const row = { employee_code: 'E-PR', full_name: 'Priya Rao', title: 'Engineer', department: 'Engineering' }
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => [row] })
+    await expect(getDemoUsers()).resolves.toEqual([row])
+  })
+
+  it('propagates backend refusal — the login screen needs the error for its Retry state', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found', json: async () => ({}) })
+    const err = (await getDemoUsers().catch((e: unknown) => e)) as ApiError
+    expect(err).toBeInstanceOf(ApiError)
+    expect(err.status).toBe(404)
   })
 })
 

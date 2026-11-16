@@ -20,9 +20,14 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: process.env.E2E_PRODUCTION ? 'npm run preview -- --port 5173 --strictPort' : 'npm run dev -- --port 5173 --strictPort',
+    command: process.env.E2E_PRODUCTION
+      ? 'npm run preview -- --port 5173 --strictPort'
+      : 'npm run dev -- --port 5173 --strictPort',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // the api tests run behind route interception — the base just needs to
+    // EXIST (apiFetch fails fast without it; CI has no .env.local)
+    env: { VITE_API_BASE_URL: 'http://rewards.test/api/v1' },
   },
 })

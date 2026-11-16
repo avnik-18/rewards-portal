@@ -4,6 +4,8 @@ export interface LeaderRow {
   id: string
   name: string
   pts: number
+  /** LIVE rows only: the API's is_me marker (drives the "You" chip). */
+  me?: boolean
 }
 
 // Peer points received this quarter — EoQ prize payouts not included

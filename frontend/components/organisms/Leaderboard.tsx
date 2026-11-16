@@ -38,10 +38,10 @@ export default function Leaderboard({ rows }: LeaderboardProps) {
               >
                 {rowIndex + 1}
               </span>
-              <Avatar id={teamRow.id} size={28} />
+              <Avatar id={teamRow.id} name={teamRow.name} size={28} />
               <span className="min-w-0 flex-1 truncate text-[12.5px] font-bold text-navy">
                 {parts}
-                {teamRow.id === 'me' && (
+                {(teamRow.id === 'me' || teamRow.me) && (
                   <span className="ml-1.5 rounded-full bg-brand px-1.5 py-0.5 text-[9px] font-extrabold text-white">
                     You
                   </span>

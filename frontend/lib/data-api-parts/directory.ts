@@ -14,12 +14,59 @@ import {
   type TeamMemberStat,
 } from '../mock-data'
 
+import { apiFetch } from '../api-client'
+import type { LeaderboardEntry, ShowcaseResponse } from './live-api-shapes'
+
+/**
+ * Deliverable #4 — the LIVE leaderboard. Real approved/quarter points from
+ * the FastAPI lane, scoped to the caller's own teams; is_me is the API's own
+ * marker. The caller's row leads the card (sir's pinned-first rule), the rest
+ * keep the API's rank order; the top-5 presentation cap stays here. On a
+ * backend outage the mock board keeps the page honest-but-rendered.
+ */
 export async function getLeaderboard(): Promise<LeaderRow[]> {
-  return TEAM_LEADERBOARD
+  try {
+    const response = await apiFetch<{ entries: LeaderboardEntry[] }>('/leaderboard?limit=10')
+    const mapped = response.entries.map((entry) => ({
+      id: `live-${entry.rank}`,
+      name: entry.name,
+      pts: entry.points,
+      me: entry.is_me,
+    }))
+    mapped.sort((a, b) => Number(b.me === true) - Number(a.me === true))
+    return mapped.slice(0, 5)
+  } catch {
+    return TEAM_LEADERBOARD
+  }
 }
 
+/**
+ * Deliverable #5 — the FIRST slide is composed from the LIVE EoQ numbers
+ * (countdown, categories, prize pool, jury state); the mock award slides
+ * follow so the carousel keeps its art. Mock fallback on backend outage.
+ */
 export async function getShowcaseSlides(): Promise<Slide[]> {
-  return SHOWCASE_SLIDES
+  try {
+    const showcase = await apiFetch<ShowcaseResponse>('/awards/showcase')
+    const countdown =
+      showcase.days_to_nominations_close === null
+        ? 'Nominations closed'
+        : `Nominations close in ${showcase.days_to_nominations_close} days`
+    const liveSlide: Slide = {
+      key: 'eoq-live',
+      img: '/img2.webp',
+      title: `EoQ window · ${countdown.replace('Nominations ', '')}`,
+      headline: `Awards worth ${showcase.cycle_prize_total} pts this quarter`,
+      blurb: `Nominate the teammate who shipped, saved, and showed up. The jury reads every word. You ${
+        showcase.my_jury.assigned ? 'sit on the jury of this cycle.' : 'can nominate anyone.'
+      }`,
+      cta: 'Nominate now',
+      cta2: showcase.my_jury.assigned ? 'Jury duty · vote pending' : 'Open',
+    }
+    return [liveSlide, ...SHOWCASE_SLIDES.slice(1)]
+  } catch {
+    return SHOWCASE_SLIDES
+  }
 }
 
 export async function getPeople(): Promise<Person[]> {

@@ -4,6 +4,14 @@ import path from 'node:path'
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    fs: {
+      // worktree checkout shares node_modules with the main tree via a junction;
+      // vite resolves the realpath outside this root, so relax the strict gate
+      strict: false,
+      allow: ['.', '/mnt/c/Users/syeda2/Desktop/frontend/frontend/node_modules'],
+    },
+  },
   resolve: {
     alias: [
       // root-level layers first, then src/ pages — mirrors the tsconfig path fallback

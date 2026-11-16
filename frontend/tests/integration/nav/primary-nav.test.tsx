@@ -48,7 +48,7 @@ describe('PrimaryNav', () => {
     expect(screen.getByRole('button', { name: 'Profile menu' })).toBeTruthy()
   })
 
-  it('opens the profile disclosure with the person card and My profile link', () => {
+  it('opens the profile disclosure with the person card and My profile link', async () => {
     render(
       <MemoryRouter>
         <HeaderActions />
@@ -57,14 +57,15 @@ describe('PrimaryNav', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Profile menu' }))
     expect(screen.getByRole('link', { name: /My profile/ })).toBeTruthy()
-    expect(screen.getByText('Ayan')).toBeTruthy()
+    // the person card loads asynchronously from GET /me
+    await screen.findByText('Ayan')
 
     // Escape closes the disclosure and returns focus to the trigger
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('link', { name: /My profile/ })).toBeNull()
   })
 
-  it('a mousedown inside the disclosure keeps it open; outside closes it', () => {
+  it('a mousedown inside the disclosure keeps it open; outside closes it', async () => {
     render(
       <MemoryRouter>
         <HeaderActions />
@@ -72,7 +73,8 @@ describe('PrimaryNav', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Profile menu' }))
-    const card = screen.getByText('Senior Eng Manager')
+    // designation loads asynchronously from GET /me (the setup stub's title)
+    const card = await screen.findByText('Engineer')
     fireEvent.mouseDown(card) // inside — stays open
     expect(screen.getByRole('link', { name: /My profile/ })).toBeTruthy()
 

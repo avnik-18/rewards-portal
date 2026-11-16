@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <Hero name={me.data.name} media={heroMedia.data ?? undefined} />
+      <Hero name={me.data.full_name} media={heroMedia.data ?? undefined} />
 
       <div className="mb-3 -mx-2.5 lg:-mx-[30px]">
         <p className="text-[11px] font-extrabold font-mono uppercase tracking-[0.2em] text-brand">My activity</p>

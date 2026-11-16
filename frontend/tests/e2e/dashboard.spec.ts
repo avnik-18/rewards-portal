@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './portal'
 
 test.describe('Dashboard (Playwright integration)', () => {
   // CI has no backend: answer the two live-data calls in-test. Anything the
@@ -18,7 +18,7 @@ test.describe('Dashboard (Playwright integration)', () => {
     // header and footer both carry the logo link — scope to the header
     await expect(page.getByRole('banner').getByRole('link', { name: 'Go to dashboard' })).toBeVisible()
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Hello Ayan')
-    await expect(page.getByRole('button', { name: 'Recognize a teammate' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Recognize a teammate' })).toBeVisible()
 
     // stat tiles
     await expect(page.getByText('Total points balance')).toBeVisible()
@@ -34,25 +34,28 @@ test.describe('Dashboard (Playwright integration)', () => {
   test('carousel next arrow shows the awards slide and dots navigate', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.getByText(/Nominations close in 19 days/)).toBeVisible()
+    // the LIVE first slide composes from GET /awards/showcase (headline w/o comma)
+    await expect(page.getByText(/Awards worth 7500 pts/)).toBeVisible()
 
     // the slider's cross-fade layers can win the hit-test mid-transition on touch
     // viewports — fall back to a forced click on our own control
     const nextBtn = page.getByRole('button', { name: 'Next slide' })
     await nextBtn.click().catch(() => nextBtn.click({ force: true }))
-    await expect(page.getByText(/Awards worth 7,500 pts/)).toBeVisible()
+    // the mock Quarterly Awards slide follows (headline keeps its comma)
+    await expect(page.getByText(/7,500 pts/)).toBeVisible()
 
     // nav dots carry the same aria labels as every request — pick the unique one
-    const dot = page.getByRole('button', { name: 'Go to Quarterly Awards' })
+    const dot = page.getByRole('button', { name: 'Go to EoQ window · close in 19 days' })
     await dot.click().catch(() => dot.click({ force: true }))
-    await expect(page.getByText(/Nominations close in 19 days/)).toBeVisible()
+    await expect(page.getByText(/Awards worth 7500 pts/)).toBeVisible()
   })
 
   test('dashboard renders fully once the api-backed tiles resolve', async ({ page }) => {
     const response = await page.goto('/')
     expect(response?.ok()).toBeTruthy()
-    const html = await page.content()
-    expect(html).toContain('Total points balance')
-    expect(html).toContain('Total recognitions at EMIDS')
+    // the tiles are api-fed now — assert with Playwright's auto-waiting
+    // locators instead of racing page.content() against the fetches
+    await expect(page.getByText('Total points balance')).toBeVisible()
+    await expect(page.getByText('Total recognitions at EMIDS')).toBeVisible()
   })
 })

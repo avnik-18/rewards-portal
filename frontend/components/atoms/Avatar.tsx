@@ -17,8 +17,32 @@ function hashStr(text: string) {
   return hash
 }
 
-export function Avatar({ id, size = 36, ring = false }: { id: string; size?: number; ring?: boolean }) {
-  const profile = person(id)
+export function Avatar({
+  id,
+  name,
+  size = 36,
+  ring = false,
+}: {
+  id: string
+  name?: string
+  size?: number
+  ring?: boolean
+}) {
+  const profile = name ? undefined : person(id)
+  // LIVE rows (the façade passes `name` for people not in the mock directory):
+  // colored gradient + initials, determined from the name — same look, honest data.
+  if (!profile && name) {
+    const gradient = GRADIENTS[hashStr(name) % GRADIENTS.length]
+    return (
+      <div
+        className={`flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white select-none ${gradient}`}
+        style={{ width: size, height: size, fontSize: size * 0.38 }}
+        aria-hidden
+      >
+        {initials(name)}
+      </div>
+    )
+  }
   // unknown ids render a neutral avatar — they must NOT silently resolve
   // to the signed-in user (PR review: people.ts fallback comment)
   if (!profile) {
