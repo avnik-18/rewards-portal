@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import health, leaderboard, me, media, notifications, recognitions, showcase
+from app.api.v1 import health, leaderboard, me, media, notifications, notifications_list, recognitions, showcase
 
 api_router = APIRouter()
 api_router.include_router(health.router)
@@ -15,3 +15,5 @@ api_router.include_router(media.router)
 api_router.include_router(leaderboard.router)
 api_router.include_router(showcase.router)
 api_router.include_router(notifications.router)
+# Bell panel list + mark-read (deliverable #6 depth)
+api_router.include_router(notifications_list.router)
