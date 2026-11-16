@@ -58,7 +58,7 @@ describe('PrimaryNav', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Profile menu' }))
     expect(screen.getByRole('link', { name: /My profile/ })).toBeTruthy()
     // the person card loads asynchronously from GET /me
-    await screen.findByText('Ayan')
+    await screen.findByText('Priya Rao')
 
     // Escape closes the disclosure and returns focus to the trigger
     fireEvent.keyDown(document, { key: 'Escape' })

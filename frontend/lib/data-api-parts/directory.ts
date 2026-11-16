@@ -20,9 +20,12 @@ import type { LeaderboardEntry, ShowcaseResponse } from './live-api-shapes'
 /**
  * Deliverable #4 — the LIVE leaderboard. Real approved/quarter points from
  * the FastAPI lane, scoped to the caller's own teams; is_me is the API's own
- * marker. The caller's row leads the card (sir's pinned-first rule), the rest
- * keep the API's rank order; the top-5 presentation cap stays here. On a
- * backend outage the mock board keeps the page honest-but-rendered.
+ * marker. The caller's row still leads the card (sir's pinned-first rule),
+ * but the RANK BADGE keeps the API's rank() — a 0-point caller must show a
+ * truthful position, not a fabricated #1 (sir's attack round). The words
+ * stay: top-5 cap after the pin. On a backend outage the mock board keeps
+ * the page honest-but-rendered — loudly marked in the console so a mock
+ * fallback can never be mistaken for live data.
  */
 export async function getLeaderboard(): Promise<LeaderRow[]> {
   try {
@@ -32,10 +35,12 @@ export async function getLeaderboard(): Promise<LeaderRow[]> {
       name: entry.name,
       pts: entry.points,
       me: entry.is_me,
+      rank: entry.rank,
     }))
     mapped.sort((a, b) => Number(b.me === true) - Number(a.me === true))
     return mapped.slice(0, 5)
-  } catch {
+  } catch (error) {
+    console.error('[data-api] live leaderboard unavailable — serving the mock board:', error)
     return TEAM_LEADERBOARD
   }
 }
@@ -64,7 +69,8 @@ export async function getShowcaseSlides(): Promise<Slide[]> {
       cta2: showcase.my_jury.assigned ? 'Jury duty · vote pending' : 'Open',
     }
     return [liveSlide, ...SHOWCASE_SLIDES.slice(1)]
-  } catch {
+  } catch (error) {
+    console.error('[data-api] live awards showcase unavailable — serving the mock slides:', error)
     return SHOWCASE_SLIDES
   }
 }

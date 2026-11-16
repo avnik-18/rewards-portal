@@ -3,48 +3,75 @@ import { useEffect, useRef, useState } from 'react'
 import { Bell } from 'lucide-react'
 import { Avatar } from '@/components/atoms'
 import { getMe, getUnreadCount, getUnreadFeed, markAllNotificationsRead, type UnreadNotification } from '@/lib/data-api'
+import { NotificationRow } from '@/components/organisms/notification-row'
 import { usePageData } from '@/hooks/use-page-data'
 
 /** Right side of the header — notifications bell + avatar profile-menu disclosure.
  *  The person card comes from the actor-scoped GET /me (whoever signed in); the
- *  bell shows the live unread badge (GET /notifications/unread-count) and its
- *  panel reads the unread feed (GET /notifications) with mark-all-read
- *  (POST /notifications/read — a read row disappears, the badge drops to 0). */
+ *  bell's dot is fetched on MOUNT (not first click) and its panel reads the
+ *  unread feed (GET /notifications) with mark-all-read (POST
+ *  /notifications/read — a read row disappears, the badge drops to 0). A feed
+ *  failure shows an honest Retry state instead of a fake "all caught up". */
 export default function HeaderActions() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const headerRef = useRef<HTMLDivElement>(null)
+  const bellButtonRef = useRef<HTMLButtonElement>(null)
   const me = usePageData(getMe, [])
   const designation = me.data?.title ?? me.data?.department ?? undefined
 
   const [unread, setUnread] = useState<number>()
   const [feed, setFeed] = useState<UnreadNotification[] | undefined>(undefined)
+  const [feedFailed, setFeedFailed] = useState(false)
   const [markingRead, setMarkingRead] = useState(false)
+  const [markFailed, setMarkFailed] = useState(false)
 
-  const refreshUnread = () => getUnreadCount().then(setUnread)
+  const refreshUnread = () =>
+    getUnreadCount()
+      .then(setUnread)
+      .catch(() => undefined)
+
+  // the dot is live from first paint, not after the first bell click
+  useEffect(() => {
+    refreshUnread()
+  }, [])
+
+  const loadFeed = () => {
+    setFeed(undefined)
+    setFeedFailed(false)
+    getUnreadFeed()
+      .then(setFeed)
+      .catch(() => {
+        // a dead backend is NOT "all caught up" — falsifiable failure + a reto
+        setFeed([])
+        setFeedFailed(true)
+      })
+  }
 
   const toggleBell = () => {
     const opening = !notifOpen
     setNotifOpen(opening)
     setMenuOpen(false)
     if (opening) {
-      setFeed(undefined)
-      getUnreadFeed()
-        .then(setFeed)
-        .catch(() => setFeed([])) // honest empty panel + the badge stays truthful
+      loadFeed()
       refreshUnread()
     }
   }
 
   const markAllRead = () => {
     setMarkingRead(true)
+    setMarkFailed(false)
     markAllNotificationsRead()
-      .then(() =>
-        getUnreadFeed()
-          .then(setFeed)
-          .catch(() => setFeed([])),
-      )
-      .catch(() => undefined)
+      .then(() => {
+        setFeed([])
+        // the badge and the list emptied — the bell is the focus owner now that
+        // the trigger content unmounted under the click's focus
+        bellButtonRef.current?.focus()
+      })
+      .catch(() => {
+        // stale feed stays TRUTHFUL (rows are still unread), plus a marked cue
+        setMarkFailed(true)
+      })
       .finally(() => {
         setMarkingRead(false)
         refreshUnread()
@@ -61,9 +88,12 @@ export default function HeaderActions() {
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        const maybeFocusBack = menuOpen
+          ? headerRef.current?.querySelector<HTMLButtonElement>('button[aria-label="Profile menu"]')
+          : headerRef.current?.querySelector<HTMLButtonElement>('button[aria-label="Notifications"]')
         setMenuOpen(false)
         setNotifOpen(false)
-        headerRef.current?.querySelector('button')?.focus()
+        maybeFocusBack?.focus()
       }
     }
     document.addEventListener('mousedown', onDocumentClick)
@@ -74,25 +104,10 @@ export default function HeaderActions() {
     }
   }, [menuOpen, notifOpen])
 
-  const notifRow = (n: UnreadNotification) => {
-    const from = n.giver_name ?? 'Someone'
-    const praise = n.points !== null
-    const copy = praise
-      ? `${from} recognised you (+${n.points} pts)`
-      : n.type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
-    const day = new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    return (
-      <li key={n.id} className="border-b border-line px-3 py-2.5 last:border-b-0">
-        <p className="truncate text-[12.5px] font-bold text-ink">{copy}</p>
-        {n.message && <p className="mt-0.5 line-clamp-2 text-[11.5px] leading-snug text-muted">{n.message}</p>}
-        <p className="mt-0.5 text-[10.5px] font-semibold text-slate-400">{day}</p>
-      </li>
-    )
-  }
-
   return (
     <div className="relative ml-auto flex items-center gap-1.5" ref={headerRef}>
       <button
+        ref={bellButtonRef}
         aria-label="Notifications"
         aria-expanded={notifOpen}
         className="relative rounded-full p-2 text-muted transition hover:bg-slate-100"
@@ -118,23 +133,39 @@ export default function HeaderActions() {
           <ul className="mt-2 max-h-72 overflow-y-auto text-left">
             {feed === undefined ? (
               <li className="px-3 py-4 text-[12px] text-muted">Loading the unread feed…</li>
+            ) : feedFailed ? (
+              <li className="mx-2 my-2 rounded-xl border border-line bg-coral-soft px-3 py-2.5 text-[12.5px] text-coral">
+                Can&rsquo;t reach the notifications feed.
+                <button
+                  type="button"
+                  onClick={loadFeed}
+                  className="ml-1 font-bold underline decoration-2 underline-offset-2"
+                >
+                  Retry
+                </button>
+              </li>
             ) : feed.length === 0 ? (
               <li className="mx-2 my-2 rounded-xl bg-slate-50 px-3 py-3 text-[12.5px] leading-relaxed text-muted">
                 You are all caught up — nothing unread right now.
               </li>
             ) : (
-              feed.map(notifRow)
+              feed.map((n) => <NotificationRow key={n.id} n={n} />)
             )}
           </ul>
           {feed !== undefined && feed.length > 0 && (
-            <button
-              type="button"
-              onClick={markAllRead}
-              disabled={markingRead}
-              className="m-2 block w-[calc(100%-1rem)] rounded-xl bg-brand px-3 py-2 text-[12.5px] font-bold text-white transition hover:bg-brand-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-60"
-            >
-              {markingRead ? 'Marking read…' : 'Mark all read'}
-            </button>
+            <>
+              {markFailed && (
+                <p className="px-3 text-[11.5px] text-coral">Couldn&rsquo;t mark all as read — try again.</p>
+              )}
+              <button
+                type="button"
+                onClick={markAllRead}
+                disabled={markingRead}
+                className="m-2 block w-[calc(100%-1rem)] rounded-xl bg-brand px-3 py-2 text-[12.5px] font-bold text-white transition hover:bg-brand-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:opacity-60"
+              >
+                {markingRead ? 'Marking read…' : 'Mark all read'}
+              </button>
+            </>
           )}
         </div>
       )}

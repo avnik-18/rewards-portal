@@ -30,16 +30,19 @@ describe('demo identity selection', () => {
     expect(activeDemoUser()).toBe('E-L1')
   })
 
-  it('falls back to the env value, then E-PR, when nothing is picked', () => {
+  it('falls back to the env value when nothing is picked', () => {
     envBag.VITE_DEMO_USER = 'E-BR'
     expect(activeDemoUser()).toBe('E-BR')
-    delete envBag.VITE_DEMO_USER
-    expect(activeDemoUser()).toBe('E-PR')
   })
 
-  it('clearing keeps the env fallback effective again', () => {
+  it('with neither pick nor env there is NO identity — null, never an invented code', () => {
+    envBag.VITE_DEMO_USER = 'E-BR'
+    delete envBag.VITE_DEMO_USER
+    expect(activeDemoUser()).toBeNull()
+    // clearing hands control back to the env, not to a hardcoded person
+    envBag.VITE_DEMO_USER = 'E-BR'
     selectDemoUser('E-009')
     clearDemoUser()
-    expect(activeDemoUser()).toBe('E-PR')
+    expect(activeDemoUser()).toBe('E-BR')
   })
 })

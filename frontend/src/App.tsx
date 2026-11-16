@@ -27,7 +27,7 @@ const ROUTE_LABELS: Record<string, string> = {
 function RouteAnnouncer() {
   const { pathname, search } = useLocation()
   return (
-    <p role="status" aria-live="polite" className="sr-only">
+    <p aria-live="polite" className="sr-only">
       {(ROUTE_LABELS[pathname] ?? 'This page does not exist') +
         (pathname.includes('profile') && search ? ' of a teammate' : '')}
     </p>

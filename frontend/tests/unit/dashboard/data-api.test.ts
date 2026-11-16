@@ -6,7 +6,7 @@ describe('data-api façade', () => {
   it('serves the signed-in person from GET /me', async () => {
     await expect(getMe()).resolves.toEqual({
       employee_code: 'E-PR',
-      full_name: 'Ayan',
+      full_name: 'Priya Rao',
       email: 'priya@emids.test',
       role: 'individual',
       title: 'Engineer',
@@ -23,13 +23,13 @@ describe('data-api façade', () => {
     })
   })
 
-  it('maps the live leaderboard with the caller pinned first, top-5 cap', async () => {
+  it('pins the caller first but keeps the API rank() on every badge', async () => {
     await expect(getLeaderboard()).resolves.toEqual([
-      { id: 'live-2', name: 'Ayan', pts: 380, me: true },
-      { id: 'live-1', name: 'Daniel C.', pts: 420, me: false },
-      { id: 'live-3', name: 'Aarav S.', pts: 275, me: false },
-      { id: 'live-4', name: 'Priya M.', pts: 250, me: false },
-      { id: 'live-5', name: 'Kenji W.', pts: 220, me: false },
+      { id: 'live-2', name: 'Rahul Nair', pts: 380, me: true, rank: 2 },
+      { id: 'live-1', name: 'Daniel C.', pts: 420, me: false, rank: 1 },
+      { id: 'live-3', name: 'Erica Stone', pts: 275, me: false, rank: 3 },
+      { id: 'live-4', name: 'Hema Krish', pts: 250, me: false, rank: 4 },
+      { id: 'live-5', name: 'Kiran Menon', pts: 220, me: false, rank: 5 },
     ])
   })
 

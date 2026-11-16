@@ -59,7 +59,10 @@ beforeAll(() => {
         json: async () => ({
           entries: [
             { rank: 1, name: 'Daniel C.', points: 420, is_me: false },
-            { rank: 2, name: 'Ayan', points: 380, is_me: true },
+            { rank: 2, name: 'Rahul Nair', points: 380, is_me: true },
+            { rank: 3, name: 'Erica Stone', points: 275, is_me: false },
+            { rank: 4, name: 'Hema Krish', points: 250, is_me: false },
+            { rank: 5, name: 'Kiran Menon', points: 220, is_me: false },
             { rank: 3, name: 'Aarav S.', points: 275, is_me: false },
             { rank: 4, name: 'Priya M.', points: 250, is_me: false },
             { rank: 5, name: 'Kenji W.', points: 220, is_me: false },
@@ -138,7 +141,7 @@ beforeAll(() => {
         status: 200,
         json: async () => ({
           employee_code: 'E-PR',
-          full_name: 'Ayan',
+          full_name: 'Priya Rao',
           email: 'priya@emids.test',
           role: 'individual',
           title: 'Engineer',

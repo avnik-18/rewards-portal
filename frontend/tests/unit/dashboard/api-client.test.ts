@@ -14,7 +14,7 @@ const ORIGINAL_USER = envBag.VITE_DEMO_USER
 
 beforeEach(() => {
   envBag.VITE_API_BASE_URL = 'http://rewards.test/api/v1'
-  delete envBag.VITE_DEMO_USER
+  envBag.VITE_DEMO_USER = 'E-PR' // the env identity (no invented default anymore)
   window.localStorage.clear() // pristine: no picked demo identity from setup
   fetchMock.mockClear()
   vi.stubGlobal('fetch', fetchMock)

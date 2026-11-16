@@ -17,7 +17,7 @@ test.describe('Dashboard (Playwright integration)', () => {
 
     // header and footer both carry the logo link — scope to the header
     await expect(page.getByRole('banner').getByRole('link', { name: 'Go to dashboard' })).toBeVisible()
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Hello Ayan')
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Hello Priya Rao')
     await expect(page.getByRole('link', { name: 'Recognize a teammate' })).toBeVisible()
 
     // stat tiles
@@ -44,8 +44,15 @@ test.describe('Dashboard (Playwright integration)', () => {
     // the mock Quarterly Awards slide follows (headline keeps its comma)
     await expect(page.getByText(/7,500 pts/)).toBeVisible()
 
-    // nav dots carry the same aria labels as every request — pick the unique one
-    const dot = page.getByRole('button', { name: 'Go to EoQ window · close in 19 days' })
+    // the pinned-first card keeps API ranks: Daniel leads by rank, the
+    // caller's true rank-2 row is pinned up top (badge '2', chip 'You')
+    await expect(page.getByText('Team leaderboard')).toBeVisible()
+    await expect(page.getByText('Daniel C.')).toBeVisible()
+    await expect(page.getByText('You', { exact: true })).toBeVisible()
+
+    // nav dots carry the same aria labels as every request — pick the unique
+    // one (the day count drifts with the calendar, so match on the prefix)
+    const dot = page.getByRole('button', { name: /Go to EoQ window · close in/ })
     await dot.click().catch(() => dot.click({ force: true }))
     await expect(page.getByText(/Awards worth 7500 pts/)).toBeVisible()
   })

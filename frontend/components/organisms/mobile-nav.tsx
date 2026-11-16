@@ -35,7 +35,8 @@ export function MobileChipNav() {
   )
 }
 
-/** Mobile bottom bar (lg:hidden): Home · gold Praise FAB · Rewards · My Team. */
+/** Mobile bottom bar (lg:hidden): Home · gold Praise FAB · Rewards · My Team.
+ *  No fabricated badges — a dot only ever renders when data says so. */
 export function MobileBottomBar() {
   const pathname = useLocation().pathname
 
@@ -62,13 +63,7 @@ export function MobileBottomBar() {
           label="Rewards"
           active={pathname === '/rewards'}
         />
-        <MobileTab
-          href="/team"
-          icon={<Users size={21} aria-hidden />}
-          label="My Team"
-          active={pathname === '/team'}
-          badge
-        />
+        <MobileTab href="/team" icon={<Users size={21} aria-hidden />} label="My Team" active={pathname === '/team'} />
       </div>
     </nav>
   )
@@ -79,13 +74,11 @@ function MobileTab({
   icon,
   label,
   active,
-  badge = false,
 }: {
   href: string
   icon: React.ReactNode
   label: string
   active: boolean
-  badge?: boolean
 }) {
   return (
     <Link
@@ -96,7 +89,6 @@ function MobileTab({
     >
       {icon}
       {label}
-      {badge && <span className="absolute right-[18%] top-1 h-2 w-2 rounded-full bg-coral" aria-hidden />}
     </Link>
   )
 }

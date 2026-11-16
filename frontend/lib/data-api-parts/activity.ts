@@ -11,13 +11,14 @@ export async function getNotifications(): Promise<NotificationItem[]> {
 }
 
 /** Deliverable #6 — the bell badge is the LIVE unread count (delivered &&
- *  unread, per the API's read-rule). Silent-catch = 0 keeps the header honest
- *  without an error surface for a badge. */
+ *  unread, per the API's read-rule). A badge has no error surface — but the
+ *  failure is logged loudly so a dead backend can't pass unnoticed. */
 export async function getUnreadCount(): Promise<number> {
   try {
     const data = await apiFetch<UnreadCountResponse>('/notifications/unread-count')
     return data.unread_count
-  } catch {
+  } catch (error) {
+    console.error('[data-api] unread badge unavailable — showing 0:', error)
     return 0
   }
 }

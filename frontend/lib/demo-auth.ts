@@ -36,10 +36,12 @@ export function clearDemoUser(): void {
   }
 }
 
-/** The header api-client attaches: the picked user wins; env/default keeps
- *  dev experience (one file vendored around the old VITE_DEMO_USER read)
- *  when the login flow is bypassed. */
-export function activeDemoUser(): string {
+/** The header api-client attaches: the picked user wins, then the env value.
+ *  Nothing is INVENTED — with neither, the caller sends no identity at all
+ *  instead of a hardcoded code that stops existing the moment the directory
+ *  doesn't hold it (sir's attack round: a stale/fake identity must fail loud
+ *  at the edge it is used, not pretend to be someone). */
+export function activeDemoUser(): string | null {
   const envUser = import.meta.env.VITE_DEMO_USER
-  return selectedDemoUser() ?? (envUser || 'E-PR')
+  return selectedDemoUser() ?? (envUser || null)
 }

@@ -17,7 +17,7 @@ export const test = base.extend({
         contentType: 'application/json',
         body: JSON.stringify({
           employee_code: 'E-PR',
-          full_name: 'Ayan',
+          full_name: 'Priya Rao',
           email: 'priya@emids.test',
           role: 'individual',
           title: 'Engineer',
@@ -54,8 +54,8 @@ export const test = base.extend({
         body: JSON.stringify({
           entries: [
             { rank: 1, name: 'Daniel C.', points: 420, is_me: false },
-            { rank: 2, name: 'Ayan', points: 380, is_me: true },
-            { rank: 3, name: 'Aarav S.', points: 275, is_me: false },
+            { rank: 2, name: 'Rahul Nair', points: 380, is_me: true },
+            { rank: 3, name: 'Erica Stone', points: 275, is_me: false },
           ],
         }),
       }),
@@ -65,7 +65,9 @@ export const test = base.extend({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          days_to_nominations_close: 19,
+          // the seeded nominations_end (seed/demo.sql) — the countdown drifts
+          // with the calendar, so the fixture computes it instead of freezing
+          days_to_nominations_close: Math.max(0, Math.round((Date.UTC(2026, 11, 5) - Date.now()) / 86_400_000)),
           open_categories: 3,
           cycle_prize_total: 7500,
           my_jury: { cast: false, assigned: false },

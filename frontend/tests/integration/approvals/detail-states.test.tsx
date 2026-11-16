@@ -30,11 +30,12 @@ describe('ApprovalDetail — decision-note branches (sir round 1)', () => {
     const nextTime = buttons.find((button) => button.textContent === 'Next time')
     expect(approve).toBeTruthy()
     expect(nextTime?.hasAttribute('disabled')).toBe(true)
+    expect(noteField).toBeTruthy()
 
-    fireEvent.change(noteField, { target: { value: 'rework the deck' } })
+    fireEvent.change(noteField!, { target: { value: 'rework the deck' } })
     expect(nextTime?.hasAttribute('disabled')).toBe(false)
 
-    fireEvent.click(nextTime)
+    fireEvent.click(nextTime!)
     expect(onDecide).toHaveBeenCalledWith('declined', 'rework the deck')
     // the note is consumed once recorded, never left behind
     expect(noteField?.value).toBe('')
@@ -46,8 +47,13 @@ describe('ApprovalDetail — decision-note branches (sir round 1)', () => {
     const noteField = container.querySelector<HTMLInputElement>('input[aria-label="Decision note"]')
     const approve = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Approve')
 
-    fireEvent.change(noteField, { target: { value: 'goes ahead as asked' } })
-    fireEvent.click(approve)
+    // form-finding helpers can return null on unexpected markup — say so
+    // instead of fighting the fireEvent success type
+    expect(noteField).toBeTruthy()
+    expect(approve).toBeTruthy()
+
+    fireEvent.change(noteField!, { target: { value: 'goes ahead as asked' } })
+    fireEvent.click(approve!)
     expect(onDecide).toHaveBeenCalledWith('approved', 'goes ahead as asked')
     expect(noteField?.value).toBe('')
   })

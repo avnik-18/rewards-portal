@@ -31,12 +31,14 @@ export default function Leaderboard({ rows }: LeaderboardProps) {
           return (
             <div
               key={teamRow.id}
-              className={`flex w-full items-center gap-2.5 border-b border-line px-3 py-2.5 text-left transition last:border-b-0 hover:bg-brand-soft/60 ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-[#ecf6f4]'} ${teamRow.id === 'me' ? 'bg-brand-soft/60' : ''}`}
+              className={`flex w-full items-center gap-2.5 border-b border-line px-3 py-2.5 text-left transition last:border-b-0 hover:bg-brand-soft/60 ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-[#ecf6f4]'} ${teamRow.id === 'me' || teamRow.me ? 'bg-brand-soft/60' : ''}`}
             >
               <span
                 className={`tnum flex h-6 w-12 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold ${rowIndex % 2 === 0 ? 'bg-violet-soft text-violet-ink' : 'bg-gold-soft text-gold-ink'}`}
               >
-                {rowIndex + 1}
+                {/* truth over presentation: the pin places the caller's row
+                    first, but the badge reports the API's own rank() */}
+                {teamRow.rank ?? rowIndex + 1}
               </span>
               <Avatar id={teamRow.id} name={teamRow.name} size={28} />
               <span className="min-w-0 flex-1 truncate text-[12.5px] font-bold text-navy">
