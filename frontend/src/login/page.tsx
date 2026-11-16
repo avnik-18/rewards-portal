@@ -6,12 +6,23 @@ import { selectDemoUser } from '@/lib/demo-auth'
 import { usePageData } from '@/hooks/use-page-data'
 import { usePageTitle } from '@/hooks/use-page-title'
 
+const RISE = {
+  animation: 'rise 0.65s cubic-bezier(0.22, 0.8, 0.36, 1) both',
+}
+const STAGGER = [
+  { animationDelay: '0.05s' },
+  { animationDelay: '0.18s' },
+  { animationDelay: '0.3s' },
+  { animationDelay: '0.42s' },
+]
+
 /**
- * Local sign-in: "Continue with Emids SSO" carries the promise of the Entra
- * rollout (inline note, never a dead-looking disabled state); until then the
- * demo identity is picked from the directory the backend serves. Selecting
- * a person signs in AS them immediately — every actor-scoped call resolves
- * them from then on.
+ * Local sign-in, styled after the Excellence Program POC: a floating rounded
+ * brand panel (deep-teal field with radial glows and a slow breathing wash)
+ * carries the headline; the right column keeps the SSO promise and signs the
+ * demo identity in. The dropdown replaces the POC's email/password block —
+ * selecting a person signs AS them and their actor-scoped calls resolve from
+ * then on.
  */
 export default function LoginPage() {
   usePageTitle('Sign in')
@@ -38,77 +49,100 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh bg-page">
-      {/* Brand panel — the approved split-screen direction: deep teal field,
-          big white headline, lockup, small © line. Full height, no scroll. */}
+    <div className="flex min-h-dvh gap-1 bg-page lg:p-3">
+      {/* Brand panel — the Excellence POC field, floating on the page surface */}
       <aside
         aria-hidden
-        className="relative hidden w-[46%] flex-col justify-between overflow-hidden text-white lg:flex"
+        className="relative hidden w-1/2 min-w-0 flex-none flex-col justify-between overflow-hidden rounded-[28px] px-[clamp(26px,4vw,56px)] py-[clamp(22px,4.5vh,44px)] text-white shadow-[0_18px_44px_rgba(12,84,70,0.16)] lg:flex"
         style={{
-          background:
-            'linear-gradient(160deg, var(--color-brand-deep) 0%, var(--color-brand) 45%, var(--color-navy-deep) 100%)',
+          background: [
+            'radial-gradient(560px 440px at 88% 2%, rgba(252,211,77,0.10), transparent 62%)',
+            'radial-gradient(320px 260px at 84% 10%, rgba(240,180,84,0.07), transparent 60%)',
+            'radial-gradient(900px 680px at 14% 84%, rgba(45,212,168,0.16), transparent 60%)',
+            'radial-gradient(640px 520px at 52% 40%, rgba(20,184,166,0.08), transparent 65%)',
+            'linear-gradient(135deg, #0a3029 0%, #0d4a41 52%, #10756a 100%)',
+          ].join(', '),
         }}
       >
-        <div className="flex items-center gap-3 px-12 pt-10">
-          <img src="/emids-icon.png" alt="" width={38} height={38} className="h-9 w-9 object-contain" />
-          <p className="text-[15px] font-extrabold tracking-tight">
-            EMIDS <span className="font-bold text-white/70">· Rewards and Recognition</span>
+        <div
+          aria-hidden
+          className="login-breathe pointer-events-none absolute inset-0"
+          style={{ background: 'radial-gradient(640px at 22% 74%, rgba(94,234,212,0.10), transparent 70%)' }}
+        />
+
+        <div className="relative flex items-center gap-2.5" style={{ ...RISE, ...STAGGER[0] }}>
+          <img src="/emids-logo-dark.svg" alt="" className="h-8 w-auto" />
+          <span className="block h-2.5 w-2.5 -rotate-45 rounded-[3px] bg-[#34d399]" aria-hidden />
+          <span className="whitespace-nowrap text-[12px] font-semibold uppercase tracking-[0.09em] text-[#d6f4ec]/85">
+            Excellence Program
+          </span>
+        </div>
+
+        <div className="relative max-w-[520px] py-8">
+          <h1
+            className="max-w-[560px] text-[clamp(30px,2.2vw+14px,44px)] font-bold leading-[1.12] tracking-[-0.025em] text-[#f2fbf8]"
+            style={{ ...RISE, ...STAGGER[1] }}
+          >
+            Recognize{' '}
+            <span className="bg-gradient-to-r from-teal-200 to-green-200 bg-clip-text text-transparent">
+              great work
+            </span>{' '}
+            every day.
+          </h1>
+          <p
+            className="mt-[18px] max-w-[44ch] text-base leading-relaxed text-[#def6f0]/80"
+            style={{ ...RISE, ...STAGGER[2] }}
+          >
+            Celebrate a teammate&rsquo;s win, spotlight excellence and redeem rewards — all in one place.
           </p>
         </div>
 
-        <div className="px-12 pb-6">
-          <h2 className="max-w-[560px] text-4xl font-extrabold leading-[1.15] text-white animate-rise">
-            Recognize great work, every day.
-          </h2>
-          <p className="mt-3 max-w-[520px] text-[15px] font-medium leading-relaxed text-white/80">
-            Applause is where teammates celebrate each other&rsquo;s wins — points, recognition and milestones across
-            EMIDS.
-          </p>
-        </div>
-
-        <p className="px-12 pb-8 text-xs text-white/55">© Emids. All rights reserved.</p>
+        <p className="relative text-xs text-white/55" style={{ ...RISE, ...STAGGER[3] }}>
+          &copy; Emids
+        </p>
       </aside>
 
-      {/* Sign-in column */}
-      <main className="flex min-h-dvh flex-1 items-center justify-center px-6">
-        <div className="w-full max-w-[380px]">
-          <h1 className="text-[22px] font-extrabold tracking-tight text-navy">Sign in</h1>
-          <p className="mt-1 text-[13px] text-muted">Applause portal — EMIDS Rewards and Recognition</p>
+      {/* Sign-in column — identical logic to the demo user flow */}
+      <main className="flex min-h-dvh min-w-0 flex-1 items-center justify-center px-6">
+        <div className="w-full max-w-[360px]">
+          <h1 className="text-xl font-semibold leading-[1.3] tracking-tight text-ink">Sign in</h1>
+          <p className="mt-1.5 text-[13.5px] text-muted">Sign in with your Emids work account.</p>
 
-          <form onSubmit={onSubmit} className="mt-6">
-            <button
-              type="button"
-              onClick={() => setSsoTouched(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-[14px] font-bold text-white shadow-card transition hover:bg-brand-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+          <button
+            type="button"
+            onClick={() => setSsoTouched(true)}
+            style={{ ...RISE, ...STAGGER[2] }}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-[10px] bg-brand px-4 py-3 text-[15px] font-medium text-white transition hover:-translate-y-px hover:bg-brand-deep hover:shadow-[0_6px_16px_rgba(13,148,136,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+          >
+            <LogIn size={16} aria-hidden />
+            Continue with Emids SSO
+          </button>
+          {ssoTouched && (
+            <p
+              role="status"
+              className="mt-2.5 rounded-[10px] border border-line bg-gold-soft px-3.5 py-2 text-[12px] leading-relaxed text-gold-ink"
             >
-              <LogIn size={16} aria-hidden />
-              Continue with Emids SSO
-            </button>
-            {ssoTouched && (
-              <p
-                role="status"
-                className="mt-2.5 rounded-xl border border-line bg-gold-soft px-3.5 py-2 text-[12px] leading-relaxed text-gold-ink"
-              >
-                Entra SSO lands with the production rollout — for today&rsquo;s demo, pick a demo identity below.
-              </p>
-            )}
+              Entra SSO lands with the production rollout — for today&rsquo;s demo, pick a demo identity below.
+            </p>
+          )}
 
-            <div className="my-5 flex items-center gap-3 text-[11px] font-extrabold font-mono uppercase tracking-[0.18em] text-muted">
-              <span className="h-px flex-1 bg-line" />
-              or pick a demo identity
-              <span className="h-px flex-1 bg-line" />
-            </div>
+          <div className="my-4 flex items-center gap-2.5 text-xs text-[#8fa3a0]" style={{ ...RISE, ...STAGGER[3] }}>
+            <span className="h-px flex-1 bg-[#dfe7e4]" />
+            or pick a demo identity
+            <span className="h-px flex-1 bg-[#dfe7e4]" />
+          </div>
 
-            <label htmlFor="demo-user" className="block text-[13px] font-bold text-ink">
+          <form onSubmit={onSubmit} style={{ ...RISE, ...STAGGER[3] }}>
+            <label htmlFor="demo-user" className="mb-1.5 block text-[12.5px] font-medium text-[#44605a]">
               Sign in as
             </label>
-            <div className="relative mt-1.5">
+            <div className="relative">
               <select
                 id="demo-user"
                 value={picked}
                 onChange={(e) => onChange(e.target.value)}
                 disabled={users.isLoading || users.error !== undefined}
-                className="w-full appearance-none rounded-xl border border-line bg-white px-3.5 py-2.5 pr-9 text-[14px] font-semibold text-ink shadow-card transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:bg-slate-50 disabled:text-muted"
+                className="w-full appearance-none rounded-[10px] border border-[#dfe4e2] bg-white px-3.5 py-3 pr-9 text-sm text-ink transition focus:border-brand focus:outline-none focus:ring-[3px] focus:ring-brand/15 disabled:bg-slate-50 disabled:text-muted"
               >
                 {/* picker anchor: choosing an option signs in immediately */}
                 <option value="">{users.isLoading ? 'Loading member directory…' : 'Select a person'}</option>
@@ -122,14 +156,14 @@ export default function LoginPage() {
               <ChevronDown
                 size={16}
                 aria-hidden
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#9ca3af]"
               />
             </div>
 
             {users.error && (
               <div
                 role="alert"
-                className="mt-3 rounded-xl border border-line bg-coral-soft px-3.5 py-2.5 text-[13px] text-coral"
+                className="mt-3 rounded-[10px] border border-line bg-coral-soft px-3.5 py-2.5 text-[13px] text-coral"
               >
                 Can&rsquo;t reach the portal backend — the directory isn&rsquo;t loading.
                 <button
@@ -142,10 +176,17 @@ export default function LoginPage() {
               </div>
             )}
 
-            <p className="mt-4 text-[12px] leading-relaxed text-muted">
-              Selecting a person signs you in as them — their page, their data, straight from the portal database.
-            </p>
+            <button
+              type="submit"
+              className="mt-4 w-full rounded-[10px] bg-brand px-4 py-3 text-sm font-medium text-white transition hover:-translate-y-px hover:bg-brand-deep hover:shadow-[0_6px_16px_rgba(13,148,136,0.25)] active:translate-y-0 active:bg-[#115e59] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
+              Sign in
+            </button>
           </form>
+
+          <p className="mt-[18px] text-center text-[13px] text-muted">
+            Need help? <span className="font-medium text-brand-deep">Contact IT</span>
+          </p>
         </div>
       </main>
     </div>
