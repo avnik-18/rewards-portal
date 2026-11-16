@@ -13,8 +13,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 TEST_DB = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/recog"
 os.environ.setdefault("DATABASE_URL", TEST_DB)
 
-import pytest  # noqa: E402
-
 from tests.integration.db_helpers import DB_READY  # noqa: E402
 
 
