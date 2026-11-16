@@ -16,8 +16,8 @@ Run: .venv/bin/python tests/integration/count-smoke.py
 
 import os
 import sys
-import time
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -27,9 +27,10 @@ TEST_DB = "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/recog"
 os.environ.setdefault("DATABASE_URL", TEST_DB)
 os.environ.setdefault("ENVIRONMENT", "local")
 
-import httpx                # noqa: E402
-import sqlalchemy as sa     # noqa: E402
-import uvicorn              # noqa: E402
+import httpx  # noqa: E402
+import sqlalchemy as sa  # noqa: E402
+import uvicorn  # noqa: E402
+
 from app.main import create_app  # noqa: E402
 
 HOST, PORT = "127.0.0.1", 8877
