@@ -133,10 +133,11 @@ WHERE NOT EXISTS (
   SELECT 1 FROM media_asset WHERE kind = 'news_banner');
 
 -- ===== groups/leaderboard demo: 3 teams (6/5/3 = 14 users) =====
--- Six-person Platform, five-person Finance Ops, three-person Mobile — every
--- seeded user lands in exactly one team so the leaderboard (scoped to the
--- caller's teams) differs per identity. Idempotent: re-running fills only
--- what is missing (recognition rows key on (kind, source_ref)).
+-- Six-person Platform, five-person Finance Ops, three-person Mobile — the
+-- server identities in those teams get a team-scoped leaderboard per caller;
+-- E-BR and E-009 sit in NO team and hit the receivers+caller fallback on
+-- purpose. Idempotent: re-running fills only what is missing (recognition
+-- rows key on (kind, source_ref)).
 
 INSERT INTO users (employee_code, email, full_name, title, department) VALUES
   ('E-ES','erica@emids.test','Erica Stone','Engineer','Engineering'),
@@ -190,7 +191,8 @@ WHERE NOT EXISTS (
    WHERE m.team_id = t.id AND m.user_id = u.id AND m.valid_to IS NULL);
 
 -- grouped demo recognitions — approved so the boards light up per group.
--- Platform: Rahul 75 / Priya 50 / Brooke 15 / Erica 40 (giver: Rahul)
+-- Platform: Priya 75 ( giver Rahul ) / Erica 40 ( giver Arjun ). Rahul and
+-- Brooke stay at zero for the pinned-row verdict exposure.
 INSERT INTO recognition_history (kind, from_user_id, value_id, message, base_points, status, occurred_at, source_ref)
 SELECT 'praise', u.id, (SELECT id FROM emids_values WHERE key='ownership'),
        v.msg, v.base, 'approved'::recognition_status, now(), v.ref
@@ -268,7 +270,29 @@ FROM fiscal_period f
 CROSS JOIN (VALUES
   ('Employee of the Quarter — Ownership', 'Ships it, owns it end to end', 'ownership'),
   ('Employee of the Quarter — Customer First', 'Puts the customer need first', 'customer_first'),
-  ('Employee of the Quarter — Team Spirit', 'Lifts the whole team', 'fun')
+  ('Employee of the Quarter — Team Spirit', 'Lifts the whole team', 'collaboration')
 ) AS v(name, d, ek)
 WHERE now()::date BETWEEN f.starts AND f.ends
 ON CONFLICT (period_id, name) DO NOTHING;
+
+-- ===== bell demo: the recipient's unread praise rows =====
+-- The live fn_notify copies each recipient's SHARE into payload->>'points';
+-- the seed mirrors that spelling (NOT the giver's total) so the panel shows
+-- the same magnitudes a real submit would. Rows key on the dedupe_key
+-- UNIQUE(PATERNALLY partial index), so a re-run adds nothing; read_at stays
+-- NULL so the badge and panel light up on a fresh database like the demo
+-- expects.
+INSERT INTO notification (user_id, type, channel, payload, delivery_status, dedupe_key)
+SELECT rh_rec.user_id, 'praise_received', 'in_app',
+       jsonb_build_object('points', rh_rec.points),
+       'queued',
+       'praise:' || rh_rec.recognition_id || ':' || rh_rec.user_id
+FROM (SELECT rr.user_id, rr.points, rr.recognition_id
+        FROM recognition_recipients rr
+        JOIN recognition_history rh ON rh.id = rr.recognition_id
+       WHERE rh.source_ref IN ('leaderboard-demo-A-01','leaderboard-demo-A-02',
+                               'leaderboard-demo-B-01','leaderboard-demo-B-02',
+                               'leaderboard-demo-B-03','leaderboard-demo-C-01')
+         AND rr.kind = 'to') rh_rec
+WHERE NOT EXISTS (
+  SELECT 1 FROM notification n WHERE n.dedupe_key = 'praise:' || rh_rec.recognition_id || ':' || rh_rec.user_id);

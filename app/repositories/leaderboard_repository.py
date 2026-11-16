@@ -44,7 +44,7 @@ class LeaderboardRepository:
                 "  UNION SELECT :actor_id"
                 "),"
                 "scored AS ("
-                "  SELECT u.id, u.full_name, COALESCE(SUM(rr.points), 0)::int AS points"
+                "  SELECT u.id, u.full_name, COALESCE(SUM(CASE WHEN rh.id IS NOT NULL THEN rr.points END), 0)::int AS points"
                 "  FROM users u"
                 "  LEFT JOIN recognition_recipients rr"
                 "    ON rr.user_id = u.id AND rr.kind = 'to'"

@@ -3,7 +3,7 @@
 Identity: the shared app.core.actor actor dependency — one actor-resolution
 rule, one place.
 
-- GET  /notifications/read  → the caller's UNREAD, delivered notifications,
+- GET  /notifications       → the caller's UNREAD, delivered notifications,
                               newest first; each row carries the giver's
                               visible name + points when it is a praise
                               (enriched read-side from the dedupe key — no

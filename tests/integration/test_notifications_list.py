@@ -39,6 +39,12 @@ def test_notifications_unread_feed_and_mark_read() -> None:
                 {"u": actor_id})
     )
 
+    # as-found snapshot BEFORE the mark — the restore only re-opens THESE rows
+    pre_unread_ids = db_exec(
+        "SELECT array_agg(id) FROM notification WHERE read_at IS NULL AND user_id = :u",
+        {"u": actor_id},
+    )
+
     with TestClient(create_app()) as client:
         r = client.get("/api/v1/notifications", headers={"X-Demo-User": "E-PR"})
         assert r.status_code == 200, r.text
@@ -53,7 +59,10 @@ def test_notifications_unread_feed_and_mark_read() -> None:
                 {"u": actor_id},
             )
         )
-        assert len(rows) == unread_truth, "every unread row of the caller, and ONLY unread"
+        # the default page caps at 20 — beyond that the LIMIT trims, not lies
+        assert len(rows) == min(unread_truth, 20), (
+            "every unread row of the caller up to the page cap, and ONLY unread"
+        )
 
         for row in rows:
             assert set(row.keys()) == {"id", "type", "giver_name", "points", "message", "created_at"}
@@ -95,5 +104,14 @@ def test_notifications_unread_feed_and_mark_read() -> None:
         )
         assert other_unread_after == other_unread_before
 
-    # leave the demo DB exactly as the demo seeds it: E-PR's rows unread again
-    db_exec("UPDATE notification SET read_at = NULL WHERE user_id = :u", {"u": actor_id})
+    # restore AS-FOUND state: only the rows that were unread before this test
+    # go back to unread (a pre-read row must not get re-opened afterwards).
+    # db_exec hands back the textual array '{id1,id2}' — compare Prager
+    # id::text against its elements instead of forcing an uuid[] cast.
+    if pre_unread_ids:
+        ids_csv = pre_unread_ids.strip("{}")
+        db_exec(
+            "UPDATE notification SET read_at = NULL"
+            " WHERE id::text = ANY(string_to_array(:ids_csv, ','))",
+            {"ids_csv": ids_csv},
+        )

@@ -6,21 +6,27 @@ so the panel's list and the badge can never disagree.
 
 "Who recognised whom" needs the giver's name: the feed rows live in
 `notification` with a dedupe_key shaped `praise:<recognition_id>:<user_id>`;
-the read parses JUST the leading recognition id (the regex stops at the next
-colon) and joins recognition_history → the GIVER's full_name — read-side
-enrichment, no fn change, no migration (the payload carries only points;
-nothing in the DB stores the giver against the row).
+the read joins recognition_history on that id — read-side enrichment, no fn
+change, no migration. The uuid shape is pinned to an exact 8-4-4-4-12 hex
+regex BEFORE the ::uuid cast, so a malformed dedupe key degrades to a row
+without giver/points instead of failing the whole feed (fn_notify accepts
+arbitrary p_dedupe spellings). POINTS come from n.payload->>'points' — the
+PRODUCER writes the per-recipient share there; recognition_history carries
+the giver's TOTAL, which would inflate splits — payload wins, base_points is
+the fallback for rows predating the payload field.
 
 "Read once, it disappears": POST /read marks every delivered+unread row for
 the caller read now — afterwards the unread list is empty and the badge is
 0 (the COUNT and the list share the same WHERE).
 """
 
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+_PRAISE_KEY = "praise:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}):"
 
 
 class NotificationsListRepository:
@@ -30,24 +36,26 @@ class NotificationsListRepository:
     async def unread_feed(self, actor_id: UUID, limit: int) -> list[dict[str, Any]]:
         result = await self._session.execute(
             text(
-                "SELECT n.id, n.type, n.payload, n.created_at, "
+                "SELECT n.id, n.type, n.created_at, "
                 "       g.full_name AS giver_name, "
-                "       rh.base_points AS points_, rh.message AS message_ "
+                "       COALESCE((n.payload->>'points')::int, rh.base_points) AS points_, "
+                "       rh.message AS message_ "
                 "FROM notification n "
                 "LEFT JOIN LATERAL ("
                 "  SELECT rh2.id, rh2.message, rh2.base_points, rh2.from_user_id"
                 "    FROM recognition_history rh2"
-                "   WHERE rh2.id = (substring(n.dedupe_key from '^praise:([0-9a-f-]+):') )::uuid"
+                "   WHERE rh2.id = (substring(n.dedupe_key from :key_shape))::uuid"
                 ") rh ON true "
                 "LEFT JOIN users g ON g.id = rh.from_user_id "
                 "WHERE n.user_id = :actor AND n.read_at IS NULL "
                 "  AND n.delivery_status IN ('queued','sent') "
-                "ORDER BY n.created_at DESC LIMIT :limit"
+                "ORDER BY n.created_at DESC, n.id DESC LIMIT :limit"
             ),
-            dict(actor=actor_id, limit=limit),
+            dict(actor=actor_id, limit=limit, key_shape=_PRAISE_KEY),
         )
         rows: list[dict[str, Any]] = []
         for row in result.mappings().all():
+            created_at = row["created_at"]
             rows.append(
                 dict(
                     id=row["id"],
@@ -55,7 +63,9 @@ class NotificationsListRepository:
                     giver_name=row["giver_name"],
                     points=row["points_"],
                     message=row["message_"],
-                    created_at=str(row["created_at"]),
+                    # isoformat() — a T, not Postgres' space separator: keeps
+                    # new Date() on every client nomination standard
+                    created_at=created_at.isoformat(),
                 )
             )
         return rows
@@ -69,4 +79,7 @@ class NotificationsListRepository:
             ),
             dict(actor=actor_id),
         )
-        return int(result.rowcount or 0)
+        # Result[Any] typing hides CursorResult.rowcount from mypy; the update
+        # always returns a CursorResult, so the value is real at runtime.
+        rowcount = cast(Any, result).rowcount
+        return int(rowcount or 0)
