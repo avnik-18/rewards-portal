@@ -11,6 +11,8 @@ class MeProfileResponse(BaseModel):
     full_name: str
     email: str | None = None
     role: str = "individual"
+    title: str | None = None
+    department: str | None = None
 
 
 class MeStatsResponse(BaseModel):

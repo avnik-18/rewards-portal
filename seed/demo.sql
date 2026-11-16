@@ -103,7 +103,7 @@ INSERT INTO media_asset (kind, title, url, poster_url, cta_label, cta_url, sort_
 SELECT v.* FROM (VALUES
   ('hero_carousel_video'::media_kind,
    'Q4 townhall — season kickoff',
-   'https://cdn.emids.test/media/hero-q4-townhall.mp4',
+   'https://embed.wistia.com/deliveries/95422e5b5fe4bf5888f2a9e4feee0ef237a1faa1.mp4',
    'https://cdn.emids.test/media/hero-q4-townhall-frame.jpg',
    'Watch the replay'::text,
    'https://intranet.emids.test/townhall',
@@ -254,3 +254,21 @@ JOIN users u ON u.employee_code = 'E-KM'
 WHERE rh.source_ref = 'leaderboard-demo-C-01'
   AND NOT EXISTS (
     SELECT 1 FROM recognition_recipients r WHERE r.recognition_id = rh.id);
+
+-- ===== awards showcase demo: three live Q4 categories (7,500 pts in the
+-- ===== pool, nominations closing for the quarter) =====
+-- `awards` keys on (period_id, name) via UNIQUE, so re-running is safe. The
+-- showcase slide composes from live_awards(): categories count + prize sum +
+-- the nearest nominations_end, so the card lights up without extra state.
+INSERT INTO awards (period_id, name, description, value_id, prize_points, phase, nominations_end, voting_end)
+SELECT f.id, v.name, v.d, (SELECT id FROM emids_values WHERE key = v.ek),
+       2500, 'nominations'::cycle_phase,
+       (f.ends - INTERVAL '26 days')::date, (f.ends - INTERVAL '16 days')::date
+FROM fiscal_period f
+CROSS JOIN (VALUES
+  ('Employee of the Quarter — Ownership', 'Ships it, owns it end to end', 'ownership'),
+  ('Employee of the Quarter — Customer First', 'Puts the customer need first', 'customer_first'),
+  ('Employee of the Quarter — Team Spirit', 'Lifts the whole team', 'fun')
+) AS v(name, d, ek)
+WHERE now()::date BETWEEN f.starts AND f.ends
+ON CONFLICT (period_id, name) DO NOTHING;

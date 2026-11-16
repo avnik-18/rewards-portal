@@ -23,6 +23,7 @@ class MeRepository:
         result = await self._session.execute(
             text(
                 "SELECT u.id, u.employee_code, u.full_name, u.email, "
+                "u.title, u.department, "
                 "COALESCE((SELECT CASE r.role WHEN 'admin' THEN 'admin' "
                 "WHEN 'hr' THEN 'hr' ELSE 'individual' END::text "
                 "FROM role_assignment r WHERE r.user_id = u.id AND r.revoked_at IS NULL "

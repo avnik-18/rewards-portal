@@ -2,10 +2,23 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import health, leaderboard, me, media, notifications, notifications_list, recognitions, showcase
+from app.api.v1 import (
+    demo_users,
+    health,
+    leaderboard,
+    me,
+    media,
+    notifications,
+    notifications_list,
+    recognitions,
+    showcase,
+)
 
 api_router = APIRouter()
 api_router.include_router(health.router)
+
+# Login screen's demo-identity dropdown — before the actor-scoped mounts.
+api_router.include_router(demo_users.router)
 
 api_router.include_router(me.router)
 api_router.include_router(recognitions.router)

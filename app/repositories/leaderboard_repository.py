@@ -5,7 +5,10 @@ board of the team(s) they belong to. Three groups (6/5/3) seeded in
 team_members drive the candidate pool; members with zero received points
 appear with 0 pts (LEFT JOIN), so a fresh team shows its whole roster.
 
-- Caller in no team at all → org-wide board (pre-teams behavior preserved).
+- Caller in no team at all → org-wide fallback that keeps the pre-teams
+  semantic: this quarter's receivers plus the caller themselves (an unscoped
+  org roster would wall-of-zeros the card for people like E-BR who sit in no
+  team yet).
 - Allowance/EoQ/system credits still never appear (ledger-only rows).
 - Equal points share the same rank (rank(), not row_number()) and the order
   is deterministic (points DESC, then full_name). Keep both invariants.
@@ -48,8 +51,14 @@ class LeaderboardRepository:
                 "  LEFT JOIN recognition_history rh"
                 "    ON rh.id = rr.recognition_id AND rh.status = 'approved'"
                 "    AND rh.occurred_at >= date_trunc('quarter', now())"
-                "  WHERE (SELECT count(*) FROM my_teams) = 0"
-                "     OR u.id IN (SELECT user_id FROM candidates)"
+                "  WHERE u.id IN (SELECT user_id FROM candidates)"
+                "     OR ( (SELECT count(*) FROM my_teams) = 0"
+                "          AND ( u.id = :actor_id"
+                "                OR EXISTS (SELECT 1 FROM recognition_recipients rr2"
+                "                   JOIN recognition_history rh2 ON rh2.id = rr2.recognition_id"
+                "                    AND rh2.status = 'approved'"
+                "                    AND rh2.occurred_at >= date_trunc('quarter', now())"
+                "                   WHERE rr2.user_id = u.id AND rr2.kind = 'to') ) )"
                 "  GROUP BY u.id, u.full_name"
                 ")"
                 "SELECT id, full_name, points, "
