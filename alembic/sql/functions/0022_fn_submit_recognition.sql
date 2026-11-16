@@ -142,7 +142,7 @@ CREATE OR REPLACE FUNCTION fn_submit_recognition(
       VALUES ('points_recognition', p_from_user, v_rule, v_version, v_recognition,
         jsonb_build_object('recognition_id', v_recognition, 'base_points', p_base_points,
           'message', p_message, 'toIds', to_jsonb(p_to_ids), 'ccIds', to_jsonb(coalesce(p_cc_ids, '{}'::uuid[])),
-          'value_id', p_value_id, 'template_id', p_template_id, 'art_url', p_art_url,
+          'value_id', v_value_id, 'template_id', p_template_id, 'art_url', p_art_url,
           'policy', jsonb_build_object('verdict','pass','notes','[]'::jsonb)),
         'pending')
       RETURNING id INTO v_item;

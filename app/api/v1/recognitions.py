@@ -43,26 +43,13 @@ router = APIRouter(tags=["recognitions"])
 
 log = structlog.get_logger(__name__)
 
-CONFLICT = {"insufficient_points", "person_inactive", "double_refund_blocked", "self_recognition_blocked"}
-UNPROCESSABLE = {
-    "no_approval_route",
-    "decline_note_required",
-    "recipient_total_mismatch",
-    "guest_cannot_receive",
-    "no_allowance_for_period",
-    "allocation_below_spent",
-    "points_out_of_range",
-    "template_value_mismatch",
-}
-NOT_FOUND = {
-    "recipient_not_found",
-    "item_not_found",
-    "person_not_found",
-    "prize_pool_empty",
-    "account_not_found",
-    "value_not_found",
-    "template_not_found",
-}
+CONFLICT = {"insufficient_points", "person_inactive", "double_refund_blocked",
+            "self_recognition_blocked"}
+UNPROCESSABLE = {"no_approval_route", "decline_note_required", "recipient_total_mismatch",
+                 "guest_cannot_receive", "no_allowance_for_period", "allocation_below_spent",
+                 "points_out_of_range", "template_value_mismatch"}
+NOT_FOUND = {"recipient_not_found", "item_not_found", "person_not_found", "prize_pool_empty",
+             "account_not_found", "value_not_found", "template_not_found"}
 FORBIDDEN = {"not_pending_for_decider", "self_admin_blocked", "insufficient_privilege"}
 # coded for log detail, but these are DB integrity/config faults — always 500
 INTEGRITY_FAULTS = frozenset({"hold_journal_missing", "hold_lines_missing", "no_budget_policy"})
@@ -92,19 +79,11 @@ def recognition_domain_handler(request: Request, exc: Exception) -> JSONResponse
     actor_id = getattr(request.state, "actor_id", None)  # resolved, never the raw header
     status_code = _code_status(exc.code)
     if status_code == status.HTTP_500_INTERNAL_SERVER_ERROR:
-        log.error(
-            "recognition.unmapped_domain_code",
-            code=exc.code,
-            path=request.url.path,
-            actor_id=str(actor_id) if actor_id else None,
-        )
+        log.error("recognition.unmapped_domain_code", code=exc.code,
+                  path=request.url.path, actor_id=str(actor_id) if actor_id else None)
     else:
-        log.warning(
-            "recognition.domain_error",
-            code=exc.code,
-            path=request.url.path,
-            actor_id=str(actor_id) if actor_id else None,
-        )
+        log.warning("recognition.domain_error", code=exc.code,
+                    path=request.url.path, actor_id=str(actor_id) if actor_id else None)
     return JSONResponse(status_code=status_code, content={"detail": exc.code})
 
 

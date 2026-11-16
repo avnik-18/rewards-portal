@@ -50,7 +50,8 @@ def _pg_message(orig: Any) -> str:
     "<class ...>: message" string — the postgres-authored text lives on
     the original asyncpg exception in the cause chain (plain `RaiseError`):
     prefer `.message` / first arg of chain members over any render."""
-    chain: list[Any] = [getattr(orig, "__cause__", None), getattr(orig, "__context__", None), orig]
+    chain: list[Any] = [getattr(orig, "__cause__", None),
+                        getattr(orig, "__context__", None), orig]
     for err in chain:
         if err is None:
             continue
@@ -144,29 +145,17 @@ class RecognitionService:
         return await self._repo.recognition_count()
 
     async def submit_recognition(
-        self,
-        actor_id: UUID,
-        to_user_ids: list[UUID],
-        cc_user_ids: list[UUID],
-        value_id: UUID | None,
-        template_id: UUID | None,
-        art_url: str | None,
-        message: str,
-        points: int,
+        self, actor_id: UUID, to_user_ids: list[UUID], cc_user_ids: list[UUID],
+        value_id: UUID | None, template_id: UUID | None, art_url: str | None,
+        message: str, points: int,
         idempotency_key: UUID | None = None,
     ) -> tuple[UUID, bool]:
         """Returns (recognition_id, replayed). replayed=True when an idempotent
         retry resolved to the ORIGINAL recognition (the retry never double-
         spends — the repository owns the conflict/rollback)."""
         rid, replayed = await self._repo.submit_recognition(
-            actor_id,
-            to_user_ids,
-            cc_user_ids,
-            value_id,
-            template_id,
-            art_url,
-            message,
-            points,
+            actor_id, to_user_ids, cc_user_ids, value_id, template_id,
+            art_url, message, points,
             idempotency_key,
         )
         return UUID(rid), replayed
@@ -192,23 +181,20 @@ class RecognitionService:
             # mirrors fn_submit_recognition unconditionally — even a
             # zero-point self-recognition is blocked by the fn, so the
             # pre-check must not widen that (reviewer: adapter parity)
-            raise RecognitionDomainError("self_recognition_blocked", "the giver cannot also be a recipient")
+            raise RecognitionDomainError(
+                "self_recognition_blocked", "the giver cannot also be a recipient"
+            )
         try:
             rid, replayed = await self.submit_recognition(
-                actor_id,
-                to_user_ids,
-                cc_user_ids,
-                value_id,
-                template_id,
-                art_url,
-                message,
-                points,
+                actor_id, to_user_ids, cc_user_ids, value_id, template_id,
+                art_url, message, points,
                 idempotency_key,
             )
         except DBAPIError as e:
             raise RecognitionDomainError(_error_code(e), _pg_message(e.orig)) from e
         if replayed:
-            log.info("recognition.replayed_by_key", actor_id=str(actor_id), recognition_id=str(rid))
+            log.info("recognition.replayed_by_key",
+                     actor_id=str(actor_id), recognition_id=str(rid))
 
         # status + routing depth: pending means the chain is frozen and waiting;
         # routed_to = how many steps await; item id matches the pending approval
@@ -224,7 +210,9 @@ class RecognitionService:
     ) -> str:
         """approver_id is the RESOLVED caller (never body-supplied)."""
         if not approve and not (note and note.strip()):
-            raise RecognitionDomainError("decline_note_required", "declining requires a note")
+            raise RecognitionDomainError(
+                "decline_note_required", "declining requires a note"
+            )
         try:
             return await self._repo.decide_approval(item_id, approver_id, approve, note)
         except DBAPIError as e:
