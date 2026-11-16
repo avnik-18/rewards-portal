@@ -16,4 +16,6 @@ class LeaderboardService:
         self._repo = repo
 
     async def top(self, actor_id: UUID, limit: int = 5) -> list[dict[str, Any]]:
-        return await self._repo.top_receivers(limit=limit)
+        # Group-scoped board: the pool depends on the CALLER (their team);
+        # actor_id must reach the repository, not be dropped on the way.
+        return await self._repo.top_receivers(actor_id=actor_id, limit=limit)

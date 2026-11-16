@@ -131,3 +131,126 @@ SELECT v.* FROM (VALUES
 ) AS v(kind, title, url, poster_url, cta_label, cta_url, sort_order)
 WHERE NOT EXISTS (
   SELECT 1 FROM media_asset WHERE kind = 'news_banner');
+
+-- ===== groups/leaderboard demo: 3 teams (6/5/3 = 14 users) =====
+-- Six-person Platform, five-person Finance Ops, three-person Mobile — every
+-- seeded user lands in exactly one team so the leaderboard (scoped to the
+-- caller's teams) differs per identity. Idempotent: re-running fills only
+-- what is missing (recognition rows key on (kind, source_ref)).
+
+INSERT INTO users (employee_code, email, full_name, title, department) VALUES
+  ('E-ES','erica@emids.test','Erica Stone','Engineer','Engineering'),
+  ('E-FT','fibin@emids.test','Fibin Thomas','Engineer','Engineering'),
+  ('E-GI','gautam@emids.test','Gautam Iyer','Engineer','Engineering'),
+  ('E-HK','hema@emids.test','Hema Krish','Analyst','Finance'),
+  ('E-IC','ivan@emids.test','Ivan D''Costa','Analyst','Finance'),
+  ('E-JS','jay@emids.test','Jay Shah','Ops Lead','Finance'),
+  ('E-KM','kiran@emids.test','Kiran Menon','Mobile Engineer','Engineering'),
+  ('E-DN','divya@emids.test','Divya Nair','Mobile Designer','Engineering')
+ON CONFLICT (employee_code) DO NOTHING;
+
+UPDATE users SET manager_id = (SELECT id FROM users WHERE employee_code='E-L1')
+  WHERE employee_code IN ('E-ES','E-FT','E-GI','E-KM','E-DN');
+UPDATE users SET manager_id = (SELECT id FROM users WHERE employee_code='E-L3')
+  WHERE employee_code IN ('E-HK','E-IC','E-JS');
+
+-- allowances for the new joiners (the fn tops up only missing rows)
+SELECT fn_allowance_seed(f.id)
+  FROM fiscal_period f
+ WHERE now()::date BETWEEN f.starts AND f.ends;
+
+INSERT INTO teams (name, code, project_name, description) VALUES
+  ('Platform','PLT','Springboard services','Six-member product platform group'),
+  ('Finance Ops','FOP','Quarterly reconciliation','Five-member finance operations group'),
+  ('Mobile','MOB','Field companion app','Three-member mobile squad')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO team_members (team_id, user_id, role)
+SELECT t.id, u.id, v.role::team_member_role
+FROM (VALUES
+  ('Platform','E-RH','lead'),
+  ('Platform','E-PR','member'),
+  ('Platform','E-AJ','member'),
+  ('Platform','E-ES','member'),
+  ('Platform','E-FT','member'),
+  ('Platform','E-GI','member'),
+  ('Finance Ops','E-L2','lead'),
+  ('Finance Ops','E-L3','member'),
+  ('Finance Ops','E-HK','member'),
+  ('Finance Ops','E-IC','member'),
+  ('Finance Ops','E-JS','member'),
+  ('Mobile','E-L1','lead'),
+  ('Mobile','E-KM','member'),
+  ('Mobile','E-DN','member')
+) AS v(team_name, employee_code, role)
+JOIN teams t  ON t.name = v.team_name
+JOIN users u  ON u.employee_code = v.employee_code
+WHERE NOT EXISTS (
+  SELECT 1 FROM team_members m
+   WHERE m.team_id = t.id AND m.user_id = u.id AND m.valid_to IS NULL);
+
+-- grouped demo recognitions — approved so the boards light up per group.
+-- Platform: Rahul 75 / Priya 50 / Brooke 15 / Erica 40 (giver: Rahul)
+INSERT INTO recognition_history (kind, from_user_id, value_id, message, base_points, status, occurred_at, source_ref)
+SELECT 'praise', u.id, (SELECT id FROM emids_values WHERE key='ownership'),
+       v.msg, v.base, 'approved'::recognition_status, now(), v.ref
+FROM (VALUES
+  ('leaderboard-demo-A-01','E-RH','Rahul kept the release trains on time.',75),
+  ('leaderboard-demo-A-02','E-AJ','Erica rebuilt the oncall runbook when the pagers blew up.',40)
+) AS v(ref, code, msg, base)
+JOIN users u ON u.employee_code = v.code
+ON CONFLICT (kind, source_ref) DO NOTHING;
+
+INSERT INTO recognition_recipients (recognition_id, user_id, points, kind)
+SELECT rh.id, ru.id, rh.base_points, 'to'
+FROM recognition_history rh
+JOIN users fu ON fu.id = rh.from_user_id
+JOIN users ru ON ru.employee_code = CASE fu.employee_code
+       WHEN 'E-RH' THEN 'E-PR' ELSE 'E-ES' END
+WHERE rh.source_ref IN ('leaderboard-demo-A-01','leaderboard-demo-A-02')
+  AND NOT EXISTS (
+    SELECT 1 FROM recognition_recipients r WHERE r.recognition_id = rh.id);
+
+-- Finance Ops: Lena 180 / Arun 200 / Hema 90 (giver: the program admin)
+INSERT INTO recognition_history (kind, from_user_id, value_id, message, base_points, status, occurred_at, source_ref)
+SELECT 'praise', u.id, (SELECT id FROM emids_values WHERE key='customer_first'),
+       v.msg, v.base, 'approved'::recognition_status, now(), v.ref
+FROM (VALUES
+  ('leaderboard-demo-B-01','Lena closed the reconciliation gap four days early.',180,'E-L2'),
+  ('leaderboard-demo-B-02','Arun surfaced the double-charge before finance closed.',200,'E-L3'),
+  ('leaderboard-demo-B-03','Hema fixed the recurring billing leak within a day.',90,'E-HK')
+) AS v(ref, msg, base, rec_code)
+JOIN users u ON u.employee_code = 'E-009'
+ON CONFLICT (kind, source_ref) DO NOTHING;
+
+INSERT INTO recognition_recipients (recognition_id, user_id, points, kind)
+SELECT rh.id, ru.id, rh.base_points, 'to'
+FROM recognition_history rh
+JOIN (VALUES
+        ('leaderboard-demo-B-01','E-L2'),
+        ('leaderboard-demo-B-02','E-L3'),
+        ('leaderboard-demo-B-03','E-HK')
+     ) AS v(ref, rec_code)
+  ON v.ref = rh.source_ref
+JOIN users ru ON ru.employee_code = v.rec_code
+WHERE rh.source_ref IN ('leaderboard-demo-B-01','leaderboard-demo-B-02','leaderboard-demo-B-03')
+  AND rh.kind = 'praise'
+  AND NOT EXISTS (
+    SELECT 1 FROM recognition_recipients r WHERE r.recognition_id = rh.id);
+
+-- Mobile: Kiran 40 (giver: Sam); Sam/Divy stay at zero — the pinned rule
+-- still shows them (façade) even from the bottom of a 3-member group.
+INSERT INTO recognition_history (kind, from_user_id, value_id, message, base_points, status, occurred_at, source_ref)
+SELECT 'praise', u.id, (SELECT id FROM emids_values WHERE key='ownership'),
+       'Kiran shipped the offline sync that unblocked two quarters of field work.', 40,
+       'approved'::recognition_status, now(), 'leaderboard-demo-C-01'
+FROM users u WHERE u.employee_code = 'E-L1'
+ON CONFLICT (kind, source_ref) DO NOTHING;
+
+INSERT INTO recognition_recipients (recognition_id, user_id, points, kind)
+SELECT rh.id, u.id, rh.base_points, 'to'
+FROM recognition_history rh
+JOIN users u ON u.employee_code = 'E-KM'
+WHERE rh.source_ref = 'leaderboard-demo-C-01'
+  AND NOT EXISTS (
+    SELECT 1 FROM recognition_recipients r WHERE r.recognition_id = rh.id);
