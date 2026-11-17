@@ -51,6 +51,56 @@ def test_known_business_codes_map() -> None:
     assert _code_status("prize_pool_empty") == status.HTTP_404_NOT_FOUND
 
 
+def test_list_a_reference_codes_map() -> None:
+    """List A additions — the composer's original pair (value, template) drives
+    three 404/404/422 codes."""
+    assert _code_status("value_not_found") == status.HTTP_404_NOT_FOUND
+    assert _code_status("template_not_found") == status.HTTP_404_NOT_FOUND
+    assert _code_status("template_value_mismatch") == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_sqlstate_of_list_a_codes_maps() -> None:
+    """A2 plumbing asserts: the three new SQLSTATEs resolve in _SQLSTATE_TO_CODE
+    (the fn raises C5497/8/9 from 0022_fn_submit_recognition.sql)."""
+    from app.services.recognition_service import _SQLSTATE_TO_CODE
+
+    assert _SQLSTATE_TO_CODE["C5497"] == "value_not_found"
+    assert _SQLSTATE_TO_CODE["C5498"] == "template_not_found"
+    assert _SQLSTATE_TO_CODE["C5499"] == "template_value_mismatch"
+
+
+async def test_submit_plumbing_carries_template_and_art() -> None:
+    """A3 repo plumbing assertion: the receipt of template_id/art_url reaches
+    the repository call (the two hard-coded NULLs sir flagged are replaced)."""
+    from unittest.mock import AsyncMock
+
+    from app.repositories.applause_repository import ApplauseRepository
+    from app.services.recognition_service import RecognitionService
+
+    import uuid as uuid_mod
+
+    repo = ApplauseRepository.__new__(ApplauseRepository)
+    repo._session = None
+    repo.submit_recognition = AsyncMock(
+        return_value=(str(uuid_mod.uuid4()), False)
+    )
+    caller = uuid_mod.uuid4()
+    recipient = uuid_mod.uuid4()
+    value_id = uuid_mod.uuid4()
+    template_id = uuid_mod.uuid4()
+    art = "https://cdn.emids.test/templates/customer-first-01.webp"
+    rid, replayed = await RecognitionService(repo).submit_recognition(
+        actor_id=caller, to_user_ids=[recipient], cc_user_ids=[],
+        value_id=value_id, template_id=template_id, art_url=art,
+        message="plumbs", points=10,
+    )
+    assert replayed is False
+    repo.submit_recognition.assert_awaited_once_with(
+        caller, [recipient], [], value_id, template_id, art,
+        "plumbs", 10, None,
+    )
+
+
 def test_every_sqlstate_code_maps_to_http() -> None:
     """Every code raised in the fns (all of _SQLSTATE_TO_CODE's values) maps
     to an HTTP status above 400 — the router table can never drift into a
