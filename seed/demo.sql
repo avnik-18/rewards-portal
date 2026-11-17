@@ -296,3 +296,17 @@ FROM (SELECT rr.user_id, rr.points, rr.recognition_id
          AND rr.kind = 'to') rh_rec
 WHERE NOT EXISTS (
   SELECT 1 FROM notification n WHERE n.dedupe_key = 'praise:' || rh_rec.recognition_id || ':' || rh_rec.user_id);
+-- ===== composer demo: one praise template per EMIDS value (5 total) =====
+-- Shapes follow the GET /values read-path: values carry art_json with a
+-- 'urls' array; templates key by (value_id, name), is_active by default.
+INSERT INTO recognition_templates (value_id, name, emoji, art_json, prefill)
+SELECT e.id, v2.name, v2.emoji, v2.art, v2.prefill
+FROM (VALUES
+  ('customer_first','Customer First','🤝','{"urls":["https://cdn.emids.test/templates/customer-first-01.webp","https://cdn.emids.test/templates/customer-first-02.webp"]}'::jsonb,'Thank you for putting the customer at the centre of…'),
+  ('innovation','Innovation','💡','{"urls":["https://cdn.emids.test/templates/innovation-01.webp"]}'::jsonb,'Thank you for finding a new way to…'),
+  ('collaboration','Collaboration','👥','{"urls":["https://cdn.emids.test/templates/collaboration-01.webp"]}'::jsonb,'Thank you for pulling the group through…'),
+  ('ownership','Ownership','🎯','{"urls":["https://cdn.emids.test/templates/ownership-01.webp"]}'::jsonb,'Thank you for owning the outcome when…'),
+  ('winning_mindset','Winning Mindset','🏆','{"urls":["https://cdn.emids.test/templates/winning-mindset-01.webp"]}'::jsonb,'Thank you for raising the bar with…')
+) AS v2(key, name, emoji, art, prefill)
+JOIN emids_values e ON e.key = v2.key
+ON CONFLICT (value_id, name) DO NOTHING;

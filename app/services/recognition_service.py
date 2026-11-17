@@ -98,6 +98,9 @@ _SQLSTATE_TO_CODE = {
     "C549S": "hold_journal_missing",
     "C549T": "hold_lines_missing",
     "C549U": "no_budget_policy",
+    "C5497": "value_not_found",
+    "C5498": "template_not_found",
+    "C5499": "template_value_mismatch",
 }
 
 
@@ -143,14 +146,16 @@ class RecognitionService:
 
     async def submit_recognition(
         self, actor_id: UUID, to_user_ids: list[UUID], cc_user_ids: list[UUID],
-        value_id: UUID | None, message: str, points: int,
+        value_id: UUID | None, template_id: UUID | None, art_url: str | None,
+        message: str, points: int,
         idempotency_key: UUID | None = None,
     ) -> tuple[UUID, bool]:
         """Returns (recognition_id, replayed). replayed=True when an idempotent
         retry resolved to the ORIGINAL recognition (the retry never double-
         spends — the repository owns the conflict/rollback)."""
         rid, replayed = await self._repo.submit_recognition(
-            actor_id, to_user_ids, cc_user_ids, value_id, message, points,
+            actor_id, to_user_ids, cc_user_ids, value_id, template_id,
+            art_url, message, points,
             idempotency_key,
         )
         return UUID(rid), replayed
@@ -161,6 +166,8 @@ class RecognitionService:
         to_user_ids: list[UUID],
         cc_user_ids: list[UUID],
         value_id: UUID | None,
+        template_id: UUID | None,
+        art_url: str | None,
         points: int,
         message: str,
         idempotency_key: UUID | None = None,
@@ -179,7 +186,8 @@ class RecognitionService:
             )
         try:
             rid, replayed = await self.submit_recognition(
-                actor_id, to_user_ids, cc_user_ids, value_id, message, points,
+                actor_id, to_user_ids, cc_user_ids, value_id, template_id,
+                art_url, message, points,
                 idempotency_key,
             )
         except DBAPIError as e:

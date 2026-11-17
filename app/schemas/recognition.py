@@ -16,6 +16,8 @@ class RecognizeRequest(BaseModel):
     to_user_ids: list[UUID] = Field(min_length=1, max_length=25)
     cc_user_ids: list[UUID] = Field(default_factory=list, max_length=50)
     value_id: UUID | None = None
+    template_id: UUID | None = None
+    art_url: str | None = Field(default=None, max_length=2048)
     points: int = Field(ge=0, le=9999)
     message: str = Field(default="", max_length=2000)
 

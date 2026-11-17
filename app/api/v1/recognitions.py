@@ -47,9 +47,9 @@ CONFLICT = {"insufficient_points", "person_inactive", "double_refund_blocked",
             "self_recognition_blocked"}
 UNPROCESSABLE = {"no_approval_route", "decline_note_required", "recipient_total_mismatch",
                  "guest_cannot_receive", "no_allowance_for_period", "allocation_below_spent",
-                 "points_out_of_range"}
+                 "points_out_of_range", "template_value_mismatch"}
 NOT_FOUND = {"recipient_not_found", "item_not_found", "person_not_found", "prize_pool_empty",
-             "account_not_found"}
+             "account_not_found", "value_not_found", "template_not_found"}
 FORBIDDEN = {"not_pending_for_decider", "self_admin_blocked", "insufficient_privilege"}
 # coded for log detail, but these are DB integrity/config faults — always 500
 INTEGRITY_FAULTS = frozenset({"hold_journal_missing", "hold_lines_missing", "no_budget_policy"})
@@ -105,6 +105,8 @@ async def recognize(
         to_user_ids=body.to_user_ids,
         cc_user_ids=body.cc_user_ids,
         value_id=body.value_id,
+        template_id=body.template_id,
+        art_url=body.art_url,
         points=body.points,
         message=body.message,
         idempotency_key=idempotency_key,

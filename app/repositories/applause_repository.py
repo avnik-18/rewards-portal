@@ -33,6 +33,8 @@ class ApplauseRepository:
         to_users: list[Any],
         cc_users: list[Any] | None,
         value_id: Any,
+        template_id: Any,
+        art_url: Any,
         message: str,
         points: int,
         idempotency_key: Any = None,
@@ -55,8 +57,8 @@ class ApplauseRepository:
                 result = await self._session.execute(
                     text(
                         "SELECT fn_submit_recognition("
-                        ":from_user, :to_users, :cc_users, :value_id, NULL, "
-                        ":message, :points, NULL, 'praise'::recognition_kind, "
+                        ":from_user, :to_users, :cc_users, :value_id, :template_id, "
+                        ":message, :points, :art_url, 'praise'::recognition_kind, "
                         ":idempotency_key) AS id"
                     ),
                     dict(
@@ -64,6 +66,8 @@ class ApplauseRepository:
                         to_users=to_users,
                         cc_users=cc_users,
                         value_id=value_id,
+                        template_id=template_id,
+                        art_url=art_url,
                         message=message,
                         points=points,
                         idempotency_key=idempotency_key,
