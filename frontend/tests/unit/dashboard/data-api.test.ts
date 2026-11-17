@@ -23,10 +23,10 @@ describe('data-api façade', () => {
     })
   })
 
-  it('pins the caller first but keeps the API rank() on every badge', async () => {
+  it('keeps the API rank order — position and badge always agree', async () => {
     await expect(getLeaderboard()).resolves.toEqual([
-      { id: 'live-2', name: 'Rahul Nair', pts: 380, me: true, rank: 2 },
       { id: 'live-1', name: 'Daniel C.', pts: 420, me: false, rank: 1 },
+      { id: 'live-2', name: 'Rahul Nair', pts: 380, me: true, rank: 2 },
       { id: 'live-3', name: 'Erica Stone', pts: 275, me: false, rank: 3 },
       { id: 'live-4', name: 'Hema Krish', pts: 250, me: false, rank: 4 },
       { id: 'live-5', name: 'Kiran Menon', pts: 220, me: false, rank: 5 },
