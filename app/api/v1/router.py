@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     demo_users,
+    directory,
     health,
     leaderboard,
     me,
@@ -12,6 +13,7 @@ from app.api.v1 import (
     notifications_list,
     recognitions,
     showcase,
+    values,
 )
 
 api_router = APIRouter()
@@ -30,3 +32,7 @@ api_router.include_router(showcase.router)
 api_router.include_router(notifications.router)
 # Bell panel list + mark-read (deliverable #6 depth)
 api_router.include_router(notifications_list.router)
+
+# "Recognize a Teammate" — read path (directory picker + values catalog)
+api_router.include_router(directory.router)
+api_router.include_router(values.router)
