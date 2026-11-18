@@ -26,7 +26,10 @@ from uuid import UUID
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-_PRAISE_KEY = "praise:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}):"
+# Postgres substring-FROM returns the FIRST parenthesised group, so the uuid
+# capture sits first; the 'praise…' prefix family (praise / praise_sent /
+# praise_cc) is matched with one loose POSIX class.
+_PRAISE_KEY = r"^praise[a-z_]*\:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\:"
 
 
 class NotificationsListRepository:
@@ -38,15 +41,26 @@ class NotificationsListRepository:
             text(
                 "SELECT n.id, n.type, n.created_at, "
                 "       g.full_name AS giver_name, "
+                "       subj.full_name AS receiver_name, "
+                "       COALESCE(subj.receivers_count, 0) AS receiver_count_, "
                 "       COALESCE((n.payload->>'points')::int, rh.base_points) AS points_, "
                 "       rh.message AS message_ "
                 "FROM notification n "
                 "LEFT JOIN LATERAL ("
                 "  SELECT rh2.id, rh2.message, rh2.base_points, rh2.from_user_id"
                 "    FROM recognition_history rh2"
-                "   WHERE rh2.id = (substring(n.dedupe_key from :key_shape))::uuid"
+                "   WHERE rh2.id = (substring(n.dedupe_key FROM :key_shape))::uuid"
                 ") rh ON true "
                 "LEFT JOIN users g ON g.id = rh.from_user_id "
+                "LEFT JOIN LATERAL ("
+                "  SELECT u1.full_name,"
+                "         (SELECT count(*) FROM recognition_recipients rr2"
+                "           WHERE rr2.recognition_id = rh.id AND rr2.kind = 'to') AS receivers_count"
+                "    FROM recognition_recipients rr1"
+                "    JOIN users u1 ON u1.id = rr1.user_id"
+                "   WHERE rr1.recognition_id = rh.id AND rr1.kind = 'to'"
+                "   ORDER BY rr1.user_id LIMIT 1"
+                ") subj ON true "
                 "WHERE n.user_id = :actor AND n.read_at IS NULL "
                 "  AND n.delivery_status IN ('queued','sent') "
                 "ORDER BY n.created_at DESC, n.id DESC LIMIT :limit"
@@ -61,6 +75,8 @@ class NotificationsListRepository:
                     id=row["id"],
                     type=row["type"],
                     giver_name=row["giver_name"],
+                    receiver_name=row["receiver_name"],
+                    receiver_count=row["receiver_count_"],
                     points=row["points_"],
                     message=row["message_"],
                     # isoformat() — a T, not Postgres' space separator: keeps

@@ -34,11 +34,17 @@ def _list_service(session: Annotated[AsyncSession, Depends(get_session)]) -> Not
 
 
 class NotificationRow(BaseModel):
-    """One unread feed item, displayed as '<giver> recognised you (+N pts)'."""
+    """One unread feed item — praise rows carry both parties' names:
+    praise_received → '<giver> recognised you (+N pts)'
+    praise_sent     → 'You recognised <receiver>…' (receiver_count > 1 means
+                      'and N-1 more')
+    praise_cc       → '<giver> copied you — recognised <receiver>'"""
 
     id: UUID
     type: str
     giver_name: str | None = None
+    receiver_name: str | None = None
+    receiver_count: int = 0
     points: int | None = None
     message: str | None = None
     created_at: str
