@@ -1,9 +1,53 @@
-import { APPROVALS, NOTIFICATIONS, type ApprovalItem, type NotificationItem } from '../mock-data'
+import { APPROVALS, NOTIFICATIONS, type ApprovalItem, type ApprovalKind, type NotificationItem } from '../mock-data'
 import { apiFetch, apiPost } from '../api-client'
-import type { UnreadCountResponse, UnreadNotification } from './live-api-shapes'
+import type {
+  DecisionResponse,
+  MarkReadResponse,
+  PendingApprovalRow,
+  UnreadCountResponse,
+  UnreadNotification,
+} from './live-api-shapes'
 
+/** The decide endpoint the approvals board calls through. */
+export async function decideApproval(item: ApprovalItem, approve: boolean, note: string): Promise<DecisionResponse> {
+  return apiPost<DecisionResponse>(`/recognitions/approval/${item.id}/decide`, {
+    approve,
+    note: note.trim() ? note.trim() : undefined,
+  })
+}
+
+/**
+ * The approvals queue. LIVE first: GET /recognitions/approvals — decisions
+ * actually routed to the signed-in approver. The board's richer mock shape is
+ * reconstructed from the lean rows (route = this pending step; kind = points
+ * approval). Endorsement/redemption kinds don't exist on the lane yet, so the
+ * mock items stay as the outage fallback — loudly logged.
+ */
 export async function getApprovals(): Promise<ApprovalItem[]> {
-  return APPROVALS
+  try {
+    const rows = await apiFetch<PendingApprovalRow[]>('/recognitions/approvals')
+    return rows.map((row) => mapApprovalRow(row))
+  } catch (error) {
+    console.error('[data-api] live approvals unavailable — showing the demo queue:', error)
+    return APPROVALS
+  }
+}
+
+function mapApprovalRow(row: PendingApprovalRow): ApprovalItem {
+  const kind: ApprovalKind = row.kind === 'nomination' ? 'nomination-endorsement' : 'points-approval'
+  const level = row.level.replace(/[_-]+/g, ' ').trim() || 'approval'
+  const points = row.points ?? 0
+  return {
+    id: row.approval_item_id,
+    kind,
+    fromId: row.owner_id,
+    points,
+    when: 'Awaiting your decision',
+    title: `${row.submitter_name} wants to award +${points} pts`,
+    detail: row.note ? `"${row.note}"` : 'No note attached to this recognition.',
+    route: [{ step: `${level} (you)`, owner: 'me', done: false }],
+    budget: points > 0 ? `Award of ${points} points, routed via ${level}` : 'No points move',
+  }
 }
 
 export async function getNotifications(): Promise<NotificationItem[]> {
@@ -32,6 +76,6 @@ export async function getUnreadFeed(): Promise<UnreadNotification[]> {
 /** "Read once, it disappears" — marks every delivered+unread row read;
  *  re-fetches are empty and the badge drops to 0 afterwards. */
 export async function markAllNotificationsRead(): Promise<number> {
-  const body = await apiPost<{ marked_read: number }>('/notifications/read', {})
+  const body = await apiPost<MarkReadResponse>('/notifications/read', {})
   return body.marked_read
 }

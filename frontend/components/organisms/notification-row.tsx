@@ -1,13 +1,29 @@
 import type { UnreadNotification } from '@/lib/data-api'
 
-/** One unread bell-panel row: '<giver> recognised you (+N pts)' for praise,
- *  a humanised label for system notifications, the message preview, the day. */
+/** Bell-panel row copy per notification type (0023 lanes):
+ *  praise_received → '<giver> recognised you (+N pts)'
+ *  praise_sent     → 'You recognised <receiver> · +N pts' (multi-recipient:
+ *                    '<receiver> +2 more')
+ *  praise_cc       → '<giver> copied you — recognised <receiver>'
+ *  others          → humanised system label. Message preview + day follow. */
 export function NotificationRow({ n }: { n: UnreadNotification }) {
   const from = n.giver_name ?? 'Someone'
-  const praise = n.points !== null
-  const copy = praise
-    ? `${from} recognised you (+${n.points} pts)`
-    : n.type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+  const points = n.points !== null && n.points > 0 ? ` · +${n.points} pts` : ''
+
+  let copy: string
+  if (n.type === 'praise_received') {
+    copy = `${from} recognised you${n.points !== null && n.points > 0 ? ` (+${n.points} pts)` : ''}`
+  } else if (n.type === 'praise_sent') {
+    const receiver = n.receiver_name ?? 'a teammate'
+    const extra = n.receiver_count > 1 ? ` +${n.receiver_count - 1} more` : ''
+    copy = `You recognised ${receiver}${extra}${points}`
+  } else if (n.type === 'praise_cc') {
+    const receiver = n.receiver_name ?? 'a teammate'
+    copy = `${from} copied you — recognised ${receiver}`
+  } else {
+    copy = n.type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
+  }
+
   const day = new Date(n.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
   return (
     <li className="border-b border-line px-3 py-2.5 last:border-b-0">

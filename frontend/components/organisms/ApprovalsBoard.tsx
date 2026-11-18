@@ -4,7 +4,7 @@ import ApprovalListItem from '@/components/molecules/ApprovalListItem'
 import ApprovalDetail from '@/components/organisms/approval-detail'
 import { useApprovals } from '@/hooks/use-approvals'
 import { filterForTab, type ApprovalVerdict } from '@/lib/approval'
-import type { ApprovalItem } from '@/lib/data-api'
+import { decideApproval, type ApprovalItem } from '@/lib/data-api'
 
 const TABS = [
   { key: 'inbox', label: 'To approve' },
@@ -103,6 +103,12 @@ export default function ApprovalsBoard({ items, viewerId = 'me', onDecide }: App
               verdict={decided[selected.id]?.verdict}
               onDecide={(verdict, note) => {
                 decideItem(selected, verdict, note)
+                // the real lane: persist the decision (approve=true unless
+                // declined/returned). Session state already moved the item to
+                // History; a backend failure is logged, never stranded.
+                void decideApproval(selected, verdict === 'approved', note).catch((error) =>
+                  console.error('[approvals] decision not persisted:', error),
+                )
                 onDecide?.(verdict, note)
               }}
               viewerId={viewerId}

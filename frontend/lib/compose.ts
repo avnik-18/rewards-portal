@@ -1,4 +1,5 @@
-import { VALUE_TEMPLATES, person, type PraiseTemplate, type ValueKey } from './mock-data'
+import { VALUE_TEMPLATES, type PraiseTemplate } from './mock-data'
+import { person } from '@/lib/data-api'
 
 /** Who you might be recognizing — rolls through vertically in the composer heading. */
 export const ROTATE_WORDS = ['teammate', 'colleague', 'team lead', 'manager', 'peer']
@@ -10,8 +11,10 @@ export const POINT_PRESETS = [0, 25, 50, 100]
  *  sir's review on the old "one class eats the dots" pattern). */
 export const EMAIL_RE = /^[^\s@]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/
 
-/** First draft text per value — the "Draft for me" button fills the note with it. */
-export const AI_DRAFTS: Record<ValueKey, string> = {
+/** First draft text per value — the "Draft for me" button fills the note with it.
+ *  Keys are the five demo values; a live key outside these falls back to
+ *  `ownership` at the call site. */
+export const AI_DRAFTS: Record<string, string> = {
   customerFirst:
     'went above and beyond for the client this week — the turnaround on their urgent request was seamless, and the client team specifically called it out in the QBR thread.',
   innovation:
@@ -49,7 +52,9 @@ export function prefillUpdate(args: {
   return message
 }
 
-export const activeTemplateFor = (valueKey: ValueKey | null, tplId: string | null): PraiseTemplate | null =>
+const TEMPLATE_CATALOG = VALUE_TEMPLATES as Record<string, PraiseTemplate[]>
+
+export const activeTemplateFor = (valueKey: string | null, tplId: string | null): PraiseTemplate | null =>
   valueKey
-    ? (VALUE_TEMPLATES[valueKey].find((template) => template.id === tplId) ?? VALUE_TEMPLATES[valueKey][0] ?? null)
+    ? (TEMPLATE_CATALOG[valueKey]?.find((template) => template.id === tplId) ?? TEMPLATE_CATALOG[valueKey]?.[0] ?? null)
     : null

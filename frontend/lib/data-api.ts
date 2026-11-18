@@ -22,6 +22,7 @@ export {
   getUnreadCount,
   getUnreadFeed,
   markAllNotificationsRead,
+  decideApproval,
 } from './data-api-parts/activity'
 export type { UnreadNotification } from './data-api-parts/live-api-shapes'
 export { getProfile, type ProfilePayload } from './data-api-parts/profile'
@@ -53,4 +54,5 @@ export {
   type ValueKey,
   type ValueLived,
 } from './data-api-parts/lookups'
-export { sendRecognition, type RecognitionPayload, type CreatedRecognition } from './data-api-parts/recognitions'
+export { sendRecognition, SendRejected, type RecognitionPayload, type CreatedRecognition } from './data-api-parts/recognitions'
+export { ensureLookupsLive, registerLivePeople } from './data-api-parts/lookups'

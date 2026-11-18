@@ -11,13 +11,16 @@ interface PreviewColumnProps {
   sendDisabled: boolean
 }
 
+/** Null-safe demo fallback: the first template anywhere in the catalog. */
+const FALLBACK_TEMPLATE = Object.values(VALUE_TEMPLATES).flat()[0] ?? null
+
 /** Right column: template variants, the live postcard preview, send + sent note. */
 export default function PreviewColumn({ form, sendDisabled }: PreviewColumnProps) {
   return (
     <div className="lg:sticky lg:top-4">
       <p className="mb-1.5 text-[11.5px] font-extrabold font-mono uppercase tracking-[0.12em] text-muted">Templates</p>
       <div className="grid grid-cols-3 gap-1.5">
-        {(form.activeTpl?.urls ?? VALUE_TEMPLATES.customerFirst[0].urls).map((imageUrl, optionIndex) => (
+        {(form.activeTpl?.urls ?? FALLBACK_TEMPLATE?.urls ?? []).map((imageUrl, optionIndex) => (
           <button
             key={imageUrl}
             onClick={() => form.setVariantIdx(optionIndex)}
@@ -51,8 +54,7 @@ export default function PreviewColumn({ form, sendDisabled }: PreviewColumnProps
           <TemplateCard
             tpl={form.activeTpl ?? undefined}
             url={
-              (form.activeTpl ?? VALUE_TEMPLATES.customerFirst[0]).urls[form.variantIdx] ??
-              VALUE_TEMPLATES.customerFirst[0].urls[0]
+              (form.activeTpl ?? FALLBACK_TEMPLATE)?.urls[form.variantIdx] ?? FALLBACK_TEMPLATE?.urls[0] ?? undefined
             }
             previewValue={form.previewValue}
             recipients={form.recipients}

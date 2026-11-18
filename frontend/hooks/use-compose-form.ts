@@ -55,7 +55,8 @@ export function useComposeForm(people: ComposePerson[], initialToId?: string) {
     setAiBusy(true)
     const names = toSel.map((id) => personLabel(id, labels)).join(' and ')
     const valueChosen = valueKey ?? 'ownership'
-    setMessage(`${names} ${AI_DRAFTS[valueChosen]} Keep it in your own words if you can.`)
+    const draft = AI_DRAFTS[valueChosen] ?? AI_DRAFTS.ownership
+    setMessage(`${names} ${draft} Keep it in your own words if you can.`)
     setTimeout(() => setAiBusy(false), 800)
   }
 

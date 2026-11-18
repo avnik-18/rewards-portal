@@ -15,7 +15,8 @@ import {
 } from '../mock-data'
 
 import { apiFetch } from '../api-client'
-import type { LeaderboardEntry, ShowcaseResponse } from './live-api-shapes'
+import { registerLivePeople } from './lookups'
+import type { LeaderboardEntry, PersonRow, ShowcaseResponse } from './live-api-shapes'
 
 /**
  * Deliverable #4 — the LIVE leaderboard. Real approved/quarter points from
@@ -73,10 +74,57 @@ export async function getShowcaseSlides(): Promise<Slide[]> {
   }
 }
 
+/**
+ * The recipient directory. LIVE first: GET /people (recognition-eligible
+ * colleagues, actor excluded, manager flattened). Rows are registered into
+ * the lookups person() registry so UUID ids resolve everywhere. On a backend
+ * outage the mock directory keeps the composer usable — loudly logged.
+ */
 export async function getPeople(): Promise<Person[]> {
-  return Object.values(PEOPLE)
-    .filter((teamMember) => teamMember.id !== 'me')
-    .sort((a, b) => a.name.localeCompare(b.name))
+  try {
+    const rows = await apiFetch<PersonRow[]>('/people?limit=500')
+    const mapped = rows.map((row): Person => {
+      const person: Person = {
+        id: row.id,
+        name: row.full_name,
+        email: row.email,
+        title: row.title ?? '',
+        dept: row.department ?? '',
+        office: '',
+        tenure: '',
+        status: 'online',
+      }
+      if (row.manager_id) {
+        person.managerId = row.manager_id
+        // synthetic manager entry: auto-CC chips resolve even when the manager
+        // is filtered out of the recognisable directory
+        if (!rows.some((candidate) => candidate.id === row.manager_id)) {
+          registerLivePeople([
+            {
+              id: row.manager_id,
+              name: row.manager_name ?? row.manager_code ?? row.manager_id,
+              email: '',
+              title: '',
+              dept: '',
+              office: '',
+              tenure: '',
+              status: 'offline',
+            },
+          ])
+        }
+      }
+      return person
+    })
+    registerLivePeople(mapped)
+    return mapped
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+  } catch (error) {
+    console.error('[data-api] live directory unavailable — serving the mock people:', error)
+    return Object.values(PEOPLE)
+      .filter((teamMember) => teamMember.id !== 'me')
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }
 }
 
 /** One ranked row of the Recognition Tree overlay (everyone reporting to `me`). */
