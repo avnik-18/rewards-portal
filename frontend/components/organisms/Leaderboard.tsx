@@ -45,14 +45,17 @@ export default function Leaderboard({ rows }: LeaderboardProps) {
               <span
                 className={`tnum flex h-6 w-9 items-center justify-center rounded-full text-[12px] font-bold ${RANK_CHIP[index]}`}
               >
-                {index + 1}
+                {/* truth over presentation: the caller's true-rank row is
+                    appended below the top-5, so the chip reports the API's
+                    own rank() value when present */}
+                {teamRow.rank ?? index + 1}
               </span>
             </span>
             <span className="flex min-w-0 items-center gap-2.5">
               <Avatar id={teamRow.id} size={34} />
               <span className="truncate text-[14.5px] font-semibold text-[#0b2a4a]">
                 {short(teamRow.name)}
-                {teamRow.id === 'me' && (
+                {(teamRow.id === 'me' || teamRow.me) && (
                   <span className="ml-1.5 rounded-full bg-[#17a06a] px-2 py-0.5 align-middle text-[10.5px] font-bold text-white">
                     You
                   </span>

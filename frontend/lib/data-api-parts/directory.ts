@@ -35,7 +35,11 @@ export async function getLeaderboard(): Promise<LeaderRow[]> {
       me: entry.is_me,
       rank: entry.rank,
     }))
-    return mapped.slice(0, 5)
+    // the caller is ALWAYS visible: top-5 cap, plus their true-rank row
+    // appended below when it falls outside — the card never hides the 'You'
+    const top = mapped.slice(0, 5)
+    const caller = mapped.find((row) => row.me)
+    return caller && !top.includes(caller) ? [...top.slice(0, 4), caller] : top
   } catch (error) {
     console.error('[data-api] live leaderboard unavailable — serving the mock board:', error)
     return TEAM_LEADERBOARD
