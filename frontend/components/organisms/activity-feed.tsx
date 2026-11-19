@@ -79,17 +79,6 @@ export default function ActivityFeed({ posts }: ActivityFeedProps) {
                     </span>
                   </div>
                 )}
-                <div className="mt-0.5 grid grid-cols-4 gap-1 border-t border-[#edf2f6] pt-1.5">
-                  {['Like', 'Comment', 'Celebrate', 'Share'].map((label) => (
-                    <button
-                      key={label}
-                      type="button"
-                      className="min-h-11 cursor-pointer rounded-[10px] border-0 bg-transparent px-0 text-sm font-medium text-[#35506b] transition hover:bg-[#eef5f8]"
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
               </article>
             )
           })}
