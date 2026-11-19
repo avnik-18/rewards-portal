@@ -57,10 +57,14 @@ export function useSendRecognition(input: SendInputSnapshot) {
       // sir's review: a failed send must NOT leave the button stuck on
       // 'sending' — surface an error state the user can see and retry from
       console.error('Recognition send failed', err)
-      setErrors((current) => ({
-        ...current,
-        message: 'Sending failed. Please check your connection and try again.',
-      }))
+      // SendRejected carries the mapped, human-safe backend message
+      // (insufficient_points, template_value_mismatch, …); anything else is a
+      // connection-level failure and keeps the generic text.
+      const detail =
+        err instanceof Error && err.name === 'SendRejected'
+          ? err.message
+          : 'Sending failed. Please check your connection and try again.'
+      setErrors((current) => ({ ...current, message: detail }))
       setStatus('idle')
       return false
     }

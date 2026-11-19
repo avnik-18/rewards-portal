@@ -65,7 +65,7 @@ describe('demo sign-in flow', () => {
     // scope to the disclosure panel — the hero greeting shows the same name
     const link = screen.getByRole('link', { name: /My profile/ })
     const disclosure = link.parentElement as HTMLElement
-    expect(await within(disclosure).findByText('Ayan')).toBeTruthy() // GET /me via the stubbed actor
+    expect(await within(disclosure).findByText('Priya Rao')).toBeTruthy() // GET /me via the stubbed actor
     expect(within(disclosure).getByText('Engineer')).toBeTruthy()
   })
 })

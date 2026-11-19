@@ -39,6 +39,95 @@ beforeAll(() => {
         json: async () => ({ total: ORG_STATS.recognitions }),
       })
     }
+    if (path === '/me/stats') {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          points_balance: 1240,
+          allowance_left: null,
+          allowance_allocated: null,
+          recognitions_given: 3,
+          recognitions_received: 4,
+        }),
+      })
+    }
+    if (path.startsWith('/leaderboard')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          entries: [
+            { rank: 1, name: 'Daniel C.', points: 420, is_me: false },
+            { rank: 2, name: 'Rahul Nair', points: 380, is_me: true },
+            { rank: 3, name: 'Erica Stone', points: 275, is_me: false },
+            { rank: 4, name: 'Hema Krish', points: 250, is_me: false },
+            { rank: 5, name: 'Kiran Menon', points: 220, is_me: false },
+            { rank: 3, name: 'Aarav S.', points: 275, is_me: false },
+            { rank: 4, name: 'Priya M.', points: 250, is_me: false },
+            { rank: 5, name: 'Kenji W.', points: 220, is_me: false },
+          ],
+        }),
+      })
+    }
+    if (path === '/awards/showcase') {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          days_to_nominations_close: 19,
+          open_categories: 3,
+          cycle_prize_total: 7500,
+          my_jury: { cast: false, assigned: false },
+        }),
+      })
+    }
+    if (path.startsWith('/notifications/unread-count')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ unread_count: 3 }),
+      })
+    }
+    if (path.startsWith('/notifications/read')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ marked_read: 3 }),
+      })
+    }
+    if (path.startsWith('/notifications')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            id: 'n-1',
+            type: 'praise',
+            giver_name: 'Brooke Davis',
+            points: 50,
+            message: 'Great release support.',
+            created_at: '2026-11-16T09:00:00Z',
+          },
+          {
+            id: 'n-2',
+            type: 'praise',
+            giver_name: 'Arun Kamath',
+            points: 25,
+            message: null,
+            created_at: '2026-11-15T14:00:00Z',
+          },
+          {
+            id: 'n-3',
+            type: 'milestone_5_year',
+            giver_name: null,
+            points: null,
+            message: null,
+            created_at: '2026-11-14T08:00:00Z',
+          },
+        ],
+      })
+    }
     if (path === '/media/hero') {
       return Promise.resolve({
         ok: false,
@@ -52,7 +141,7 @@ beforeAll(() => {
         status: 200,
         json: async () => ({
           employee_code: 'E-PR',
-          full_name: 'Ayan',
+          full_name: 'Priya Rao',
           email: 'priya@emids.test',
           role: 'individual',
           title: 'Engineer',

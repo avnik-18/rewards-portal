@@ -1,11 +1,9 @@
 // Pure validation for the Compose form — no React, no data access,
 // so it is trivially unit-testable.
 
-import type { ValueKey } from './mock-data'
-
 export interface RecognitionInput {
   toIds?: string[]
-  valueKey?: ValueKey | null
+  valueKey?: string | null
   message?: string
   points?: number
 }

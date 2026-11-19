@@ -4,6 +4,11 @@ export interface LeaderRow {
   id: string
   name: string
   pts: number
+  /** LIVE rows only: the API's is_me marker (drives the "You" chip). */
+  me?: boolean
+  /** LIVE rows only: the API's rank() — the badge must show this, the pin
+   *  only places the caller's row first without renumbering anyone. */
+  rank?: number
 }
 
 // Peer points received this quarter — EoQ prize payouts not included
@@ -19,7 +24,7 @@ export const TEAM_LEADERBOARD: LeaderRow[] = [
   { id: 'p13', pts: 60 },
   { id: 'p14', pts: 45 },
   { id: 'p9', pts: 25 },
-].map((row) => ({ ...row, name: person(row.id)?.name ?? row.id }))
+].map((row, index) => ({ ...row, name: person(row.id)?.name ?? row.id, rank: index + 1 }))
 
 /* ---------- Team slice (Recognition Tree + team stats) ---------- */
 
