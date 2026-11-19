@@ -5,36 +5,61 @@ export interface PointsBalanceCardProps {
   balance: number
 }
 
-/** Right-rail wallet card — light gradient with the concentric-arcs art
- *  (quarter rings bottom-left, arcs top-right), mono tracked title, huge
- *  balance digits and the rounded navy CTA bottom-right, as designed. */
+/** The My-Rewards balance tile, verbatim: same gradient, same concentric
+ *  circles art, same type scale — the rail CTA targets /rewards instead of
+ *  the in-page ledger. */
 export default function PointsBalanceCard({ balance }: PointsBalanceCardProps) {
   return (
-    <div className="relative isolate overflow-hidden rounded-2xl bg-[#f4fafb]">
-      <div className="absolute -left-16 -bottom-16 -z-0 h-[220px] w-[220px]" aria-hidden>
-        <div className="absolute inset-0 rounded-full bg-[#a8dcc7]" />
-        <div className="absolute left-4 top-4 h-[188px] w-[188px] rounded-full bg-[#bfe4d6]" />
-        <div className="absolute left-8 top-8 h-[156px] w-[156px] rounded-full bg-[#d7edde]" />
-        <div className="absolute left-4 top-[92px] h-[44px] w-[44px] rounded-full bg-[#1e5f63]" />
-      </div>
-      <div className="absolute -right-20 -top-24 -z-0 h-[240px] w-[240px] rounded-full bg-[#cfe4f4]" aria-hidden />
-      <div className="absolute -right-8 -top-10 -z-0 h-[160px] w-[160px] rounded-full border-[10px] border-[#ddeefa]" aria-hidden />
-      <div className="absolute right-14 bottom-6 -z-0 h-[120px] w-[120px] rounded-full border-[3px] border-[#dbeefb]" aria-hidden />
+    <div className="relative min-h-[220px] overflow-hidden rounded-[28px] border border-[#C9E4F2] bg-[linear-gradient(115deg,#E2F7F1_0%,#EAF9FB_45%,#DDEFFA_100%)]">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute rounded-full bg-[#DDF3EA]"
+        style={{ width: 480, height: 480, left: -240, bottom: -240 }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute rounded-full bg-[#7ECDBE]/55"
+        style={{ width: 380, height: 380, left: -190, bottom: -190 }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute rounded-full border-2 border-[#0B2740]/10"
+        style={{ width: 320, height: 320, left: -160, bottom: -160 }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute rounded-full bg-[#164D61]"
+        style={{ width: 240, height: 240, left: -120, bottom: -120 }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute rounded-full bg-[#8CC7E7]/30"
+        style={{ width: 360, height: 360, right: -180, top: -180 }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute rounded-full bg-[#B7DFF1]/45"
+        style={{ width: 260, height: 260, right: -130, top: -130 }}
+      />
 
-      <div className="relative z-10 flex h-[230px] flex-col px-5 pb-4 pt-5">
-        <p className="text-[11.5px] font-bold font-mono tracking-[0.18em] text-[#17415f] uppercase">
-          Total points balance
+      <div className="relative z-10 flex h-full min-h-[220px] flex-col justify-between p-7">
+        <p className="text-[clamp(0.7rem,1vw,0.8rem)] font-medium uppercase tracking-[4px] text-[#0B2740]/85">
+          Total reward balance
         </p>
-        <p className="tnum mt-1 leading-[1.05] text-[#12324f]">
-          <span className="text-[52px] font-black">{fmtNum(balance)}</span>{' '}
-          <span className="text-[22px] font-extrabold text-[#0f7f7f]">PTS</span>
-        </p>
-        <Link
-          to="/rewards"
-          className="mt-auto flex h-12 w-[210px] items-center justify-center self-end rounded-full bg-[#12324f] text-[15px] font-bold text-white shadow-[0_10px_24px_-10px_rgba(3,13,28,0.6)] transition hover:brightness-110"
-        >
-          Go to My Rewards
-        </Link>
+        <div className="flex items-end justify-center gap-3">
+          <p className="tnum text-[clamp(2.4rem,4.6vw,3.8rem)] font-black leading-[0.9] tracking-[-0.04em] text-[#0B2740]">
+            {fmtNum(balance)}
+          </p>
+          <p className="mb-2 text-[clamp(1.05rem,1.8vw,1.5rem)] font-extrabold tracking-tight text-[#0E7C8C]">PTS</p>
+        </div>
+        <div className="flex justify-end">
+          <Link
+            to="/rewards"
+            className="flex items-center justify-center rounded-xl bg-[#153B5A] px-6 py-3 text-[13.5px] font-semibold text-white transition hover:brightness-110"
+          >
+            Go to My Rewards
+          </Link>
+        </div>
       </div>
     </div>
   )
