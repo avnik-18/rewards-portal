@@ -52,15 +52,13 @@ export default function Leaderboard({ rows }: LeaderboardProps) {
               </span>
             </span>
             <span className="flex min-w-0 items-center gap-2.5">
-              <Avatar id={teamRow.id} size={34} />
-              <span className="truncate text-[14.5px] font-semibold text-[#0b2a4a]">
-                {short(teamRow.name)}
-                {(teamRow.id === 'me' || teamRow.me) && (
-                  <span className="ml-1.5 rounded-full bg-[#17a06a] px-2 py-0.5 align-middle text-[10.5px] font-bold text-white">
-                    You
-                  </span>
-                )}
-              </span>
+              <Avatar id={teamRow.id} name={teamRow.name} size={34} />
+              <span className="truncate text-[14.5px] font-semibold text-[#0b2a4a]">{short(teamRow.name)}</span>
+              {(teamRow.id === 'me' || teamRow.me) && (
+                <span className="shrink-0 rounded-full bg-[#17a06a] px-2 py-0.5 text-[10.5px] font-bold text-white">
+                  You
+                </span>
+              )}
             </span>
             <span className="flex justify-end">
               <b className="tnum rounded-full bg-[#d9ecff] px-3 py-1 text-[13px] font-bold text-[#0b2a4a]">

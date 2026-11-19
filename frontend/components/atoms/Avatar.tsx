@@ -17,11 +17,23 @@ function hashStr(text: string) {
   return hash
 }
 
-export function Avatar({ id, size = 36, ring = false }: { id: string; size?: number; ring?: boolean }) {
+/** Avatar profile fallback: an explicit `name` covers live rows whose id has
+ *  no directory registration yet (leaderboard/notifications UUID ids) —
+ *  never silently resolve to the signed-in user. */
+export function Avatar({
+  id,
+  name,
+  size = 36,
+  ring = false,
+}: {
+  id: string
+  name?: string
+  size?: number
+  ring?: boolean
+}) {
   const profile = person(id)
-  // unknown ids render a neutral avatar — they must NOT silently resolve
-  // to the signed-in user (PR review: people.ts fallback comment)
-  if (!profile) {
+  const fallbackName = name ?? profile?.name
+  if (!fallbackName) {
     return (
       <div
         className="flex shrink-0 items-center justify-center rounded-full bg-slate-300 font-semibold text-slate-500"
@@ -32,16 +44,16 @@ export function Avatar({ id, size = 36, ring = false }: { id: string; size?: num
       </div>
     )
   }
-  const gradient = GRADIENTS[hashStr(profile.name) % GRADIENTS.length]
+  const gradient = GRADIENTS[hashStr(fallbackName) % GRADIENTS.length]
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <div
         className={`flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white select-none ${gradient}`}
         style={{ fontSize: size * 0.38 }}
       >
-        {initials(profile.name)}
+        {initials(fallbackName)}
       </div>
-      {profile.status === 'online' && size >= 32 && (
+      {profile?.status === 'online' && size >= 32 && (
         <span
           className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-mint"
           role="img"
