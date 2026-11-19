@@ -14,12 +14,62 @@ import {
   type TeamMemberStat,
 } from '../mock-data'
 
+import { apiFetch } from '../api-client'
+import type { LeaderboardEntry, ShowcaseResponse } from './live-api-shapes'
+
+/**
+ * LIVE leaderboard: real approved/quarter points from the FastAPI lane,
+ * scoped to the caller's own teams; is_me is the API's own marker. Rows
+ * render in the API's rank order — position and badge always agree. The
+ * words stay: top-5 cap. On a backend outage the mock board keeps the page
+ * honest-but-rendered — loudly marked in the console so a mock fallback can
+ * never be mistaken for live data.
+ */
 export async function getLeaderboard(): Promise<LeaderRow[]> {
-  return TEAM_LEADERBOARD
+  try {
+    const response = await apiFetch<{ entries: LeaderboardEntry[] }>('/leaderboard?limit=10')
+    const mapped = response.entries.map((entry) => ({
+      id: `live-${entry.rank}`,
+      name: entry.name,
+      pts: entry.points,
+      me: entry.is_me,
+      rank: entry.rank,
+    }))
+    return mapped.slice(0, 5)
+  } catch (error) {
+    console.error('[data-api] live leaderboard unavailable — serving the mock board:', error)
+    return TEAM_LEADERBOARD
+  }
 }
 
+/**
+ * LIVE awards showcase: the FIRST slide is composed from the live EoQ
+ * numbers (countdown, categories, prize pool, jury state); the mock award
+ * slides follow so the carousel keeps its art. Mock fallback on outage.
+ */
 export async function getShowcaseSlides(): Promise<Slide[]> {
-  return SHOWCASE_SLIDES
+  try {
+    const showcase = await apiFetch<ShowcaseResponse>('/awards/showcase')
+    const countdown =
+      showcase.days_to_nominations_close === null
+        ? 'Nominations closed'
+        : `Nominations close in ${showcase.days_to_nominations_close} days`
+    const liveSlide: Slide = {
+      key: 'eoq-live',
+      img: '/img2.webp',
+      title: `EoQ window · ${countdown.replace('Nominations ', '')}`,
+      headline: `Awards worth ${showcase.cycle_prize_total} pts this quarter`,
+      blurb: `Nominate the teammate who shipped, saved, and showed up. The jury reads every word. You ${
+        showcase.my_jury.assigned ? 'sit on the jury of this cycle.' : 'can nominate anyone.'
+      }`,
+      cta: 'Nominate now',
+      cta2: showcase.my_jury.assigned ? 'Jury duty · vote pending' : 'Open',
+    }
+    return [liveSlide, ...SHOWCASE_SLIDES.slice(1)]
+  } catch (error) {
+    console.error('[data-api] live awards showcase unavailable — serving the mock slides:', error)
+    return SHOWCASE_SLIDES
+  }
 }
 
 export async function getPeople(): Promise<Person[]> {
