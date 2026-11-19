@@ -151,11 +151,11 @@ function HeroBackdrop({ media }: { media?: HeroMedia }) {
 
 export default function Hero({ name, media }: { name: string; media?: HeroMedia }) {
   return (
-    <div className="relative isolate mb-16 mt-2.5 -mx-2.5 lg:-mx-[30px]">
-      <div className="relative isolate flex min-h-[360px] items-center overflow-hidden rounded-[28px] shadow-[0_18px_44px_-20px_rgba(3,13,28,0.55)]">
+    <div className="relative isolate mt-1">
+      <div className="relative isolate flex min-h-[220px] items-center overflow-hidden rounded-[28px] shadow-[0_18px_44px_-20px_rgba(3,13,28,0.55)]">
         <HeroBackdrop media={media} />
-        <div className="relative z-10 flex w-full flex-col items-start justify-center gap-6 px-7 py-8 sm:px-9 xl:px-10 xl:py-10">
-          <h1 className="max-w-3xl text-[50px] font-extrabold leading-[1.06] tracking-[-0.03em]">
+        <div className="relative z-10 flex w-full flex-col items-start justify-center gap-3 px-7 py-5 sm:px-9 xl:px-10 xl:py-6">
+          <h1 className="max-w-3xl text-[38px] font-extrabold leading-[1.08] tracking-[-0.03em]">
             <span
               className="bg-gradient-to-r from-white via-white to-[#d9fbe9] bg-clip-text text-transparent"
               style={{ textShadow: '0 2px 24px rgba(0,0,0,0.35)' }}

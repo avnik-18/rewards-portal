@@ -2,6 +2,16 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Scroll like Instagram/Facebook: the panel scrolls, the scrollbar itself
+   never shows (wheel / touchpad / drag-wheel still work). */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;

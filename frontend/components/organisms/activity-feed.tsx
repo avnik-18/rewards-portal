@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { Avatar } from '../atoms'
 import { fmtNum } from '@/lib/format'
 import { person, personDisplayName, CORE_VALUES } from '@/lib/data-api'
@@ -24,22 +25,26 @@ export default function ActivityFeed({ posts }: ActivityFeedProps) {
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label="Feed filters">
-        {TABS.map((name) => (
-          <button
-            key={name}
-            role="tab"
-            aria-selected={tab === name}
-            onClick={() => setTab(name)}
-            className={`min-h-10 cursor-pointer rounded-full border px-4 text-[13px] font-medium transition ${
-              tab === name
-                ? 'border-[#0b2a4a] bg-[#0b2a4a] text-white'
-                : 'border-[#d5e1ea] bg-white text-[#35506b] hover:bg-[#eef5f8]'
-            }`}
-          >
-            {name}
-          </button>
-        ))}
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-[17px] font-extrabold text-[#0b2a4a]">Feed</h2>
+        <label className="flex items-center gap-1.5 text-[13px] text-[#55697d]">
+          Filter :
+          <span className="relative flex items-center gap-1 font-bold text-[#0b2a4a]">
+            <select
+              aria-label="Feed filter"
+              value={tab}
+              onChange={(event) => setTab(event.target.value as Tab)}
+              className="cursor-pointer appearance-none bg-transparent pr-4 text-[13px] font-bold text-[#0b2a4a] outline-none"
+            >
+              {TABS.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={14} aria-hidden className="pointer-events-none absolute right-0" />
+          </span>
+        </label>
       </div>
 
       {tab === 'All' ? (
