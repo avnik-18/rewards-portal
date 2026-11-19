@@ -13,13 +13,16 @@ class MeRepository:
         self._session = session
 
     async def profile(self, actor_id: Any) -> dict[str, Any] | None:
-        """users row + the caller's open portal role (RBAC groundwork).
+        """users row + the caller's open portal role (RBAC groundwork) + persona.
 
-        Role mapping is provisional while the role model is being finalized:
-        admin -> 'admin', hr -> 'hr', and people who lead — an active team-lead
-        row or active direct reports — map to 'leader'; the empty set (most
-        employees) maps to 'individual' by design — the app_role enum only
-        carries special roles, not the default individual.
+        Role mapping: admin -> 'admin', hr -> 'hr', and people who lead — an
+        active team-lead row or active direct reports — map to 'leader'; the
+        empty set (most employees) maps to 'individual' by design — the
+        app_role enum only carries special roles, not the default individual.
+
+        persona carries the feed/composer persona (fn_persona): leaders
+        (admins, team leads, people managers) may attach points; plain
+        employees send zero-point peer cheers.
         """
         result = await self._session.execute(
             text(
@@ -35,7 +38,8 @@ class MeRepository:
                 "          AND tm.role = 'lead') "
                 "       OR EXISTS (SELECT 1 FROM users x"
                 "          WHERE x.manager_id = u.id AND x.employment_status = 'active')"
-                "    THEN 'leader' ELSE 'individual' END::text) AS role "
+                "    THEN 'leader' ELSE 'individual' END::text) AS role, "
+                "fn_persona(u.id) AS persona "
                 "FROM users u WHERE u.id = :actor"
             ),
             dict(actor=actor_id),
@@ -67,19 +71,14 @@ class MeRepository:
 
     async def recognitions_given(self, actor_id: Any) -> int:
         result = await self._session.execute(
-            text(
-                "SELECT count(*) FROM recognition_history WHERE from_user_id = :actor"
-            ),
+            text("SELECT count(*) FROM recognition_history WHERE from_user_id = :actor"),
             dict(actor=actor_id),
         )
         return int(result.scalar_one())
 
     async def recognitions_received(self, actor_id: Any) -> int:
         result = await self._session.execute(
-            text(
-                "SELECT count(*) FROM recognition_recipients "
-                "WHERE user_id = :actor AND kind = 'to'"
-            ),
+            text("SELECT count(*) FROM recognition_recipients WHERE user_id = :actor AND kind = 'to'"),
             dict(actor=actor_id),
         )
         return int(result.scalar_one())

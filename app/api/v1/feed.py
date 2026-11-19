@@ -19,7 +19,6 @@ from app.schemas.feed import (
     FeedCursor,
     FeedPostResponse,
     FeedResponse,
-    FeedTier,
 )
 from app.services.feed_service import FeedService
 
@@ -36,22 +35,22 @@ async def feed(
     actor_id: Annotated[UUID, Depends(get_actor_id)],
     service: Annotated[FeedService, Depends(_service)],
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
-    cursor_tier: Annotated[FeedTier | None, Query()] = None,
+    cursor_score: Annotated[float | None, Query()] = None,
     cursor_at: Annotated[datetime | None, Query()] = None,
     cursor_recognition_id: Annotated[UUID | None, Query()] = None,
 ) -> FeedResponse:
     request.state.actor_id = actor_id
-    tier_cursor = all(parameter is not None for parameter in (cursor_tier, cursor_at, cursor_recognition_id))
-    tier_absent = all(parameter is None for parameter in (cursor_tier, cursor_at, cursor_recognition_id))
-    if not tier_cursor and not tier_absent:
+    score_cursor = all(parameter is not None for parameter in (cursor_score, cursor_at, cursor_recognition_id))
+    score_absent = all(parameter is None for parameter in (cursor_score, cursor_at, cursor_recognition_id))
+    if not score_cursor and not score_absent:
         raise HTTPException(status_code=422, detail="partial_cursor")
     cursor = (
         FeedCursor(
-            tier=cursor_tier,
+            score=cursor_score,
             occurred_at=cursor_at,
             recognition_id=cursor_recognition_id,
         )
-        if tier_cursor
+        if score_cursor
         else None
     )
     persona = await service.persona(actor_id)

@@ -24,7 +24,7 @@ class FeedService:
     ) -> tuple[list[dict[str, Any]], FeedCursor | None]:
         cursor_dict = (
             {
-                "cursor_tier": cursor.tier,
+                "cursor_score": cursor.score,
                 "cursor_at": cursor.occurred_at,
                 "cursor_recognition_id": cursor.recognition_id,
             }
@@ -36,7 +36,7 @@ class FeedService:
             return rows, None
         last_row = rows[-1]
         next_cursor = FeedCursor(
-            tier=last_row["tier"],
+            score=last_row["score"],
             occurred_at=last_row["occurred_at"],
             recognition_id=last_row["recognition_id"],
         )

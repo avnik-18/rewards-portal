@@ -1,8 +1,9 @@
 """Feed DTOs — the post-login recognition feed (dashboard deliverable).
 
-Persona-segmented feed (admin/leader/employee) over fn_feed_posts, tiered
-BU → own → team → related with keyset cursors; components never see backend
-shapes directly.
+Score-ordered feed (admin/leader/employee) over fn_feed_posts: each row carries
+the continuous ranking score, the legacy tier label (own/team/bu/related) for
+badge semantics, and a (score, occurred_at, recognition_id) keyset cursor;
+components never see backend shapes directly.
 """
 
 from datetime import datetime
@@ -24,10 +25,11 @@ class FeedRecipientResponse(BaseModel):
 
 
 class FeedPostResponse(BaseModel):
-    """One feed entry, tiered and ordered by fn_feed_posts."""
+    """One feed entry, scored and score-ordered by fn_feed_posts."""
 
     recognition_id: UUID
     tier: FeedTier
+    score: float
     occurred_at: datetime
     giver_id: UUID | None
     giver_name: str | None
@@ -42,7 +44,7 @@ class FeedPostResponse(BaseModel):
 class FeedCursor(BaseModel):
     """Keyset cursor: the last item's sort keys, passed back verbatim."""
 
-    tier: FeedTier
+    score: float
     occurred_at: datetime
     recognition_id: UUID
 

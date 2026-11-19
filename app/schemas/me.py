@@ -11,6 +11,7 @@ class MeProfileResponse(BaseModel):
     full_name: str
     email: str | None = None
     role: str = "individual"
+    persona: str = "employee"
     title: str | None = None
     department: str | None = None
 
