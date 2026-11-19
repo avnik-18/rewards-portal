@@ -9,7 +9,7 @@ export interface ActivityFeedProps {
   posts: Post[]
 }
 
-const TABS = ['All', 'Recognitions', 'Team', 'Celebrations', 'Polls'] as const
+const TABS = ['All', 'Recognitions', 'Team', 'Celebrations'] as const
 type Tab = (typeof TABS)[number]
 
 /** Per-post verb: the feed reads as a sentence, so each kind names its action. */
