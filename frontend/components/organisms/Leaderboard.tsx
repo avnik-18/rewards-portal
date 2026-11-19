@@ -24,8 +24,11 @@ export default function Leaderboard({ rows }: LeaderboardProps) {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-[#e3ebf2] bg-white">
-      <div className="px-5 pb-3 pt-4">
+      <div className="flex items-center justify-between px-5 pb-3 pt-4">
         <p className="text-[15.5px] font-bold text-[#0b2a4a]">🏆 Team leaderboard</p>
+        <a className="text-[13px] font-semibold text-[#0f7f7f] no-underline transition hover:brightness-110" href="#">
+          View all
+        </a>
       </div>
       <div className="grid grid-cols-[68px_1fr_92px] items-center border-y border-[#e3ebf2] bg-[#f4f7fa] px-5 py-2.5 text-[12.5px] font-semibold text-[#55697d] max-sm:hidden">
         <span>Rank</span>
