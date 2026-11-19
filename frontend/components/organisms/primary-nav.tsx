@@ -1,5 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Users, Gift } from 'lucide-react'
+import { Home, Users, Gift, ShieldCheck } from 'lucide-react'
+import { usePageData } from '@/hooks/use-page-data'
+import { getMe } from '@/lib/data-api'
 
 const NAV = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -7,9 +9,15 @@ const NAV = [
   { href: '/rewards', label: 'My Rewards', icon: Gift },
 ] as const
 
+/** Admin lane is route-gated behind the sign-in persona: only admins see
+ *  the Admin tab. */
+const ADMIN_LINK = { href: '/admin', label: 'Admin', icon: ShieldCheck } as const
+
 /** Desktop primary navbar — highlighted by the actual route (client island). */
 export default function PrimaryNav() {
   const pathname = useLocation().pathname
+  const me = usePageData(getMe, [])
+  const isAdmin = me.data?.role === 'admin'
 
   return (
     <nav className="relative hidden flex-1 items-stretch gap-1 overflow-x-auto lg:flex" aria-label="Primary">
@@ -35,6 +43,24 @@ export default function PrimaryNav() {
           </Link>
         )
       })}
+      {isAdmin && (
+        <Link
+          to={ADMIN_LINK.href}
+          aria-current={pathname === ADMIN_LINK.href ? 'page' : undefined}
+          className={`relative flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 text-[13px] font-semibold transition outline-none focus-visible:bg-brand-soft/50 ${
+            pathname === ADMIN_LINK.href ? 'text-navy' : 'text-muted hover:text-ink'
+          }`}
+        >
+          <ADMIN_LINK.icon size={17} aria-hidden />
+          {ADMIN_LINK.label}
+          <span
+            aria-hidden
+            className={`absolute bottom-0 left-3 h-[2.5px] w-[calc(100%-24px)] rounded-full bg-brand transition-opacity ${
+              pathname === ADMIN_LINK.href ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </Link>
+      )}
     </nav>
   )
 }

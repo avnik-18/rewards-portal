@@ -8,6 +8,7 @@ import RewardsPage from './rewards/page'
 import ApprovalsPage from './approvals/page'
 import ProfilePage from './profile/page'
 import ComposePage from './recognize/page'
+import AdminPage from './admin/page'
 import NotFound from './not-found'
 import { ErrorBoundary } from './load-ui'
 import { selectedDemoUser } from '@/lib/demo-auth'
@@ -20,6 +21,7 @@ const ROUTE_LABELS: Record<string, string> = {
   '/approvals': 'Approvals',
   '/profile': 'Profile',
   '/recognize': 'Recognize a teammate',
+  '/admin': 'Program admin',
   '/login': 'Sign in',
 }
 
@@ -69,6 +71,7 @@ export default function App() {
           <Route path="/approvals" element={<ApprovalsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/recognize" element={<ComposePage />} />
+          <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
