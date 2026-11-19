@@ -14,7 +14,7 @@ import {
   type TeamMemberStat,
 } from '../mock-data'
 
-import { apiFetch } from '../api-client'
+import { mirrorFetch } from './mirror'
 import type { LeaderboardEntry, ShowcaseResponse } from './live-api-shapes'
 
 /**
@@ -26,24 +26,19 @@ import type { LeaderboardEntry, ShowcaseResponse } from './live-api-shapes'
  * never be mistaken for live data.
  */
 export async function getLeaderboard(): Promise<LeaderRow[]> {
-  try {
-    const response = await apiFetch<{ entries: LeaderboardEntry[] }>('/leaderboard?limit=10')
-    const mapped = response.entries.map((entry) => ({
-      id: `live-${entry.rank}`,
-      name: entry.name,
-      pts: entry.points,
-      me: entry.is_me,
-      rank: entry.rank,
-    }))
-    // the caller is ALWAYS visible: top-5 cap, plus their true-rank row
-    // appended below when it falls outside — the card never hides the 'You'
-    const top = mapped.slice(0, 5)
-    const caller = mapped.find((row) => row.me)
-    return caller && !top.includes(caller) ? [...top.slice(0, 4), caller] : top
-  } catch (error) {
-    console.error('[data-api] live leaderboard unavailable — serving the mock board:', error)
-    return TEAM_LEADERBOARD
-  }
+  const response = await mirrorFetch('/leaderboard?limit=10') as { entries: LeaderboardEntry[] }
+  const mapped = response.entries.map((entry) => ({
+    id: `live-${entry.rank}`,
+    name: entry.name,
+    pts: entry.points,
+    me: entry.is_me,
+    rank: entry.rank,
+  }))
+  // the caller is ALWAYS visible: top-5 cap, plus their true-rank row
+  // appended below when it falls outside — the card never hides the 'You'
+  const top = mapped.slice(0, 5)
+  const caller = mapped.find((row) => row.me)
+  return caller && !top.includes(caller) ? [...top.slice(0, 4), caller] : top
 }
 
 /**
@@ -52,34 +47,50 @@ export async function getLeaderboard(): Promise<LeaderRow[]> {
  * slides follow so the carousel keeps its art. Mock fallback on outage.
  */
 export async function getShowcaseSlides(): Promise<Slide[]> {
-  try {
-    const showcase = await apiFetch<ShowcaseResponse>('/awards/showcase')
-    const countdown =
-      showcase.days_to_nominations_close === null
-        ? 'Nominations closed'
-        : `Nominations close in ${showcase.days_to_nominations_close} days`
-    const liveSlide: Slide = {
-      key: 'eoq-live',
-      img: '/img2.webp',
-      title: `EoQ window · ${countdown.replace('Nominations ', '')}`,
-      headline: `Awards worth ${showcase.cycle_prize_total} pts this quarter`,
-      blurb: `Nominate the teammate who shipped, saved, and showed up. The jury reads every word. You ${
-        showcase.my_jury.assigned ? 'sit on the jury of this cycle.' : 'can nominate anyone.'
-      }`,
-      cta: 'Nominate now',
-      cta2: showcase.my_jury.assigned ? 'Jury duty · vote pending' : 'Open',
-    }
-    return [liveSlide, ...SHOWCASE_SLIDES.slice(1)]
-  } catch (error) {
-    console.error('[data-api] live awards showcase unavailable — serving the mock slides:', error)
-    return SHOWCASE_SLIDES
+  const showcase = await mirrorFetch('/awards/showcase') as ShowcaseResponse
+  const countdown =
+    showcase.days_to_nominations_close === null
+      ? 'Nominations closed'
+      : `Nominations close in ${showcase.days_to_nominations_close} days`
+  const liveSlide: Slide = {
+    key: 'eoq-live',
+    img: '/img2.webp',
+    title: `EoQ window · ${countdown.replace('Nominations ', '')}`,
+    headline: `Awards worth ${showcase.cycle_prize_total} pts this quarter`,
+    blurb: `Nominate the teammate who shipped, saved, and showed up. The jury reads every word. You ${
+      showcase.my_jury.assigned ? 'sit on the jury of this cycle.' : 'can nominate anyone.'
+    }`,
+    cta: 'Nominate now',
+    cta2: showcase.my_jury.assigned ? 'Jury duty · vote pending' : 'Open',
   }
+  return [liveSlide, ...SHOWCASE_SLIDES.slice(1)]
 }
 
+/** The recipient directory, from the mirror's live-directory snapshot. */
 export async function getPeople(): Promise<Person[]> {
-  return Object.values(PEOPLE)
-    .filter((teamMember) => teamMember.id !== 'me')
-    .sort((a, b) => a.name.localeCompare(b.name))
+  const rows = await mirrorFetch('/people?limit=500') as Array<{
+    id: string
+    full_name: string
+    email: string
+    title?: string | null
+    department?: string | null
+    manager_id?: string | null
+  }>
+  const mapped = rows.map((row): Person => {
+    const person: Person = {
+      id: row.id,
+      name: row.full_name,
+      email: row.email,
+      title: row.title ?? '',
+      dept: row.department ?? '',
+      office: '',
+      tenure: '',
+      status: 'online',
+    }
+    if (row.manager_id) person.managerId = row.manager_id
+    return person
+  })
+  return mapped.sort((a, b) => a.name.localeCompare(b.name))
 }
 
 /** One ranked row of the Recognition Tree overlay (everyone reporting to `me`). */

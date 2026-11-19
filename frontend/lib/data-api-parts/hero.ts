@@ -1,5 +1,3 @@
-import { apiFetch } from '../api-client'
-
 /** The live hero placement row, verbatim from media_asset's DTO
  *  (GET /media/hero). Field names are the backend's — no rename layer. */
 export interface HeroMedia {
@@ -12,16 +10,9 @@ export interface HeroMedia {
 }
 
 /**
- * The hero currently published in the media registry, or null when the
- * Home screen should fall back to the bundled static asset. Null covers
- * 404 (nothing published) AND any transient failure equally — the hero
- * must degrade to the static file, never blank the page: matching on
- * `detail` strings is fragile, status codes are not.
- */
+ * The deployed demo ships with the hero unpublished — null makes the Home
+ * screen fall back to the bundled static asset. The app never depends on a
+ * reachable media registry here. */
 export async function getHeroMedia(): Promise<HeroMedia | null> {
-  try {
-    return await apiFetch<HeroMedia>('/media/hero')
-  } catch {
-    return null
-  }
+  return null
 }

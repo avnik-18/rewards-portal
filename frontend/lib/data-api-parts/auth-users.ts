@@ -1,6 +1,6 @@
-import { apiFetch } from '../api-client'
+﻿import { mirrorFetch } from './mirror'
 
-/** One row of the login screen's demo-identity dropdown — verbatim backend
+/** One row of the login screen's demo-identity dropdown â€” verbatim backend
  *  names (GET /auth/demo-users, local-only). */
 export interface AuthUser {
   employee_code: string
@@ -10,5 +10,6 @@ export interface AuthUser {
 }
 
 export async function getDemoUsers(): Promise<AuthUser[]> {
-  return apiFetch<AuthUser[]>('/auth/demo-users')
+  return mirrorFetch('/auth/demo-users') as Promise<AuthUser[]>
 }
+

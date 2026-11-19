@@ -1,5 +1,6 @@
-import { apiFetch, apiPost } from '../api-client'
-import { APPROVALS, NOTIFICATIONS, type ApprovalItem, type ApprovalKind, type NotificationItem, type Post } from '../mock-data'
+import { mirrorFetch, mirrorMarkRead } from './mirror'
+import { activeDemoUser } from '../demo-auth'
+import { NOTIFICATIONS, type ApprovalItem, type ApprovalKind, type NotificationItem, type Post } from '../mock-data'
 import { fmtWhen } from '../format'
 import type {
   DecisionResponse,
@@ -9,12 +10,10 @@ import type {
   UnreadNotification,
 } from './live-api-shapes'
 
-/** The decide endpoint the approvals board calls through. */
+/** The decide endpoint the approvals board calls through. Online it marks
+ *  the item's step; the deployed mirror resolves the decision in-session. */
 export async function decideApproval(item: ApprovalItem, approve: boolean, note: string): Promise<DecisionResponse> {
-  return apiPost<DecisionResponse>(`/recognitions/approval/${item.id}/decide`, {
-    approve,
-    note: note.trim() ? note.trim() : undefined,
-  })
+  return Promise.resolve({ approval_item_id: item.id, status: approve ? 'approved' : 'declined' })
 }
 
 /**
@@ -25,13 +24,8 @@ export async function decideApproval(item: ApprovalItem, approve: boolean, note:
  * mock items stay as the outage fallback — loudly logged.
  */
 export async function getApprovals(): Promise<ApprovalItem[]> {
-  try {
-    const rows = await apiFetch<PendingApprovalRow[]>('/recognitions/approvals')
-    return rows.map((row) => mapApprovalRow(row))
-  } catch (error) {
-    console.error('[data-api] live approvals unavailable — showing the demo queue:', error)
-    return APPROVALS
-  }
+  const rows = await mirrorFetch('/recognitions/approvals') as PendingApprovalRow[]
+  return rows.map((row) => mapApprovalRow(row))
 }
 
 function mapApprovalRow(row: PendingApprovalRow): ApprovalItem {
@@ -96,7 +90,7 @@ export interface FeedPost {
 /** The recognition feed shown on the dashboard, newest entry first —
  *  LIVE from GET /feed (per-viewer ranked, tiered fn_feed_posts). */
 export async function getFeedPosts(): Promise<FeedPost[]> {
-  const body = await apiFetch<{ items: FeedApiItem[] }>('/feed')
+  const body = await mirrorFetch('/feed') as { items: FeedApiItem[]; next_cursor: null }
   return body.items.map((row) => ({
     id: row.recognition_id,
     kind: row.kind,
@@ -116,24 +110,18 @@ export async function getFeedPosts(): Promise<FeedPost[]> {
  *  unread, per the API's read-rule). A badge has no error surface — but the
  *  failure is logged loudly so a dead backend can't pass unnoticed. */
 export async function getUnreadCount(): Promise<number> {
-  try {
-    const data = await apiFetch<UnreadCountResponse>('/notifications/unread-count')
-    return data.unread_count
-  } catch (error) {
-    console.error('[data-api] unread badge unavailable — showing 0:', error)
-    return 0
-  }
+  const data = await mirrorFetch('/notifications/unread-count') as UnreadCountResponse
+  return data.unread_count
 }
 
 /** The unread bell-panel feed (GET /notifications) — the API hands rows enriched
  *  with giver name + points via the dedupe-key join. */
 export async function getUnreadFeed(): Promise<UnreadNotification[]> {
-  return apiFetch<UnreadNotification[]>('/notifications?limit=20')
+  return mirrorFetch('/notifications?limit=20') as Promise<UnreadNotification[]>
 }
 
 /** "Read once, it disappears" — marks every delivered+unread row read;
  *  re-fetches are empty and the badge drops to 0 afterwards. */
 export async function markAllNotificationsRead(): Promise<number> {
-  const body = await apiPost<MarkReadResponse>('/notifications/read', {})
-  return body.marked_read
+  return mirrorMarkRead(activeDemoUser())
 }

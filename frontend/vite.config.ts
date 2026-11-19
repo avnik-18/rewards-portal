@@ -11,6 +11,12 @@ export default defineConfig({
       { find: /^@\/(.+)$/, replacement: path.resolve(__dirname) + '/src/$1' },
     ],
   },
+  server: {
+    fs: {
+      strict: false,
+      allow: ['.', 'D:/demo/frontend/frontend'],
+    },
+  },
   build: {
     outDir: 'dist',
     assetsInlineLimit: 0,

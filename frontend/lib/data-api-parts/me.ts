@@ -1,4 +1,4 @@
-import { apiFetch } from '../api-client'
+import { mirrorFetch } from './mirror'
 
 /** The signed-in person's profile — verbatim backend names (GET /me is
  *  actor-scoped: the header identity decides whose row resolves). */
@@ -15,7 +15,7 @@ export interface MeProfile {
 }
 
 export async function getMe(): Promise<MeProfile> {
-  return apiFetch<MeProfile>('/me')
+  return mirrorFetch('/me') as Promise<MeProfile>
 }
 
 /** Kept only for the profile screen, which stays on mock data until its
@@ -33,12 +33,12 @@ export interface MeStats {
  *  org-wide APPROVED-recognitions counter (GET /recognitions/count). */
 export async function getDashboardStats(): Promise<MeStats> {
   const [stats, orgCount] = await Promise.all([
-    apiFetch<{
+    mirrorFetch('/me/stats') as Promise<{
       points_balance: number
       recognitions_given: number
       recognitions_received: number
-    }>('/me/stats'),
-    apiFetch<{ total: number }>('/recognitions/count'),
+    }>,
+    mirrorFetch('/recognitions/count') as Promise<{ total: number }>,
   ])
   return {
     balance: stats.points_balance,

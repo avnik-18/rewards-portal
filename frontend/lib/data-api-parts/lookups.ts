@@ -144,17 +144,16 @@ export function loadValues(rows: LiveValueRow[]): void {
 
 let hydration: Promise<void> | null = null
 
-/** One cached GET /values hydration. Never rejects: when the backend is down
- *  the static demo catalog stays in use (loudly logged for the outage). */
+/** One cached values hydration — offline through the mirror capture. */
 export function ensureLookupsLive(): Promise<void> {
   if (hydration) return hydration
-  hydration = import('../api-client')
-    .then(({ apiFetch }) => apiFetch<LiveValueRow[]>('/values'))
+  hydration = import('./mirror')
+    .then(({ mirrorFetch }) => mirrorFetch('/values') as Promise<LiveValueRow[]>)
     .then((rows) => {
       if (Array.isArray(rows)) loadValues(rows)
     })
     .catch((error) => {
-      console.error('[lookups] live values catalog unavailable — demo templates in use:', error)
+      console.error('[lookups] mirror values catalog unavailable — demo templates in use:', error)
       hydration = null
     })
   return hydration
