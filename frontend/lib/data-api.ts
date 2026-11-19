@@ -16,7 +16,7 @@ export {
   type RecognitionTreeData,
   type TeamRow,
 } from './data-api-parts/directory'
-export { getApprovals, getNotifications, getFeedPosts } from './data-api-parts/activity'
+export { getApprovals, getNotifications, getFeedPosts, type FeedPost } from './data-api-parts/activity'
 export { getCelebrations, type Celebration } from './data-api-parts/celebrations'
 export { getProfile, type ProfilePayload } from './data-api-parts/profile'
 

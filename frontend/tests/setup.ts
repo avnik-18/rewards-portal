@@ -46,6 +46,47 @@ beforeAll(() => {
         json: async () => ({ detail: 'hero_not_published' }),
       })
     }
+    if (path === '/feed') {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          persona: 'employee',
+          items: [
+            {
+              recognition_id: 'fd1',
+              tier: 'own',
+              occurred_at: new Date().toISOString(),
+              giver_id: 'u2',
+              giver_name: 'Marco Silva',
+              giver_avatar: null,
+              kind: 'praise',
+              message: 'Fixed the claims pipeline outage before standup.',
+              points: 50,
+              value_label: 'Ownership',
+              recipients: [{ user_id: 'u1', name: 'Ayan', points: 50, kind: 'to' }],
+            },
+            {
+              recognition_id: 'fd2',
+              tier: 'team',
+              occurred_at: new Date(Date.now() - 48 * 3_600_000).toISOString(),
+              giver_id: 'u3',
+              giver_name: 'Priya Rao',
+              giver_avatar: null,
+              kind: 'welcome',
+              message: 'Welcomed the new pod to the platform team.',
+              points: 0,
+              value_label: null,
+              recipients: [
+                { user_id: 'u4', name: 'Deepa Menon', points: 0, kind: 'to' },
+                { user_id: 'u5', name: 'Brooke Davis', points: 0, kind: 'cc' },
+              ],
+            },
+          ],
+          next_cursor: null,
+        }),
+      })
+    }
     if (path === '/me') {
       return Promise.resolve({
         ok: true,
