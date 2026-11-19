@@ -77,7 +77,9 @@ export default function DashboardPage() {
           <RecommendationsCard />
           <CelebrationsToday items={celebrations.data} />
           <Leaderboard rows={leaderboard.data} />
-          <AwardsCard />
+          {/* the awards NOMINATION card is a leader/admin tool: plain
+              employees hide it (EoQ showcase wording targets the nominator) */}
+          {me.data.role !== 'individual' && <AwardsCard />}
         </div>
       </div>
     </div>
