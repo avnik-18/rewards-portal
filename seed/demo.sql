@@ -310,3 +310,81 @@ FROM (VALUES
 ) AS v2(key, name, emoji, art, prefill)
 JOIN emids_values e ON e.key = v2.key
 ON CONFLICT (value_id, name) DO NOTHING;
+
+-- ===== dashboard feed demo: published recognitions for the post feed =====
+-- feed_post (migration 0023) is the publication contract: the live pipeline
+-- writes rows only AFTER the approval chain fully resolves, so a recognition
+-- without a row never reaches the feed and is_public=false is the unpublish
+-- case. Everything below is idempotent on the entity UNIQUE.
+-- Scope demo cards: the six leaderboard recognitions publish as team-scope
+-- rows (is_bu=false); one BU/org-level milestone (E-009 -> E-BR, base 250)
+-- publishes with is_bu=true so every persona sees a headline first; one
+-- approved recognition stays is_public=false (must never surface); one
+-- pending row goes through the real submit fn (holds + chain) and gets NO
+-- feed_post row — proving pending never leaks via status alone.
+
+INSERT INTO feed_post (kind, entity_type, entity_id, is_public, actor_id, occurred_at, is_bu)
+SELECT 'recognition', 'recognition', rh.id, true, rh.from_user_id, rh.occurred_at, false
+  FROM recognition_history rh
+ WHERE rh.status = 'approved' AND rh.source_ref LIKE 'leaderboard-demo-%'
+ON CONFLICT (entity_type, entity_id) DO NOTHING;
+
+INSERT INTO recognition_history (kind, from_user_id, value_id, message, base_points, status, occurred_at, source_ref)
+SELECT 'milestone', u.id, (SELECT id FROM emids_values WHERE key='winning_mindset'),
+       'Business-unit town hall: FY26 Q4 opens with the highest customer-excellence renewal rate on record.',
+       250, 'approved'::recognition_status, now(), 'feed-demo-BU-01'
+  FROM users u
+ WHERE u.employee_code = 'E-009'
+ON CONFLICT (kind, source_ref) DO NOTHING;
+
+INSERT INTO recognition_recipients (recognition_id, user_id, points, kind)
+SELECT rh.id, ru.id, rh.base_points, 'to'
+  FROM recognition_history rh
+  JOIN users ru ON ru.employee_code = 'E-BR'
+ WHERE rh.source_ref = 'feed-demo-BU-01' AND rh.kind = 'milestone'
+   AND NOT EXISTS (SELECT 1 FROM recognition_recipients r WHERE r.recognition_id = rh.id);
+
+INSERT INTO feed_post (kind, entity_type, entity_id, is_public, actor_id, occurred_at, is_bu)
+SELECT 'recognition', 'recognition', rh.id, true, rh.from_user_id, rh.occurred_at, true
+  FROM recognition_history rh
+ WHERE rh.source_ref = 'feed-demo-BU-01'
+ON CONFLICT (entity_type, entity_id) DO NOTHING;
+
+-- approved but unpublished: proves is_public=false keeps a row off the feed
+INSERT INTO recognition_history (kind, from_user_id, value_id, message, base_points, status, occurred_at, source_ref)
+SELECT 'praise', fu.id, (SELECT id FROM emids_values WHERE key='innovation'),
+       'Internal drafter — this moment stays private until the BU review signs off.',
+       30, 'approved'::recognition_status, now(), 'feed-demo-hidden-01'
+  FROM users fu
+ WHERE fu.employee_code = 'E-AJ'
+ON CONFLICT (kind, source_ref) DO NOTHING;
+
+INSERT INTO recognition_recipients (recognition_id, user_id, points, kind)
+SELECT rh.id, ru.id, rh.base_points, 'to'
+  FROM recognition_history rh
+  JOIN users ru ON ru.employee_code = 'E-FT'
+ WHERE rh.source_ref = 'feed-demo-hidden-01' AND rh.kind = 'praise'
+   AND NOT EXISTS (SELECT 1 FROM recognition_recipients r WHERE r.recognition_id = rh.id);
+
+INSERT INTO feed_post (kind, entity_type, entity_id, is_public, actor_id, occurred_at, is_bu)
+SELECT 'recognition', 'recognition', rh.id, false, rh.from_user_id, rh.occurred_at, false
+  FROM recognition_history rh
+ WHERE rh.source_ref = 'feed-demo-hidden-01'
+ON CONFLICT (entity_type, entity_id) DO NOTHING;
+
+-- pending via the real submit path (wallet holds + approval chain): 120 pts
+-- routes to the L1 band-2 rule, so the chain AND the feed gate both engage.
+-- The fixed idempotency key makes re-runs of the seed a single recognition.
+SELECT fn_submit_recognition(
+         (SELECT id FROM users WHERE employee_code = 'E-ES'),
+         ARRAY[(SELECT id FROM users WHERE employee_code = 'E-PR')],
+         NULL,
+         (SELECT id FROM emids_values WHERE key = 'collaboration'),
+         NULL,
+         'Feed demo: Priya carried Erica through the flaky pipeline migration.',
+         120,
+         NULL, 'praise', '11111111-2222-3333-4444-555555555501'
+       )
+ WHERE NOT EXISTS (
+   SELECT 1 FROM recognition_history
+    WHERE idempotency_key = '11111111-2222-3333-4444-555555555501');

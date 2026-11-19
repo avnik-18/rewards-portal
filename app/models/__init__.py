@@ -3,6 +3,7 @@ from __future__ import annotations
 from .approvals import ApprovalItem, ApprovalItemStep, ApprovalRule, ApprovalRuleStep
 from .awards import Awards, AwardsNominations, Ballot, JuryAssignment
 from .base import Base  # noqa: F401
+from .feed import FeedPost
 from .media import MediaAsset, media_kind
 from .money import (
     BudgetPolicy,
@@ -44,6 +45,7 @@ __all__ = [
     "Ballot",
     "BudgetPolicy",
     "EmidsValues",
+    "FeedPost",
     "FiscalPeriod",
     "JournalEntry",
     "JournalLine",

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS verify2 (check_name text, ok boolean, detail text);
 DELETE FROM approval_item_step;
 DELETE FROM approval_item;
 UPDATE journal_entry SET linked_recognition_id = NULL, linked_award_id = NULL;
+DELETE FROM feed_post;
 DELETE FROM recognition_pending;
 DELETE FROM recognition_recipients;
 DELETE FROM ballot;
