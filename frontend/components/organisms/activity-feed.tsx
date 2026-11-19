@@ -77,9 +77,13 @@ export default function ActivityFeed({ posts }: ActivityFeedProps) {
                     </p>
                     <p className="text-[13px] text-[#55697d]">{post.when}</p>
                   </div>
-                  {post.points > 0 && (
+                  {post.points > 0 ? (
                     <span className="shrink-0 rounded-full bg-[#e6f6f4] px-2.5 py-1 text-xs font-semibold text-[#0b6e68]">
                       +{fmtNum(post.points)} pts
+                    </span>
+                  ) : (
+                    <span className="shrink-0 rounded-full border border-[#bfe8cf] bg-[#e9faf1] px-2.5 py-1 text-xs font-bold tracking-wide text-[#0d8a4b]">
+                      Cheers for peers
                     </span>
                   )}
                 </div>
@@ -91,17 +95,6 @@ export default function ActivityFeed({ posts }: ActivityFeedProps) {
                     </span>
                   </div>
                 )}
-                <div className="mt-0.5 grid grid-cols-4 gap-1 border-t border-[#edf2f6] pt-1.5">
-                  {['Like', 'Comment', 'Celebrate', 'Share'].map((label) => (
-                    <button
-                      key={label}
-                      type="button"
-                      className="min-h-11 cursor-pointer rounded-[10px] border-0 bg-transparent px-0 text-sm font-medium text-[#35506b] transition hover:bg-[#eef5f8]"
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
               </article>
             )
           })}

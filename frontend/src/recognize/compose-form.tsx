@@ -14,10 +14,13 @@ export interface ComposeFormProps {
   people: Person[]
   /** Recipient preset from /recognize?to=<id> — Praise/Recognize buttons use it. */
   initialToId?: string
+  /** Leaders (admins, team leads, people managers) attach points; plain
+   *  employees compose zero-point peer cheers. */
+  canAwardPoints: boolean
 }
 
 /** The composer shell: heading + the six single-purpose sections + grid. */
-export function ComposeForm({ people, initialToId }: ComposeFormProps) {
+export function ComposeForm({ people, initialToId, canAwardPoints }: ComposeFormProps) {
   // The preset is seeded as the hook's INITIAL state (validated against the
   // directory inside the hook), so a changed ?to= simply remounts via the
   // page-level key — no mount-only effect, no eslint-disable (sir's review).
@@ -36,7 +39,7 @@ export function ComposeForm({ people, initialToId }: ComposeFormProps) {
           <CcRecipientField form={form} />
           <ValuePicker form={form} />
           <MessageField form={form} />
-          <PointsPicker form={form} />
+          <PointsPicker form={form} canAwardPoints={canAwardPoints} />
         </div>
 
         {/* Right: templates + preview */}
