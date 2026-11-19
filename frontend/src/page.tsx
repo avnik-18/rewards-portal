@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import ActivityFeed from '@/components/organisms/activity-feed'
 import Hero from '@/components/organisms/Hero'
 import PointsBalanceCard from '@/components/organisms/points-balance-card'
@@ -21,6 +22,31 @@ export default function DashboardPage() {
   // hand-off is a valid "fallback to the bundled assets" state, so only the
   // loading phase gates the page
   const hero = usePageData(getHeroMedia, [])
+  const feedRef = useRef<HTMLDivElement>(null)
+
+  /**
+   * Scroll continuation (instagram-style): the WINDOW scrolls the whole page
+   * first — hero, rail, award card included. Only once the page can scroll no
+   * further does the wheel keep scrolling in place (this panel), which is
+   * where the loader-style post flow ends. Wheel over the panel anywhere
+   * while below the page end keeps native scrolling untouched.
+   */
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const panel = feedRef.current
+    if (!panel) return
+    const onWheel = (event: WheelEvent) => {
+      const doc = document.documentElement
+      if (window.scrollY < doc.scrollHeight - window.innerHeight - 2) return // page still scrolling
+      const canScrollIn = panel.scrollTop + panel.clientHeight < panel.scrollHeight
+      if (canScrollIn || event.deltaY < 0) {
+        event.preventDefault()
+        panel.scrollTop += event.deltaY
+      }
+    }
+    panel.addEventListener('wheel', onWheel, { passive: false })
+    return () => panel.removeEventListener('wheel', onWheel)
+  })
 
   if (me.isLoading || stats.isLoading || leaderboard.isLoading || posts.isLoading || celebrations.isLoading || hero.isLoading) {
     return <LoadingSkeleton />
@@ -33,16 +59,15 @@ export default function DashboardPage() {
   const first = me.data.full_name.split(' ')[0]
 
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-6 px-4 pt-1 pb-6 lg:px-8">
+    <div className="mx-auto flex w-full max-w-[1240px] flex-col px-4 pt-1 pb-6 lg:px-8">
       {/* The RAIL is the only in-flow column on desktop: it grows to its own
           natural height and pulls the container taller. The feed column is
-          absolutely fitted into the same height, so the feed's deeper posts
-          scroll INSIDE it exactly past the rail's end (awards bottom). On
-          mobile both columns simply stack. */}
+          absolutely fitted into the same height. On mobile both columns simply
+          stack. */}
       <div className="relative">
         <div className="flex flex-col gap-3 lg:absolute lg:inset-0 lg:right-[364px] lg:flex lg:flex-col">
           <Hero name={first} media={hero.data ?? undefined} />
-          <div className="no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+          <div ref={feedRef} className="no-scrollbar flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
             <ActivityFeed posts={posts.data} />
           </div>
         </div>
