@@ -50,8 +50,8 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-4 lg:ml-auto lg:w-[340px]">
           <PointsBalanceCard balance={stats.data.balance} />
           <RecommendationsCard />
-          <Leaderboard rows={leaderboard.data} />
           <CelebrationsToday items={celebrations.data} />
+          <Leaderboard rows={leaderboard.data} />
           <AwardsCard />
         </div>
       </div>
