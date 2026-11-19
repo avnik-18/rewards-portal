@@ -16,19 +16,26 @@ class MeRepository:
         """users row + the caller's open portal role (RBAC groundwork).
 
         Role mapping is provisional while the role model is being finalized:
-        admin -> 'admin', hr -> 'hr', anything else -> 'individual'. The empty
-        set (most employees) maps to 'individual' by design — the app_role
-        enum only carries special roles, not the default individual.
+        admin -> 'admin', hr -> 'hr', and people who lead — an active team-lead
+        row or active direct reports — map to 'leader'; the empty set (most
+        employees) maps to 'individual' by design — the app_role enum only
+        carries special roles, not the default individual.
         """
         result = await self._session.execute(
             text(
                 "SELECT u.id, u.employee_code, u.full_name, u.email, "
                 "u.title, u.department, "
                 "COALESCE((SELECT CASE r.role WHEN 'admin' THEN 'admin' "
-                "WHEN 'hr' THEN 'hr' ELSE 'individual' END::text "
+                "WHEN 'hr' THEN 'hr' END::text "
                 "FROM role_assignment r WHERE r.user_id = u.id AND r.revoked_at IS NULL "
                 "ORDER BY CASE r.role WHEN 'admin' THEN 0 WHEN 'hr' THEN 1 ELSE 2 END "
-                "LIMIT 1), 'individual') AS role "
+                "LIMIT 1), "
+                "CASE WHEN EXISTS (SELECT 1 FROM team_members tm"
+                "          WHERE tm.user_id = u.id AND tm.valid_to IS NULL"
+                "          AND tm.role = 'lead') "
+                "       OR EXISTS (SELECT 1 FROM users x"
+                "          WHERE x.manager_id = u.id AND x.employment_status = 'active')"
+                "    THEN 'leader' ELSE 'individual' END::text) AS role "
                 "FROM users u WHERE u.id = :actor"
             ),
             dict(actor=actor_id),
