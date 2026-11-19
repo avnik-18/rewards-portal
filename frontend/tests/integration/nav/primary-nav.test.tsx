@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest'
+﻿import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import PrimaryNav from '@/components/organisms/primary-nav'
 import HeaderActions from '@/components/organisms/header-actions'
 
-// the active route comes from React Router's location — set it per case
+// the active route comes from React Router's location â€” set it per case
 function renderNavAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
@@ -48,7 +48,7 @@ describe('PrimaryNav', () => {
     expect(screen.getByRole('button', { name: 'Profile menu' })).toBeTruthy()
   })
 
-  it('opens the profile disclosure with the person card and My profile link', () => {
+  it('opens the profile disclosure with the person card and My profile link', async () => {
     render(
       <MemoryRouter>
         <HeaderActions />
@@ -58,14 +58,14 @@ describe('PrimaryNav', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Profile menu' }))
     expect(screen.getByRole('link', { name: /My profile/ })).toBeTruthy()
     // the person card loads asynchronously from GET /me
-    await screen.findByText('Ayan')
+    await screen.findByText('Priya Rao')
 
     // Escape closes the disclosure and returns focus to the trigger
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('link', { name: /My profile/ })).toBeNull()
   })
 
-  it('a mousedown inside the disclosure keeps it open; outside closes it', () => {
+  it('a mousedown inside the disclosure keeps it open; outside closes it', async () => {
     render(
       <MemoryRouter>
         <HeaderActions />
@@ -75,10 +75,10 @@ describe('PrimaryNav', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Profile menu' }))
     // designation loads asynchronously from GET /me (the setup stub's title)
     const card = await screen.findByText('Engineer')
-    fireEvent.mouseDown(card) // inside — stays open
+    fireEvent.mouseDown(card) // inside â€” stays open
     expect(screen.getByRole('link', { name: /My profile/ })).toBeTruthy()
 
-    fireEvent.mouseDown(document.body) // outside — dismisses
+    fireEvent.mouseDown(document.body) // outside â€” dismisses
     expect(screen.queryByRole('link', { name: /My profile/ })).toBeNull()
   })
 

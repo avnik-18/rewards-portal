@@ -12,7 +12,7 @@ const people = Object.values(PEOPLE).filter((entry) => entry.id !== 'me')
 async function withRecipient() {
   const view = render(
     <MemoryRouter>
-      <ComposeForm people={people} />
+      <ComposeForm people={people} canAwardPoints />
     </MemoryRouter>,
   )
   fireEvent.change(await screen.findByPlaceholderText('Whom do you want to recognise?'), { target: { value: 'priya' } })
@@ -64,7 +64,7 @@ describe('ComposeHeading rotation', () => {
     vi.useFakeTimers()
     const view = render(
       <MemoryRouter>
-        <ComposeForm people={people} />
+        <ComposeForm people={people} canAwardPoints />
       </MemoryRouter>,
     )
     // flush the page-data effect (promise microtasks, no timer work)

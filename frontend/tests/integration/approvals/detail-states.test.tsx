@@ -28,16 +28,16 @@ describe('ApprovalDetail — decision-note branches (sir round 1)', () => {
     const buttons = Array.from(container.querySelectorAll('button'))
     const approve = buttons.find((button) => button.textContent === 'Approve')
     const nextTime = buttons.find((button) => button.textContent === 'Next time')
-    expect(approve).toBeTruthy()
-    expect(nextTime?.hasAttribute('disabled')).toBe(true)
+    if (!approve || !nextTime || !noteField) throw new Error('decision controls not rendered')
+    expect(nextTime!.hasAttribute('disabled')).toBe(true)
 
-    fireEvent.change(noteField, { target: { value: 'rework the deck' } })
-    expect(nextTime?.hasAttribute('disabled')).toBe(false)
+    fireEvent.change(noteField!, { target: { value: 'rework the deck' } })
+    expect(nextTime!.hasAttribute('disabled')).toBe(false)
 
     fireEvent.click(nextTime)
     expect(onDecide).toHaveBeenCalledWith('declined', 'rework the deck')
     // the note is consumed once recorded, never left behind
-    expect(noteField?.value).toBe('')
+    expect(noteField.value).toBe('')
   })
 
   it('Approve clears the typed note after recording', () => {
@@ -46,8 +46,8 @@ describe('ApprovalDetail — decision-note branches (sir round 1)', () => {
     const noteField = container.querySelector<HTMLInputElement>('input[aria-label="Decision note"]')
     const approve = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Approve')
 
-    fireEvent.change(noteField, { target: { value: 'goes ahead as asked' } })
-    fireEvent.click(approve)
+    fireEvent.change(noteField!, { target: { value: 'goes ahead as asked' } })
+    if (approve) fireEvent.click(approve!)
     expect(onDecide).toHaveBeenCalledWith('approved', 'goes ahead as asked')
     expect(noteField?.value).toBe('')
   })

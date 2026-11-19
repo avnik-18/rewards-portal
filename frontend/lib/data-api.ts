@@ -24,6 +24,7 @@ export {
   getUnreadFeed,
   markAllNotificationsRead,
   decideApproval,
+  type FeedPost,
 } from './data-api-parts/activity'
 export { getCelebrations, type Celebration } from './data-api-parts/celebrations'
 export { getProfile, type ProfilePayload } from './data-api-parts/profile'

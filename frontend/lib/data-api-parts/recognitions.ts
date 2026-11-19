@@ -61,12 +61,17 @@ const FRIENDLY_ERRORS: Record<string, string> = {
  * The API's own Idempotency-Key (apiPost) keeps retried sends safe.
  */
 export async function sendRecognition(input: RecognitionPayload): Promise<CreatedRecognition> {
+  // typed-email chips (no user id — created as 'email-…' or raw addresses)
+  // cannot receive points; ids that came out of the directory row set pass
+  const nonDirectory = [...input.toIds, ...(input.ccIds ?? [])].filter(
+    (id) => id.includes('@') || id.startsWith('email-'),
+  )
+  if (nonDirectory.length) {
+    throw new SendRejected('Typed email addresses cannot receive points — pick people from the directory.')
+  }
   const directoryIds = input.toIds.filter((id) => UUID_RE.test(id))
   const ccIds = input.ccIds ?? []
   const ccDirectoryIds = ccIds.filter((id) => UUID_RE.test(id))
-  if (directoryIds.length !== input.toIds.length || ccDirectoryIds.length !== ccIds.length) {
-    throw new SendRejected('Typed email addresses cannot receive points — pick people from the directory.')
-  }
 
   const body = {
     to_user_ids: directoryIds,

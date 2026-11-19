@@ -1,5 +1,6 @@
-import { APPROVALS, NOTIFICATIONS, POSTS, type ApprovalItem, type ApprovalKind, type NotificationItem, type Post } from '../mock-data'
 import { apiFetch, apiPost } from '../api-client'
+import { APPROVALS, NOTIFICATIONS, type ApprovalItem, type ApprovalKind, type NotificationItem, type Post } from '../mock-data'
+import { fmtWhen } from '../format'
 import type {
   DecisionResponse,
   MarkReadResponse,
@@ -54,11 +55,61 @@ export async function getNotifications(): Promise<NotificationItem[]> {
   return NOTIFICATIONS
 }
 
-/** The mock recognition feed shown on the dashboard — no post lane on
- *  the recognize-API yet, so posts stay demo data (kept beside the live
- *  bell calls so one façade keeps serving both). */
-export async function getFeedPosts(): Promise<Post[]> {
-  return POSTS
+/** One GET /feed recipient — backend keys verbatim. */
+interface FeedApiRecipient {
+  user_id: string
+  name: string | null
+  points: number
+  kind: string
+}
+
+/** One GET /feed item inside the FeedResponse envelope — backend keys verbatim. */
+interface FeedApiItem {
+  recognition_id: string
+  tier: 'bu' | 'own' | 'team' | 'related'
+  occurred_at: string
+  giver_id: string | null
+  giver_name: string | null
+  kind: Post['kind']
+  message: string
+  points: number
+  value_label: string | null
+  recipients: FeedApiRecipient[]
+}
+
+/** One entry of the dashboard recognition feed in UI terms. Names arrive
+ *  resolved from the backend (the mock directory knows nothing about
+ *  backend users); only the "when" label is computed here, from the ISO
+ *  stamp, so "2 h ago"/"Yesterday" still read as sentences. */
+export interface FeedPost {
+  id: string
+  kind: Post['kind']
+  tier: 'bu' | 'own' | 'team' | 'related'
+  fromName: string
+  recipients: { name: string; points: number }[]
+  points: number
+  message: string
+  valueLabel: string | null
+  when: string
+}
+
+/** The recognition feed shown on the dashboard, newest entry first —
+ *  LIVE from GET /feed (per-viewer ranked, tiered fn_feed_posts). */
+export async function getFeedPosts(): Promise<FeedPost[]> {
+  const body = await apiFetch<{ items: FeedApiItem[] }>('/feed')
+  return body.items.map((row) => ({
+    id: row.recognition_id,
+    kind: row.kind,
+    tier: row.tier,
+    fromName: row.giver_name ?? 'Someone',
+    recipients: row.recipients
+      .filter((recipient) => recipient.kind === 'to')
+      .map((recipient) => ({ name: recipient.name ?? 'A teammate', points: recipient.points })),
+    points: row.points,
+    message: row.message,
+    valueLabel: row.value_label,
+    when: fmtWhen(row.occurred_at),
+  }))
 }
 
 /** Deliverable #6 — the bell badge is the LIVE unread count (delivered &&

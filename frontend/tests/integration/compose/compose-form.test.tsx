@@ -23,8 +23,8 @@ async function fillValidForm() {
 }
 
 describe('ComposeForm (integration)', () => {
-  it('keeps the send button disabled until To + value ≥ required note are present', () => {
-    renderWithRouter(<ComposeForm people={people} />)
+  it('keeps the send button disabled until To + value â‰¥ required note are present', () => {
+    renderWithRouter(<ComposeForm people={people} canAwardPoints />)
 
     const send = screen.getByRole('button', { name: /Post it/i }) as HTMLButtonElement
     expect(send.disabled).toBe(true)
@@ -34,20 +34,23 @@ describe('ComposeForm (integration)', () => {
   })
 
   it('sends a recognition after To + value + note + points, using the parity flow', async () => {
-    renderWithRouter(<ComposeForm people={people} />)
+    renderWithRouter(<ComposeForm people={people} canAwardPoints />)
     await fillValidForm()
 
     const send = screen.getByRole('button', { name: /Post it/i }) as HTMLButtonElement
     expect(send.disabled).toBe(false)
     fireEvent.click(send)
 
-    // the success strip renders several nodes — match on a substring
-    await waitFor(() => expect(screen.getByText(/Recognition sent to Priya!/)).toBeTruthy())
+    // the success strip renders several nodes — match on a substring through
+    // the whole strip <p aria-live> (the name and ! are separate elements)
+    await waitFor(() =>
+      expect(screen.getByText(/Recognition sent to/).textContent).toMatch(/Recognition sent to Priya!/),
+    )
     expect(screen.getAllByText('+25 pts').length).toBeGreaterThan(0)
   })
 
   it('flags a too-short note that still unlocks the button', async () => {
-    renderWithRouter(<ComposeForm people={people} />)
+    renderWithRouter(<ComposeForm people={people} canAwardPoints />)
 
     fireEvent.change(screen.getByPlaceholderText('Whom do you want to recognise?'), { target: { value: 'priya' } })
     fireEvent.click(await screen.findByText('Priya Menon'))
@@ -59,7 +62,7 @@ describe('ComposeForm (integration)', () => {
   })
 
   it('prefills the note with the value prefill when a value chip is chosen after picking a recipient', async () => {
-    renderWithRouter(<ComposeForm people={people} />)
+    renderWithRouter(<ComposeForm people={people} canAwardPoints />)
 
     fireEvent.change(screen.getByPlaceholderText('Whom do you want to recognise?'), { target: { value: 'priya' } })
     fireEvent.click(await screen.findByText('Priya Menon'))
@@ -71,7 +74,7 @@ describe('ComposeForm (integration)', () => {
   })
 
   it('shows CC picker results and adds a chip', async () => {
-    renderWithRouter(<ComposeForm people={people} />)
+    renderWithRouter(<ComposeForm people={people} canAwardPoints />)
 
     fireEvent.change(screen.getByPlaceholderText('Anyone else who should hear about this?'), {
       target: { value: 'kenji' },

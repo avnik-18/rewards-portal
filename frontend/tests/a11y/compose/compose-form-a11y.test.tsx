@@ -19,7 +19,7 @@ describe('accessibility (axe-core) — compose', () => {
     // ComposeForm's Back button navigates through React Router memory routing
     const { container } = render(
       <MemoryRouter>
-        <ComposeForm people={people} />
+        <ComposeForm people={people} canAwardPoints />
       </MemoryRouter>,
     )
     expect(await scan(container)).toHaveLength(0)

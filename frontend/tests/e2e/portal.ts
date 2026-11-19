@@ -36,6 +36,31 @@ export const test = base.extend({
         ]),
       }),
     )
+    await page.route('**/api/v1/feed', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          persona: 'employee',
+          items: [
+            {
+              recognition_id: 'fd1',
+              tier: 'own',
+              occurred_at: new Date().toISOString(),
+              giver_id: 'u2',
+              giver_name: 'Marco Silva',
+              giver_avatar: null,
+              kind: 'praise',
+              message: 'Fixed the claims pipeline outage before standup.',
+              points: 50,
+              value_label: 'Ownership',
+              recipients: [{ user_id: 'u1', name: 'Ayan', points: 50, kind: 'to' }],
+            },
+          ],
+          next_cursor: null,
+        }),
+      }),
+    )
     // eslint-disable-next-line react-hooks/rules-of-hooks -- Playwright fixture teardown fn, not a React hook
     await use(page)
   },

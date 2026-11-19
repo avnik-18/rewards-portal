@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import DashboardPage from '@/page'
 
 describe('DashboardPage (client page)', () => {
-  it('assembles the dashboard from the mock data layer', async () => {
+  it('assembles the dashboard from the data layer (mock + api-fed tiles)', async () => {
     render(
       <MemoryRouter>
         <DashboardPage />
@@ -18,7 +18,7 @@ describe('DashboardPage (client page)', () => {
     expect(screen.getByRole('link', { name: 'Recognize a teammate' })).toBeTruthy()
 
     // stat strip: balance impedance across the three cells
-    const balanceCell = screen.getByText('Points balance')
+    const balanceCell = screen.getByText('Total points balance')
     expect(balanceCell).toBeTruthy()
     const feedTitle = screen.getByText('Team leaderboard')
     expect(feedTitle).toBeTruthy()
@@ -28,7 +28,7 @@ describe('DashboardPage (client page)', () => {
     // leaderboard shows the signed-in person as You among the ranked rows
     expect(screen.getByText('You')).toBeTruthy()
 
-    // feed renders the mock posts with their action rows
+    // feed renders the stubbed /feed posts with their action rows
     expect(screen.getAllByRole('button', { name: 'Like' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('tab', { name: 'All' }).length).toBeGreaterThan(0)
   })

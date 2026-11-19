@@ -32,8 +32,10 @@ export function Avatar({
   ring?: boolean
 }) {
   const profile = person(id)
-  const fallbackName = name ?? profile?.name
-  if (!fallbackName) {
+  // unknown ids must NOT silently resolve to the signed-in user (PR review:
+  // people.ts fallback comment); a caller-supplied name keeps the real person
+  const displayName = name ?? profile?.name
+  if (!displayName) {
     return (
       <div
         className="flex shrink-0 items-center justify-center rounded-full bg-slate-300 font-semibold text-slate-500"
@@ -44,14 +46,14 @@ export function Avatar({
       </div>
     )
   }
-  const gradient = GRADIENTS[hashStr(fallbackName) % GRADIENTS.length]
+  const gradient = GRADIENTS[hashStr(displayName) % GRADIENTS.length]
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }}>
       <div
         className={`flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br font-semibold text-white select-none ${gradient}`}
         style={{ fontSize: size * 0.38 }}
       >
-        {initials(fallbackName)}
+        {initials(displayName)}
       </div>
       {profile?.status === 'online' && size >= 32 && (
         <span

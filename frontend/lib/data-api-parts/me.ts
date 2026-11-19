@@ -7,6 +7,9 @@ export interface MeProfile {
   full_name: string
   email: string | null
   role: string
+  /** Feed/composer persona (fn_persona): admins and leaders may attach points;
+   *  plain employees send zero-point peer cheers. */
+  persona: 'admin' | 'leader' | 'employee'
   title: string | null
   department: string | null
 }
