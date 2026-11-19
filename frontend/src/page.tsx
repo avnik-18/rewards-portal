@@ -1,6 +1,7 @@
 import ActivityFeed from '@/components/organisms/activity-feed'
 import Hero from '@/components/organisms/Hero'
 import PointsBalanceCard from '@/components/organisms/points-balance-card'
+import RecommendationsCard from '@/components/organisms/recommendations-card'
 import Leaderboard from '@/components/organisms/Leaderboard'
 import CelebrationsToday from '@/components/organisms/celebrations-today'
 import AwardsCard from '@/components/organisms/awards-card'
@@ -48,6 +49,7 @@ export default function DashboardPage() {
 
         <div className="flex flex-col gap-4 lg:ml-auto lg:w-[340px]">
           <PointsBalanceCard balance={stats.data.balance} />
+          <RecommendationsCard />
           <Leaderboard rows={leaderboard.data} />
           <CelebrationsToday items={celebrations.data} />
           <AwardsCard />
