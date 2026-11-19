@@ -3,7 +3,8 @@
 // each function becomes one fetch call (e.g. `${API_BASE}/leaderboard`) and
 // no component changes.
 
-export { getMe, WELCOME_BONUS_POINTS, getDashboardStats } from './data-api-parts/me'
+export { getMe, WELCOME_BONUS_POINTS, getDashboardStats, type MeProfile } from './data-api-parts/me'
+export { getDemoUsers, type AuthUser } from './data-api-parts/auth-users'
 export { getHeroMedia, type HeroMedia } from './data-api-parts/hero'
 export {
   getLeaderboard,
@@ -15,7 +16,8 @@ export {
   type RecognitionTreeData,
   type TeamRow,
 } from './data-api-parts/directory'
-export { getApprovals, getNotifications } from './data-api-parts/activity'
+export { getApprovals, getNotifications, getFeedPosts } from './data-api-parts/activity'
+export { getCelebrations, type Celebration } from './data-api-parts/celebrations'
 export { getProfile, type ProfilePayload } from './data-api-parts/profile'
 
 // Domain types re-exported from the data layer — the façade is the type

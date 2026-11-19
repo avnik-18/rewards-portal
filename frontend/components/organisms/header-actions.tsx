@@ -2,11 +2,16 @@ import { Link } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import { Bell } from 'lucide-react'
 import { Avatar } from '@/components/atoms'
+import { getMe } from '@/lib/data-api'
+import { usePageData } from '@/hooks/use-page-data'
 
-/** Right side of the header — notifications bell + avatar profile-menu disclosure. */
+/** Right side of the header — notifications bell + avatar profile-menu disclosure.
+ *  The name + designation come from the actor-scoped GET /me (whoever signed in). */
 export default function HeaderActions() {
   const [menuOpen, setMenuOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const me = usePageData(getMe, [])
+  const designation = me.data?.title ?? me.data?.department ?? undefined
 
   useEffect(() => {
     if (!menuOpen) return
@@ -49,8 +54,8 @@ export default function HeaderActions() {
             <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
               <Avatar id="me" size={40} />
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-navy">Ayan</p>
-                <p className="truncate text-xs text-muted">Senior Eng Manager</p>
+                <p className="truncate text-sm font-bold text-navy">{me.data?.full_name ?? 'Profile'}</p>
+                {designation && <p className="truncate text-xs text-muted">{designation}</p>}
               </div>
             </div>
             <div className="my-1 h-px bg-line" />

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './portal'
 
 test.describe('Compose flow (Playwright integration)', () => {
   test('full parity flow: pick person, value, note, points, post', async ({ page }) => {

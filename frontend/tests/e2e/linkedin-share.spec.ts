@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './portal'
 
 const TIP = 'Share your achievement on LinkedIn.'
 

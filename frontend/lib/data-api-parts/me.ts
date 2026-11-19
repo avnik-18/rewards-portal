@@ -1,8 +1,19 @@
 import { apiFetch } from '../api-client'
 import { DASH_STATS } from '../mock-data'
 
-export async function getMe(): Promise<{ name: string }> {
-  return { name: 'Ayan' }
+/** The signed-in person's profile — verbatim backend names (GET /me is
+ *  actor-scoped: the header identity decides whose row resolves). */
+export interface MeProfile {
+  employee_code: string
+  full_name: string
+  email: string | null
+  role: string
+  title: string | null
+  department: string | null
+}
+
+export async function getMe(): Promise<MeProfile> {
+  return apiFetch<MeProfile>('/me')
 }
 
 /** The mock starting balance the signed-in user carries until the backend

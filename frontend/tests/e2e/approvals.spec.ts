@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './portal'
 
 test.describe('Approvals flow (Playwright integration)', () => {
   test('approve the selected request and see the verdict pill', async ({ page }) => {

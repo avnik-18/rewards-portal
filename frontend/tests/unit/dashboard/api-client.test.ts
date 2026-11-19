@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { apiFetch } from '@/lib/api-client'
+import { getDemoUsers } from '@/lib/data-api'
 import { getHeroMedia } from '@/lib/data-api'
 
 const fetchMock = vi.fn()
@@ -14,6 +15,7 @@ const ORIGINAL_USER = envBag.VITE_DEMO_USER
 beforeEach(() => {
   envBag.VITE_API_BASE_URL = 'http://rewards.test/api/v1'
   delete envBag.VITE_DEMO_USER
+  window.localStorage.clear() // pristine: no picked demo identity from setup
   fetchMock.mockClear()
   vi.stubGlobal('fetch', fetchMock)
 })
@@ -49,6 +51,19 @@ describe('apiFetch', () => {
   it('raises a small error on any non-2xx', async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) })
     await expect(apiFetch('/media/hero')).rejects.toThrow('HTTP 500')
+  })
+})
+
+describe('getDemoUsers (login directory)', () => {
+  it('returns the parsed directory rows verbatim', async () => {
+    const row = { employee_code: 'E-PR', full_name: 'Priya Rao', title: 'Engineer', department: 'Engineering' }
+    fetchMock.mockResolvedValue({ ok: true, status: 200, json: async () => [row] })
+    await expect(getDemoUsers()).resolves.toEqual([row])
+  })
+
+  it('propagates backend refusal — the login screen needs the error for its Retry state', async () => {
+    fetchMock.mockResolvedValue({ ok: false, status: 404, json: async () => ({}) })
+    await expect(getDemoUsers()).rejects.toThrow('HTTP 404')
   })
 })
 

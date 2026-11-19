@@ -1,6 +1,4 @@
-import { Trophy } from 'lucide-react'
 import { Avatar } from '../atoms'
-import { Card } from '../atoms'
 import { fmtNum } from '@/lib/format'
 import type { LeaderRow } from '@/lib/data-api'
 
@@ -12,48 +10,39 @@ export interface LeaderboardProps {
 /** Server-safe: static top-5 table with no client interactivity. */
 export default function Leaderboard({ rows }: LeaderboardProps) {
   const top = rows.slice(0, 5)
+  const short = (name: string) =>
+    name.split(' ').length > 1 ? `${name.split(' ')[0]} ${name.split(' ').at(-1)![0]}.` : name
+
   return (
-    <Card className="flex flex-1 flex-col overflow-hidden p-5">
-      <p className="flex items-center gap-2 text-[14px] font-extrabold text-navy">
-        <Trophy size={16} className="text-gold-ink" /> Team leaderboard
-      </p>
-      <div className="mt-3 flex-1 flex flex-col justify-center overflow-hidden rounded-xl text-left">
-        <div className="flex items-center gap-2.5 border border-line bg-slate-50 px-3 py-2 text-[12px] font-bold text-slate-500">
-          <span className="w-12 text-center">Rank</span>
-          <span className="flex-1">Team member</span>
-          <span className="text-right">Points</span>
-        </div>
-        {top.map((teamRow, rowIndex) => {
-          const parts =
-            teamRow.name.split(' ').length > 1
-              ? `${teamRow.name.split(' ')[0]} ${teamRow.name.split(' ').at(-1)![0]}.`
-              : teamRow.name
-          return (
-            <div
-              key={teamRow.id}
-              className={`flex w-full items-center gap-2.5 border-b border-line px-3 py-2.5 text-left transition last:border-b-0 hover:bg-brand-soft/60 ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-[#ecf6f4]'} ${teamRow.id === 'me' ? 'bg-brand-soft/60' : ''}`}
-            >
-              <span
-                className={`tnum flex h-6 w-12 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold ${rowIndex % 2 === 0 ? 'bg-violet-soft text-violet-ink' : 'bg-gold-soft text-gold-ink'}`}
-              >
-                {rowIndex + 1}
-              </span>
-              <Avatar id={teamRow.id} size={28} />
-              <span className="min-w-0 flex-1 truncate text-[12.5px] font-bold text-navy">
-                {parts}
-                {teamRow.id === 'me' && (
-                  <span className="ml-1.5 rounded-full bg-brand px-1.5 py-0.5 text-[9px] font-extrabold text-white">
-                    You
-                  </span>
-                )}
-              </span>
-              <span className="rounded-full bg-sky-100 px-2.5 py-0.5 text-[11.5px] font-extrabold text-sky-700">
-                {fmtNum(teamRow.pts)}
-              </span>
-            </div>
-          )
-        })}
+    <div className="rounded-2xl border border-[#e3ebf2] bg-white p-5">
+      <div className="mb-3.5 flex items-center justify-between">
+        <p className="text-[15px] font-semibold text-[#0b2a4a]">Team leaderboard</p>
+        <a className="text-[13px] font-medium text-[#0f7f7f] no-underline" href="#">
+          View all
+        </a>
       </div>
-    </Card>
+      <ol className="flex flex-col gap-1.5">
+        {top.map((teamRow, index) => (
+          <li
+            key={teamRow.id}
+            className={`flex items-center gap-3 rounded-[10px] px-2 py-1.5 ${teamRow.id === 'me' ? 'bg-[#eef7f6]' : ''}`}
+          >
+            <span className="tnum flex h-6 w-7 shrink-0 items-center justify-center rounded-xl bg-[#eef0fb] text-[12px] font-semibold text-[#4338ca]">
+              {index + 1}
+            </span>
+            <Avatar id={teamRow.id} size={32} />
+            <span className="min-w-0 flex-1 truncate text-[14px] text-[#0b2a4a]">
+              {short(teamRow.name)}
+              {teamRow.id === 'me' && (
+                <span className="ml-1 rounded-full bg-[#e6f6f4] px-2 py-0.5 align-middle text-[11px] font-semibold text-[#0b6e68]">
+                  You
+                </span>
+              )}
+            </span>
+            <b className="tnum text-[14px] text-[#0b2a4a]">{fmtNum(teamRow.pts)}</b>
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './portal'
 
 test.describe('Primary navigation (Playwright integration)', () => {
   // the approved design carries exactly three nav items — Recognize and

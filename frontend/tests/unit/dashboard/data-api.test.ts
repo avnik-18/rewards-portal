@@ -3,8 +3,15 @@ import { getMe, getDashboardStats, getLeaderboard, getShowcaseSlides } from '@/l
 import { TEAM_LEADERBOARD, ORG_STATS, DASH_STATS, SHOWCASE_SLIDES } from '@/lib/mock-data'
 
 describe('data-api façade', () => {
-  it('returns the signed-in user', async () => {
-    await expect(getMe()).resolves.toEqual({ name: 'Ayan' })
+  it('serves the signed-in person from GET /me', async () => {
+    await expect(getMe()).resolves.toEqual({
+      employee_code: 'E-PR',
+      full_name: 'Ayan',
+      email: 'priya@emids.test',
+      role: 'individual',
+      title: 'Engineer',
+      department: 'Engineering',
+    })
   })
 
   it('serves dashboard stats that never drift from mock data', async () => {
