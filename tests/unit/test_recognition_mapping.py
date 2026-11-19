@@ -72,12 +72,11 @@ def test_sqlstate_of_list_a_codes_maps() -> None:
 async def test_submit_plumbing_carries_template_and_art() -> None:
     """A3 repo plumbing assertion: the receipt of template_id/art_url reaches
     the repository call (the two hard-coded NULLs sir flagged are replaced)."""
+    import uuid as uuid_mod
     from unittest.mock import AsyncMock
 
     from app.repositories.applause_repository import ApplauseRepository
     from app.services.recognition_service import RecognitionService
-
-    import uuid as uuid_mod
 
     repo = ApplauseRepository.__new__(ApplauseRepository)
     repo._session = None

@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from app.api.v1 import (
     demo_users,
     directory,
+    feed,
     health,
     leaderboard,
     me,
@@ -32,6 +33,9 @@ api_router.include_router(showcase.router)
 api_router.include_router(notifications.router)
 # Bell panel list + mark-read (deliverable #6 depth)
 api_router.include_router(notifications_list.router)
+
+# Post-login recognition feed — persona-segmented, tiered with keyset cursors
+api_router.include_router(feed.router)
 
 # "Recognize a Teammate" — read path (directory picker + values catalog)
 api_router.include_router(directory.router)
