@@ -7,6 +7,15 @@ export interface LeaderboardProps {
   rows: LeaderRow[]
 }
 
+/** Rank-chip palette cycling lavender/amber, pink for fifth — as designed. */
+const RANK_CHIP = [
+  'bg-[#ece9fe] text-[#6d5bd0]',
+  'bg-[#fdecc8] text-[#a16207]',
+  'bg-[#ece9fe] text-[#6d5bd0]',
+  'bg-[#fdecc8] text-[#a16207]',
+  'bg-[#fce7f3] text-[#c026d3]',
+]
+
 /** Server-safe: static top-5 table with no client interactivity. */
 export default function Leaderboard({ rows }: LeaderboardProps) {
   const top = rows.slice(0, 5)
@@ -14,32 +23,44 @@ export default function Leaderboard({ rows }: LeaderboardProps) {
     name.split(' ').length > 1 ? `${name.split(' ')[0]} ${name.split(' ').at(-1)![0]}.` : name
 
   return (
-    <div className="rounded-2xl border border-[#e3ebf2] bg-white p-5">
-      <div className="mb-3.5 flex items-center justify-between">
-        <p className="text-[15px] font-semibold text-[#0b2a4a]">Team leaderboard</p>
-        <a className="text-[13px] font-medium text-[#0f7f7f] no-underline" href="#">
-          View all
-        </a>
+    <div className="overflow-hidden rounded-2xl border border-[#e3ebf2] bg-white">
+      <div className="px-5 pb-3 pt-4">
+        <p className="text-[15.5px] font-bold text-[#0b2a4a]">🏆 Team leaderboard</p>
       </div>
-      <ol className="flex flex-col gap-1.5">
+      <div className="grid grid-cols-[68px_1fr_92px] items-center border-y border-[#e3ebf2] bg-[#f4f7fa] px-5 py-2.5 text-[12.5px] font-semibold text-[#55697d] max-sm:hidden">
+        <span>Rank</span>
+        <span>Team member</span>
+        <span className="text-right">Points</span>
+      </div>
+      <ol>
         {top.map((teamRow, index) => (
           <li
             key={teamRow.id}
-            className={`flex items-center gap-3 rounded-[10px] px-2 py-1.5 ${teamRow.id === 'me' ? 'bg-[#eef7f6]' : ''}`}
+            className={`grid grid-cols-[68px_1fr_92px] items-center px-5 py-2.5 ${index % 2 === 1 ? 'bg-[#eef7f4]' : 'bg-white'}`}
           >
-            <span className="tnum flex h-6 w-7 shrink-0 items-center justify-center rounded-xl bg-[#eef0fb] text-[12px] font-semibold text-[#4338ca]">
-              {index + 1}
+            <span className="mr-1 flex h-6 w-8 shrink-0 items-center justify-center">
+              <span
+                className={`tnum flex h-6 w-9 items-center justify-center rounded-full text-[12px] font-bold ${RANK_CHIP[index]}`}
+              >
+                {index + 1}
+              </span>
             </span>
-            <Avatar id={teamRow.id} size={32} />
-            <span className="min-w-0 flex-1 truncate text-[14px] text-[#0b2a4a]">
-              {short(teamRow.name)}
-              {teamRow.id === 'me' && (
-                <span className="ml-1 rounded-full bg-[#e6f6f4] px-2 py-0.5 align-middle text-[11px] font-semibold text-[#0b6e68]">
-                  You
-                </span>
-              )}
+            <span className="flex min-w-0 items-center gap-2.5">
+              <Avatar id={teamRow.id} size={34} />
+              <span className="truncate text-[14.5px] font-semibold text-[#0b2a4a]">
+                {short(teamRow.name)}
+                {teamRow.id === 'me' && (
+                  <span className="ml-1.5 rounded-full bg-[#17a06a] px-2 py-0.5 align-middle text-[10.5px] font-bold text-white">
+                    You
+                  </span>
+                )}
+              </span>
             </span>
-            <b className="tnum text-[14px] text-[#0b2a4a]">{fmtNum(teamRow.pts)}</b>
+            <span className="flex justify-end">
+              <b className="tnum rounded-full bg-[#d9ecff] px-3 py-1 text-[13px] font-bold text-[#0b2a4a]">
+                {fmtNum(teamRow.pts)}
+              </b>
+            </span>
           </li>
         ))}
       </ol>
