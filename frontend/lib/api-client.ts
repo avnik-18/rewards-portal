@@ -14,17 +14,16 @@ function resolveBase(): string {
   return base.replace(/\/+$/, '')
 }
 
-/** Dev-mode identity header. In local dev the backend resolves the actor
- *  from X-Demo-User: <employee_code>. Production speaks Bearer — when
- *  Entra SSO lands, replace this function and nothing else. The value is
- *  read at CALL time: the login screen's picked user (localStorage via
- *  lib/demo-auth) over the build-time env fallback; with neither there is
- *  NO header at all (no invented identity). */
+/** Demo-mode identity header: in local dev AND the deployed demo (the
+ *  production build with no Entra SSO yet) the backend resolves the actor
+ *  from X-Demo-User: <employee_code> — as long as a demo identity was picked
+ *  on the login screen. When Entra SSO lands, replace this function and
+ *  nothing else. The value is read at CALL time: the picked user over the
+ *  build-time env fallback; with neither there is NO header at all (no
+ *  invented identity). */
 function decorateIdentity(headers: Record<string, string>): void {
-  if (import.meta.env.DEV) {
-    const user = activeDemoUser()
-    if (user) headers['X-Demo-User'] = user
-  }
+  const user = activeDemoUser()
+  if (user) headers['X-Demo-User'] = user
 }
 
 export class ApiError extends Error {
