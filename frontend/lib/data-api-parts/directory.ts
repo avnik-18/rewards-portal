@@ -13,6 +13,24 @@ import {
   type TeamId,
   type TeamMemberStat,
 } from '../mock-data'
+import { apiFetch } from '../api-client'
+
+/** The Manage screen's directory: backend GET /people rows — one
+ *  recognizable person plus their manager for the chain view. */
+export interface DirectoryPerson {
+  id: string
+  employee_code: string
+  full_name: string
+  email: string
+  title: string | null
+  department: string | null
+  manager_code: string | null
+  manager_name: string | null
+}
+
+export async function getPeopleDirectory(): Promise<DirectoryPerson[]> {
+  return apiFetch<DirectoryPerson[]>('/people')
+}
 
 export async function getLeaderboard(): Promise<LeaderRow[]> {
   return TEAM_LEADERBOARD

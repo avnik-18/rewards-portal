@@ -1,5 +1,3 @@
-import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
 import { Avatar } from '../atoms'
 import { fmtNum } from '@/lib/format'
 import type { FeedPost } from '@/lib/data-api'
@@ -7,9 +5,6 @@ import type { FeedPost } from '@/lib/data-api'
 export interface ActivityFeedProps {
   posts: FeedPost[]
 }
-
-const TABS = ['All', 'Recognitions', 'Team', 'Celebrations', 'Polls'] as const
-type Tab = (typeof TABS)[number]
 
 /** Per-post verb: the feed reads as a sentence, so each kind names its action. */
 const VERB: Record<FeedPost['kind'], string> = {
@@ -20,48 +15,20 @@ const VERB: Record<FeedPost['kind'], string> = {
 }
 
 export default function ActivityFeed({ posts }: ActivityFeedProps) {
-  const [tab, setTab] = useState<Tab>('All')
-  // Recognitions = praise + award posts; Team/Celebrations/Polls have no
-  // backend source yet and stay on the "nothing here" placeholder.
-  const visible =
-    tab === 'All'
-      ? posts
-      : tab === 'Recognitions'
-        ? posts.filter((post) => post.kind === 'praise' || post.kind === 'award')
-        : []
-
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-[17px] font-extrabold text-[#0b2a4a]">Feed</h2>
-        <label className="flex items-center gap-1.5 text-[13px] text-[#55697d]">
-          Filter :
-          <span className="relative flex items-center gap-1 font-bold text-[#0b2a4a]">
-            <select
-              aria-label="Feed filter"
-              value={tab}
-              onChange={(event) => setTab(event.target.value as Tab)}
-              className="cursor-pointer appearance-none bg-transparent pr-4 text-[13px] font-bold text-[#0b2a4a] outline-none"
-            >
-              {TABS.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={14} aria-hidden className="pointer-events-none absolute right-0" />
-          </span>
-        </label>
       </div>
 
-      {visible.length === 0 ? (
+      {posts.length === 0 ? (
         <div className="rounded-2xl border border-[#e3ebf2] bg-white p-8 text-center">
           <p className="text-[15px] font-semibold text-[#0b2a4a]">Nothing here yet</p>
-          <p className="mt-1 text-[13px] text-[#55697d]">{tab} items will show up in this feed.</p>
+          <p className="mt-1 text-[13px] text-[#55697d]">Recognitions will show up in this feed.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {visible.map((post) => {
+          {posts.map((post) => {
             const verb = VERB[post.kind] ?? 'recognized'
             const first = post.recipients[0]
             const extra = post.recipients.length - 1

@@ -1,19 +1,45 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Users, Gift } from 'lucide-react'
+import { Award, History, Home, Users, Gift, Settings } from 'lucide-react'
+import type { MeProfile } from '@/lib/data-api'
 
-const NAV = [
+const NAV_EMPLOYEE = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/team', label: 'My Team', icon: Users },
   { href: '/rewards', label: 'My Rewards', icon: Gift },
+  { href: '/recognition-history', label: 'Recognition history', icon: History },
+]
+
+// Leaders run the cycle AND keep their own history; admins work the portal.
+const NAV_LEADER = [
+  { href: '/', label: 'Dashboard', icon: Home },
+  { href: '/team', label: 'My Team', icon: Users },
+  { href: '/rewards', label: 'My Rewards', icon: Gift },
+  { href: '/awards-cycle', label: 'Award cycle', icon: Award },
+  { href: '/recognition-history', label: 'Recognition history', icon: History },
+]
+
+const NAV_ADMIN = [
+  { href: '/', label: 'Dashboard', icon: Home },
+  { href: '/manage', label: 'Manage', icon: Settings },
+  { href: '/awards-cycle', label: 'Award cycle', icon: Award },
 ] as const
 
+type NavItem = (typeof NAV_LEADER)[number]
+
+const NAV_BY_PERSONA: Record<NonNullable<MeProfile['persona']>, readonly NavItem[]> = {
+  employee: NAV_EMPLOYEE,
+  leader: NAV_LEADER,
+  admin: NAV_ADMIN,
+}
+
 /** Desktop primary navbar — highlighted by the actual route (client island). */
-export default function PrimaryNav() {
+export default function PrimaryNav({ persona }: { persona?: MeProfile['persona'] }) {
   const pathname = useLocation().pathname
+  const items = NAV_BY_PERSONA[persona ?? 'employee'] ?? NAV_EMPLOYEE
 
   return (
     <nav className="relative hidden flex-1 items-stretch gap-1 overflow-x-auto lg:flex" aria-label="Primary">
-      {NAV.map((item) => {
+      {items.map((item) => {
         const active = pathname === item.href
         return (
           <Link

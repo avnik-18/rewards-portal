@@ -1,22 +1,47 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Gift, Home, PartyPopper, Users } from 'lucide-react'
+import { Award, History, Gift, Home, PartyPopper, Settings, Users } from 'lucide-react'
+import type { MeProfile } from '@/lib/data-api'
 
-const NAV = [
+const NAV_EMPLOYEE = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/team', label: 'My Team', icon: Users },
   { href: '/rewards', label: 'My Rewards', icon: Gift },
-] as const
+  { href: '/recognition-history', label: 'Recognition history', icon: History },
+]
+
+const NAV_LEADER = [
+  { href: '/', label: 'Dashboard', icon: Home },
+  { href: '/team', label: 'My Team', icon: Users },
+  { href: '/rewards', label: 'My Rewards', icon: Gift },
+  { href: '/awards-cycle', label: 'Award cycle', icon: Award },
+  { href: '/recognition-history', label: 'Recognition history', icon: History },
+]
+
+const NAV_ADMIN = [
+  { href: '/', label: 'Dashboard', icon: Home },
+  { href: '/manage', label: 'Manage', icon: Settings },
+  { href: '/awards-cycle', label: 'Award cycle', icon: Award },
+]
+
+type NavItem = (typeof NAV_LEADER)[number]
+
+const NAV_BY_PERSONA: Record<NonNullable<MeProfile['persona']>, readonly NavItem[]> = {
+  employee: NAV_EMPLOYEE,
+  leader: NAV_LEADER,
+  admin: NAV_ADMIN,
+}
 
 /** Mobile secondary nav — rounded chips under the header (lg:hidden). */
-export function MobileChipNav() {
+export function MobileChipNav({ persona }: { persona?: MeProfile['persona'] }) {
   const pathname = useLocation().pathname
+  const items = NAV_BY_PERSONA[persona ?? 'employee'] ?? NAV_EMPLOYEE
 
   return (
     <nav
       className="rail-scroll flex gap-1.5 overflow-x-auto border-t border-line px-4 py-2 lg:hidden"
       aria-label="Primary mobile"
     >
-      {NAV.map((item) => {
+      {items.map((item) => {
         const active = pathname === item.href
         return (
           <Link
@@ -35,9 +60,11 @@ export function MobileChipNav() {
   )
 }
 
-/** Mobile bottom bar (lg:hidden): Home · gold Praise FAB · Rewards · My Team. */
-export function MobileBottomBar() {
+/** Mobile bottom bar (lg:hidden): Home · gold Praise FAB · Rewards · My Team.
+ *  Admins swap the personal tabs for Manage. */
+export function MobileBottomBar({ persona }: { persona?: MeProfile['persona'] }) {
   const pathname = useLocation().pathname
+  const isAdmin = persona === 'admin'
 
   return (
     <nav
@@ -63,10 +90,10 @@ export function MobileBottomBar() {
           active={pathname === '/rewards'}
         />
         <MobileTab
-          href="/team"
-          icon={<Users size={21} aria-hidden />}
-          label="My Team"
-          active={pathname === '/team'}
+          href={isAdmin ? '/manage' : '/team'}
+          icon={isAdmin ? <Settings size={21} aria-hidden /> : <Users size={21} aria-hidden />}
+          label={isAdmin ? 'Manage' : 'My Team'}
+          active={isAdmin ? pathname === '/manage' : pathname === '/team'}
           badge
         />
       </div>

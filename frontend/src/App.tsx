@@ -8,6 +8,10 @@ import RewardsPage from './rewards/page'
 import ApprovalsPage from './approvals/page'
 import ProfilePage from './profile/page'
 import ComposePage from './recognize/page'
+import ManagePage from './manage/page'
+import AwardsCyclePage from './awards-cycle/page'
+import RecognitionHistoryPage from './history/page'
+import UpcomingEventsPage from './upcoming-events/page'
 import NotFound from './not-found'
 import { ErrorBoundary } from './load-ui'
 import { selectedDemoUser } from '@/lib/demo-auth'
@@ -17,6 +21,10 @@ const ROUTE_LABELS: Record<string, string> = {
   '/': 'Dashboard',
   '/team': 'My Team',
   '/rewards': 'My Rewards',
+  '/manage': 'Manage',
+  '/awards-cycle': 'Award cycle',
+  '/recognition-history': 'Recognition history',
+  '/upcoming-events': 'Upcoming events',
   '/approvals': 'Approvals',
   '/profile': 'Profile',
   '/recognize': 'Recognize a teammate',
@@ -66,6 +74,10 @@ export default function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/team" element={<TeamPage />} />
           <Route path="/rewards" element={<RewardsPage />} />
+          <Route path="/manage" element={<ManagePage />} />
+          <Route path="/awards-cycle" element={<AwardsCyclePage />} />
+          <Route path="/recognition-history" element={<RecognitionHistoryPage />} />
+          <Route path="/upcoming-events" element={<UpcomingEventsPage />} />
           <Route path="/approvals" element={<ApprovalsPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/recognize" element={<ComposePage />} />
