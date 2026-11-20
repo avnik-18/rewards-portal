@@ -1,13 +1,12 @@
-import { Link, useLocation } from 'react-router-dom'
-import { Home, Users, Gift } from 'lucide-react'
+﻿import { Link, useLocation } from 'react-router-dom'
+import { Home, Gift } from 'lucide-react'
 
 const NAV = [
   { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/team', label: 'My Team', icon: Users },
   { href: '/rewards', label: 'My Rewards', icon: Gift },
 ] as const
 
-/** Desktop primary navbar — highlighted by the actual route (client island). */
+/** Desktop primary navbar â€” highlighted by the actual route (client island). */
 export default function PrimaryNav() {
   const pathname = useLocation().pathname
 

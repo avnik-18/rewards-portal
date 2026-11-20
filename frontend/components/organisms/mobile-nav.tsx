@@ -1,9 +1,8 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Gift, Home, PartyPopper, Users } from 'lucide-react'
+import { Gift, Home, PartyPopper } from 'lucide-react'
 
 const NAV = [
   { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/team', label: 'My Team', icon: Users },
   { href: '/rewards', label: 'My Rewards', icon: Gift },
 ] as const
 
@@ -35,7 +34,7 @@ export function MobileChipNav() {
   )
 }
 
-/** Mobile bottom bar (lg:hidden): Home · gold Praise FAB · Rewards · My Team. */
+/** Mobile bottom bar (lg:hidden): Home · gold Praise FAB · Rewards. */
 export function MobileBottomBar() {
   const pathname = useLocation().pathname
 
@@ -44,7 +43,7 @@ export function MobileBottomBar() {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 backdrop-blur-md lg:hidden"
       aria-label="Mobile"
     >
-      <div className="mx-auto grid max-w-md grid-cols-4 items-center px-2">
+      <div className="mx-auto grid max-w-md grid-cols-3 items-center px-2">
         <MobileTab href="/" icon={<Home size={21} aria-hidden />} label="Home" active={pathname === '/'} />
         <div className="relative flex justify-center">
           <Link
@@ -62,13 +61,7 @@ export function MobileBottomBar() {
           label="Rewards"
           active={pathname === '/rewards'}
         />
-        <MobileTab
-          href="/team"
-          icon={<Users size={21} aria-hidden />}
-          label="My Team"
-          active={pathname === '/team'}
-          badge
-        />
+
       </div>
     </nav>
   )
