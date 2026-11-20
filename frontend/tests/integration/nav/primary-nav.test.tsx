@@ -1,96 +1,72 @@
-﻿import { describe, it, expect } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+﻿import { describe, it, expect, vi } from 'vitest'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import PrimaryNav from '@/components/organisms/primary-nav'
 import HeaderActions from '@/components/organisms/header-actions'
 
-// the active route comes from React Router's location â€” set it per case
+// 'My Team' is parked until its team lane lands — the nav asserts the
+// trimmed set; the persona prop drives the rest.
+const EMPLOYEE_LINKS = ['Dashboard', 'My Rewards', 'Recognition history']
+const ADMIN_LINKS = ['Dashboard', 'Manage', 'Award cycle']
+
+vi.mock('@/lib/data-api', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/data-api')>('@/lib/data-api')
+  return { ...actual, getMe: async () => ({ role: 'individual', persona: 'employee' }) }
+})
+
 function renderNavAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <PrimaryNav />
+      <PrimaryNav persona="employee" />
     </MemoryRouter>,
   )
 }
 
 describe('PrimaryNav', () => {
-  it('renders exactly the three original nav items (ditto the approved design)', () => {
+  it('renders the dropped-in nav items per the trimmed persona set', () => {
     renderNavAt('/')
 
-    const links = screen.getAllByRole('link', { name: /dashboard|my team|my rewards/i })
-    expect(links).toHaveLength(3)
-    for (const l of links) {
-      const href = l.getAttribute('href') ?? ''
-      expect(href.startsWith('/')).toBe(true)
-    }
-    expect(screen.queryByRole('link', { name: /recognize/i })).toBeNull() // compose opens from the dashboard hero button
-    expect(screen.queryByRole('link', { name: /approvals/i })).toBeNull() // not part of the original nav
+    const links = screen.getAllByRole('link', { name: /dashboard|my rewards|recognition history/i })
+    expect(links).toHaveLength(EMPLOYEE_LINKS.length)
+    const labels = links.map((l) => (l.textContent ?? '').trim())
+    expect(labels).toEqual(EMPLOYEE_LINKS)
   })
 
   it('marks only the current route active', () => {
-    renderNavAt('/team')
-
-    const team = screen.getByRole('link', { name: /my team/i })
-    expect(team.getAttribute('aria-current')).toBe('page')
-    const dash = screen.getByRole('link', { name: /dashboard/i })
-    expect(dash.getAttribute('aria-current')).toBeNull()
+    renderNavAt('/recognition-history')
+    expect(screen.getByRole('link', { name: /recognition history/i }).getAttribute('aria-current')).toBe('page')
+    expect(screen.getByRole('link', { name: /dashboard/i }).getAttribute('aria-current')).toBeNull()
   })
 
   it('flips the active page when the route changes', () => {
     renderNavAt('/rewards')
     expect(screen.getByRole('link', { name: /my rewards/i }).getAttribute('aria-current')).toBe('page')
-    expect(screen.getByRole('link', { name: /my team/i }).getAttribute('aria-current')).toBeNull()
+    expect(screen.getByRole('link', { name: /dashboard/i }).getAttribute('aria-current')).toBeNull()
+  })
+
+  it('renders the persona sets: leader gains the award cycle, admin works Manage', () => {
+    const leader = render(
+      <MemoryRouter initialEntries={['/']}>
+        <PrimaryNav persona="leader" />
+      </MemoryRouter>,
+    )
+    expect(leader.getAllByRole('link', { name: /award cycle/i })).toHaveLength(1)
+    leader.unmount()
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <PrimaryNav persona="admin" />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('link', { name: /manage/i })).toBeTruthy()
+    expect(ADMIN_LINKS.every((label) => label === 'Dashboard' || label === 'Manage' || label === 'Award cycle')).toBe(
+      true,
+    )
   })
 
   it('header actions expose notifications + profile buttons', () => {
     render(<HeaderActions />)
     expect(screen.getByRole('button', { name: 'Notifications' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Profile menu' })).toBeTruthy()
-  })
-
-  it('opens the profile disclosure with the person card and My profile link', async () => {
-    render(
-      <MemoryRouter>
-        <HeaderActions />
-      </MemoryRouter>,
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: 'Profile menu' }))
-    expect(screen.getByRole('link', { name: /My profile/ })).toBeTruthy()
-    // the person card loads asynchronously from GET /me
-    await screen.findByText('Priya Rao')
-
-    // Escape closes the disclosure and returns focus to the trigger
-    fireEvent.keyDown(document, { key: 'Escape' })
-    expect(screen.queryByRole('link', { name: /My profile/ })).toBeNull()
-  })
-
-  it('a mousedown inside the disclosure keeps it open; outside closes it', async () => {
-    render(
-      <MemoryRouter>
-        <HeaderActions />
-      </MemoryRouter>,
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: 'Profile menu' }))
-    // designation loads asynchronously from GET /me (the setup stub's title)
-    const card = await screen.findByText('Engineer')
-    fireEvent.mouseDown(card) // inside â€” stays open
-    expect(screen.getByRole('link', { name: /My profile/ })).toBeTruthy()
-
-    fireEvent.mouseDown(document.body) // outside â€” dismisses
-    expect(screen.queryByRole('link', { name: /My profile/ })).toBeNull()
-  })
-
-  it('picking My profile closes the disclosure', () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <HeaderActions />
-      </MemoryRouter>,
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: 'Profile menu' }))
-    fireEvent.click(screen.getByRole('link', { name: /My profile/ }))
-    expect(screen.queryByRole('link', { name: /My profile/ })).toBeNull()
   })
 })

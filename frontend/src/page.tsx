@@ -2,14 +2,19 @@ import { useEffect, useRef } from 'react'
 import ActivityFeed from '@/components/organisms/activity-feed'
 import Hero from '@/components/organisms/Hero'
 import PointsBalanceCard from '@/components/organisms/points-balance-card'
-import RecommendationsCard from '@/components/organisms/recommendations-card'
+import UpcomingEventsCard from '@/components/organisms/upcoming-events-card'
 import Leaderboard from '@/components/organisms/Leaderboard'
-import CelebrationsToday from '@/components/organisms/celebrations-today'
 import AwardsCard from '@/components/organisms/awards-card'
-import { getMe, getDashboardStats, getLeaderboard, getFeedPosts, getCelebrations, getHeroMedia } from '@/lib/data-api'
+import { getMe, getCompanyWallet, getDashboardStats, getLeaderboard, getFeedPosts, getCelebrations, getHeroMedia } from '@/lib/data-api'
 import { usePageData } from '@/hooks/use-page-data'
 import { usePageTitle } from '@/hooks/use-page-title'
 import { ErrorState, LoadingSkeleton } from './load-ui'
+
+// Non-admins never read the company wallet: the fetcher hands back undefined
+// so the wallet stream stays idle while the rail still consumes .data/timers.
+async function getWalletNone(): Promise<number | undefined> {
+  return undefined
+}
 
 export default function DashboardPage() {
   usePageTitle('Dashboard')
@@ -18,6 +23,8 @@ export default function DashboardPage() {
   const leaderboard = usePageData(getLeaderboard, [])
   const posts = usePageData(getFeedPosts, [])
   const celebrations = usePageData(getCelebrations, [])
+  const isWalletAdmin = me.data?.persona === 'admin'
+  const wallet = usePageData(isWalletAdmin ? getCompanyWallet : getWalletNone, [isWalletAdmin])
   // hero media never rejects (getHeroMedia resolves null on outage) — a null
   // hand-off is a valid "fallback to the bundled assets" state, so only the
   // loading phase gates the page
@@ -73,13 +80,22 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex flex-col gap-4 lg:ml-auto lg:w-[340px]">
-          <PointsBalanceCard balance={stats.data.balance} />
-          <RecommendationsCard />
-          <CelebrationsToday items={celebrations.data} />
+          {/* Admins read the company pool instead of a personal balance —
+              other personas keep the My-Rewards tile. */}
+          {me.data.persona === 'admin' && wallet.data !== undefined ? (
+            <PointsBalanceCard
+              balance={wallet.data}
+              title="Total company wallet"
+              ctaTo="/manage"
+              ctaLabel="Go to Manage"
+            />
+          ) : (
+            <PointsBalanceCard balance={stats.data.balance} />
+          )}
+          <UpcomingEventsCard events={celebrations.data} />
           <Leaderboard rows={leaderboard.data} />
-          {/* the awards NOMINATION card is a leader/admin tool: plain
-              employees hide it (EoQ showcase wording targets the nominator) */}
-          {me.data.role !== 'individual' && <AwardsCard />}
+          {/* Quarterly-award nominations are a leadership + admin lane. */}
+          {me.data.persona !== 'employee' && <AwardsCard />}
         </div>
       </div>
     </div>

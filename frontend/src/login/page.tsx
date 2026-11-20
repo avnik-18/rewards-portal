@@ -110,14 +110,28 @@ export default function LoginPage() {
                 disabled={users.isLoading || users.error !== undefined}
                 className="w-full appearance-none rounded-xl border border-line bg-white px-3.5 py-2.5 pr-9 text-[14px] font-semibold text-ink shadow-card transition focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:bg-slate-50 disabled:text-muted"
               >
-                {/* picker anchor: choosing an option signs in immediately */}
+                {/* picker anchor: choosing an option signs in immediately.
+                    Grouped by hierarchy — Admins, then Leaders, then the
+                    Employee pool — with <optgroup> headings. */}
                 <option value="">{users.isLoading ? 'Loading member directory…' : 'Select a person'}</option>
-                {users.data?.map((u) => (
-                  <option key={u.employee_code} value={u.employee_code}>
-                    {u.full_name}
-                    {u.title ? ` — ${u.title}` : ''}
-                  </option>
-                ))}
+                {[
+                  { heading: 'Admins', kinds: ['admin'] },
+                  { heading: 'Leaders & Managers', kinds: ['leader'] },
+                  { heading: 'Employees', kinds: ['employee'] },
+                ].map((group) => {
+                  const groupUsers = users.data?.filter((u) => group.kinds.includes(u.persona)) ?? []
+                  if (groupUsers.length === 0) return null
+                  return (
+                    <optgroup key={group.heading} label={group.heading}>
+                      {groupUsers.map((u) => (
+                        <option key={u.employee_code} value={u.employee_code}>
+                          {u.full_name}
+                          {u.title ? ` — ${u.title}` : ''}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )
+                })}
               </select>
               <ChevronDown
                 size={16}

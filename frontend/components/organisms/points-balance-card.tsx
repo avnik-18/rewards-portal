@@ -3,14 +3,24 @@ import { fmtNum } from '@/lib/format'
 
 export interface PointsBalanceCardProps {
   balance: number
+  /** Admins trade the personal balance for the company pool on the same art. */
+  title?: string
+  ctaTo?: string
+  ctaLabel?: string
 }
 
 /** The My-Rewards balance tile, verbatim: same gradient, same concentric
  *  circles art, same type scale — the rail CTA targets /rewards instead of
  *  the in-page ledger. */
-export default function PointsBalanceCard({ balance }: PointsBalanceCardProps) {
+export default function PointsBalanceCard({
+  balance,
+  title = 'Total reward balance',
+  ctaTo = '/rewards',
+  ctaLabel = 'Go to My Rewards',
+}: PointsBalanceCardProps) {
+  // Same fixed height as the hero tile — the two column heads align.
   return (
-    <div className="relative min-h-[220px] overflow-hidden rounded-[28px] border border-[#C9E4F2] bg-[linear-gradient(115deg,#E2F7F1_0%,#EAF9FB_45%,#DDEFFA_100%)]">
+    <div className="relative h-[226px] overflow-hidden rounded-[28px] border border-[#C9E4F2] bg-[linear-gradient(115deg,#E2F7F1_0%,#EAF9FB_45%,#DDEFFA_100%)]">
       <span
         aria-hidden
         className="pointer-events-none absolute rounded-full bg-[#DDF3EA]"
@@ -42,9 +52,9 @@ export default function PointsBalanceCard({ balance }: PointsBalanceCardProps) {
         style={{ width: 260, height: 260, right: -130, top: -130 }}
       />
 
-      <div className="relative z-10 flex h-full min-h-[220px] flex-col justify-between p-7">
+      <div className="relative z-10 flex h-full flex-col justify-between p-7">
         <p className="text-[clamp(0.7rem,1vw,0.8rem)] font-medium uppercase tracking-[4px] text-[#0B2740]/85">
-          Total reward balance
+          {title}
         </p>
         <div className="flex items-end justify-center gap-3">
           <p className="tnum text-[clamp(2.4rem,4.6vw,3.8rem)] font-black leading-[0.9] tracking-[-0.04em] text-[#0B2740]">
@@ -54,10 +64,10 @@ export default function PointsBalanceCard({ balance }: PointsBalanceCardProps) {
         </div>
         <div className="flex justify-end">
           <Link
-            to="/rewards"
+            to={ctaTo}
             className="flex items-center justify-center rounded-xl bg-[#153B5A] px-6 py-3 text-[13.5px] font-semibold text-white transition hover:brightness-110"
           >
-            Go to My Rewards
+            {ctaLabel}
           </Link>
         </div>
       </div>

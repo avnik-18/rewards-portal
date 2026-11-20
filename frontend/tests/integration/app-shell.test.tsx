@@ -19,7 +19,7 @@ describe('App shell (routing + layout)', () => {
     expect(screen.getByRole('link', { name: 'Rewards' })).toBeTruthy() // mobile bottom bar
   })
 
-  it('navigates to the team screen from the primary nav', async () => {
+  it('navigates to the recognition history from the primary nav', async () => {
     render(
       <MemoryRouter initialEntries={['/']}>
         <App />
@@ -27,8 +27,8 @@ describe('App shell (routing + layout)', () => {
     )
     await screen.findByText(/Hello/)
 
-    fireEvent.click(screen.getAllByRole('link', { name: /My Team/ })[0])
-    expect(await screen.findByRole('button', { name: /My team info/i })).toBeTruthy()
+    fireEvent.click(screen.getAllByRole('link', { name: /Recognition history/ })[0])
+    expect(await screen.findByText(/Recognition history/)).toBeTruthy()
   })
 
   it('renders the not-found screen for unknown routes', () => {

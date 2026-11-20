@@ -1,17 +1,17 @@
-/** Today's celebrations (birthdays / work anniversaries) shown in the
- *  dashboard right rail. Mock dataset now; becomes GET /celebrations. */
+import { apiFetch } from '../api-client'
+
+/** Upcoming events (GET /celebrations) — the caller's relevant people's
+ *  birthdays/anniversaries plus org-wide admin-posted events, ordered by
+ *  soonest. event rows carry no person; the title rides in full_name. */
 export interface Celebration {
-  id: string
-  kind: 'birthday' | 'anniversary' | 'milestone'
-  detail: string
+  employee_code: string | null
+  full_name: string
+  kind: 'birthday' | 'anniversary' | 'event'
+  event_at: string
+  days_until: number
+  detail: string | null
 }
 
-const CELEBRATIONS: Celebration[] = [
-  { id: 'p8', kind: 'anniversary', detail: '8 years at emids today' },
-  { id: 'p5', kind: 'birthday', detail: 'Birthday today' },
-  { id: 'p2', kind: 'birthday', detail: 'Birthday today' },
-]
-
 export async function getCelebrations(): Promise<Celebration[]> {
-  return CELEBRATIONS
+  return apiFetch<Celebration[]>('/celebrations?days=30')
 }

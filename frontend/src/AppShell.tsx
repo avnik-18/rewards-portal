@@ -3,9 +3,16 @@ import { Link } from 'react-router-dom'
 import PrimaryNav from '@/components/organisms/primary-nav'
 import HeaderActions from '@/components/organisms/header-actions'
 import { MobileChipNav, MobileBottomBar } from '@/components/organisms/mobile-nav'
+import { getMe, type MeProfile } from '@/lib/data-api'
+import { usePageData } from '@/hooks/use-page-data'
 // globals.css is imported once in src/main.tsx — no duplicate here.
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  // The persona shapes the navbar: admins work Dashboard + Manage, everyone
+  // else the personal tabs. The dashboard's own /me call is cached upstream
+  // by the browser, so this repeat fetch is a dev-server cheap refresh.
+  const me = usePageData(getMe, [])
+  const persona = me.data?.persona as MeProfile['persona'] | undefined
   return (
     <div className="min-h-dvh bg-page-art">
       <a href="#main-content" className="skip-link">
@@ -28,13 +35,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </Link>
           </div>
 
-          <PrimaryNav />
+          <PrimaryNav persona={me.data ? persona : undefined} />
 
           <HeaderActions />
         </div>
 
         {/* Mobile secondary nav row — chips, ditto old (hidden on lg+) */}
-        <MobileChipNav />
+        <MobileChipNav persona={me.data ? persona : undefined} />
       </header>
 
       <main id="main-content" tabIndex={-1} className="mx-auto mt-2 max-w-[1560px] px-5 pb-28 pt-3 lg:px-10 lg:pb-16">
@@ -101,7 +108,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </footer>
 
       {/* Mobile bottom bar: Home · gold Praise FAB · Rewards · My Team */}
-      <MobileBottomBar />
+      <MobileBottomBar persona={me.data ? persona : undefined} />
     </div>
   )
 }

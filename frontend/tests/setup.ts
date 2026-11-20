@@ -135,6 +135,30 @@ beforeAll(() => {
         json: async () => ({ detail: 'hero_not_published' }),
       })
     }
+    if (path.startsWith('/celebrations')) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            employee_code: null,
+            full_name: 'Town hall — all of EMIDS',
+            kind: 'event',
+            event_at: '2026-07-28',
+            days_until: 3,
+            detail: 'Quarterly all-hands: the year in review.',
+          },
+          {
+            employee_code: 'E-VS',
+            full_name: 'Vikram Shetty',
+            kind: 'birthday',
+            event_at: '2026-05-20',
+            days_until: 6,
+            detail: null,
+          },
+        ],
+      })
+    }
     if (path === '/feed') {
       return Promise.resolve({
         ok: true,
@@ -195,9 +219,9 @@ beforeAll(() => {
         ok: true,
         status: 200,
         json: async () => [
-          { employee_code: 'E-009', full_name: 'Deepa Menon', title: 'Program Admin', department: 'People' },
-          { employee_code: 'E-BR', full_name: 'Brooke Davis', title: 'Executive Assistant', department: 'Operations' },
-          { employee_code: 'E-PR', full_name: 'Priya Rao', title: 'Engineer', department: 'Engineering' },
+          { employee_code: 'E-009', full_name: 'Deepa Menon', title: 'Program Admin', department: 'People', role: 'admin', persona: 'admin' },
+          { employee_code: 'E-BR', full_name: 'Brooke Davis', title: 'Executive Assistant', department: 'Operations', role: 'individual', persona: 'employee' },
+          { employee_code: 'E-PR', full_name: 'Priya Rao', title: 'Engineer', department: 'Engineering', role: 'individual', persona: 'employee' },
         ],
       })
     }

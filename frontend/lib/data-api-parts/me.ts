@@ -18,6 +18,14 @@ export async function getMe(): Promise<MeProfile> {
   return apiFetch<MeProfile>('/me')
 }
 
+/** The company's unspent recognition pool for the current fiscal period —
+ *  admin-only read (GET /me/company-wallet); admins trade the personal
+ *  balance tile for this org-wide figure. */
+export async function getCompanyWallet(): Promise<number> {
+  const body = await apiFetch<{ total: number }>('/me/company-wallet')
+  return body.total
+}
+
 /** Kept only for the profile screen, which stays on mock data until its
  *  backend endpoints land — the balance the mock-era UI carries. */
 export const WELCOME_BONUS_POINTS = 1240
