@@ -10,6 +10,10 @@ class MeRepositoryMissing(Exception):
     """The actor does not resolve to a users row."""
 
 
+class CompanyWalletForbidden(Exception):
+    """The company wallet is an admin read."""
+
+
 class MeService:
     def __init__(self, repo: MeRepository) -> None:
         self._repo = repo
@@ -32,3 +36,9 @@ class MeService:
             "recognitions_given": await self._repo.recognitions_given(actor_id),
             "recognitions_received": await self._repo.recognitions_received(actor_id),
         }
+
+    async def company_wallet(self, actor_id: Any) -> dict[str, Any]:
+        persona = await self._repo.persona(actor_id)
+        if persona != "admin":
+            raise CompanyWalletForbidden("company wallet is admin-only")
+        return {"total": await self._repo.company_wallet()}

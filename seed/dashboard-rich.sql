@@ -217,3 +217,62 @@ WHERE fp.entity_type = 'recognition'
     'leaderboard-demo-A-01','leaderboard-demo-A-02','leaderboard-demo-B-01',
     'leaderboard-demo-B-02','leaderboard-demo-B-03','leaderboard-demo-C-01',
     'feed-demo-BU-01','feed-demo-hidden-01');
+
+-- ----------------------------------------------------------------
+-- Milestone dates for the upcoming-milestones rail (/celebrations):
+-- birthdays (birth_date) and work anniversaries (joined_on). Offsets are
+-- RE-STAMPED relative to each run, so the rail always has upcoming events;
+-- the fixed year counts keep labels reading like real people ("5-year").
+-- ----------------------------------------------------------------
+UPDATE users SET birth_date = ((CURRENT_DATE + n.bday) - interval '29 years')::date,
+                 joined_on  = ((CURRENT_DATE + n.join_off) - interval '4 years')::date
+FROM (VALUES
+  ('E-PR', 3, 12), ('E-AJ', 20, 5),  ('E-BR', 1, 10), ('E-DN', 8, 18),
+  ('E-ES', 15, 22), ('E-FT', 27, 2), ('E-GI', 22, 16), ('E-KM', 26, 10),
+  ('E-RH', 0, 9),   ('E-L1', 11, 25), ('E-L2', 4, 21),  ('E-L3', 7, 3),
+  ('E-GX', 13, 16), ('E-HD', 2, 19),  ('E-MP', 6, 14),  ('E-009', 10, 1),
+  ('E-AC', 17, 6),  ('E-ZK', 9, 23),  ('E-VS', 18, 4),  ('E-TN', 0, 8),
+  ('E-JP', 12, 2),  ('E-MS', 21, 7),  ('E-HK', 14, 11), ('E-IC', 24, 5),
+  ('E-JS', 19, 15)
+) AS n(code, bday, join_off)
+WHERE users.employee_code = n.code;
+
+UPDATE users SET birth_date = ((CURRENT_DATE + n.bday) - interval '31 years')::date,
+                 joined_on  = ((CURRENT_DATE + n.join_off) - interval '5 years')::date
+FROM (VALUES
+  ('E-BR', 1, 10), ('E-FT', 27, 2), ('E-RH', 0, 9), ('E-AC', 17, 6),
+  ('E-VS', 18, 4), ('E-IC', 24, 5)
+) AS n(code, bday, join_off)
+WHERE users.employee_code = n.code;
+
+UPDATE users SET birth_date = ((CURRENT_DATE + n.bday) - interval '33 years')::date,
+                 joined_on  = ((CURRENT_DATE + n.join_off) - interval '6 years')::date
+FROM (VALUES
+  ('E-AJ', 20, 5), ('E-L1', 11, 25), ('E-GX', 13, 16), ('E-IC', 24, 5),
+  ('E-009', 10, 1)
+) AS n(code, bday, join_off)
+WHERE users.employee_code = n.code;
+
+UPDATE users SET birth_date = ((CURRENT_DATE + n.bday) - interval '30 years')::date,
+                 joined_on  = ((CURRENT_DATE + n.join_off) - interval '7 years')::date
+FROM (VALUES
+  ('E-DN', 8, 18), ('E-ES', 15, 22), ('E-GI', 22, 16), ('E-JS', 19, 15),
+  ('E-TN', 0, 8), ('E-HK', 14, 11)
+) AS n(code, bday, join_off)
+WHERE users.employee_code = n.code;
+
+-- ----------------------------------------------------------------
+-- Admin-posted org-wide events (festivals, town halls) — they surface in
+-- the Upcoming events rail as kind='event'. Re-stamped relative to each
+-- run and posted by the People-track admin (E-009).
+-- ----------------------------------------------------------------
+DELETE FROM admin_event
+WHERE title IN ('Diwali celebration','Winter town hall','Annual awards night');
+
+INSERT INTO admin_event (title, detail, event_at, created_by)
+SELECT v.title, v.detail, CURRENT_DATE + v.in_days, (SELECT id FROM users WHERE employee_code = 'E-009')
+FROM (VALUES
+  ('Diwali celebration',  'Lights and sweets in the atrium — dress colorfully.', 6),
+  ('Winter town hall',    'Q4 results, 2027 roadmap, and the service awards.',   14),
+  ('Annual awards night', 'The big night — EoQ winners announced live.',         27)
+) AS v(title, detail, in_days);

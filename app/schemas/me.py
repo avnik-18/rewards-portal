@@ -22,3 +22,7 @@ class MeStatsResponse(BaseModel):
     allowance_allocated: int | None = None
     recognitions_given: int
     recognitions_received: int
+
+
+class MeCompanyWalletResponse(BaseModel):
+    total: int

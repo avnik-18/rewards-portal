@@ -7,14 +7,14 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-from app.api.v1.me import me_missing_handler
+from app.api.v1.me import company_wallet_forbidden_handler, me_missing_handler
 from app.api.v1.recognitions import recognition_domain_handler
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.core.otel import setup_tracing
 from app.core.security import require_identity_configured
-from app.services.me_service import MeRepositoryMissing
+from app.services.me_service import CompanyWalletForbidden, MeRepositoryMissing
 from app.services.recognition_service import RecognitionDomainError
 
 log = structlog.get_logger(__name__)
@@ -40,6 +40,7 @@ def create_app() -> FastAPI:
     # fn_* business failures -> 409/422/404 in ONE place, for every raise site
     app.add_exception_handler(RecognitionDomainError, recognition_domain_handler)
     app.add_exception_handler(MeRepositoryMissing, me_missing_handler)
+    app.add_exception_handler(CompanyWalletForbidden, company_wallet_forbidden_handler)
     # Host-header validation driven by config: explicit list outside local
     # (the start-up guard refuses to boot otherwise); local defaults to "*"
     # for dev convenience.
@@ -49,9 +50,7 @@ def create_app() -> FastAPI:
     # security middleware (reviewer hardening)
 
     @app.middleware("http")
-    async def security_headers(
-        request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
+    async def security_headers(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         response = await call_next(request)
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Cache-Control", "no-store")
@@ -60,9 +59,12 @@ def create_app() -> FastAPI:
 
     if settings.cors_origins:
         origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
-        app.add_middleware(CORSMiddleware, allow_origins=origins,
-                           allow_methods=["GET", "POST", "PATCH", "DELETE"],
-                           allow_headers=["X-Demo-User", "Authorization", "Idempotency-Key", "Content-Type"])
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=origins,
+            allow_methods=["GET", "POST", "PATCH", "DELETE"],
+            allow_headers=["X-Demo-User", "Authorization", "Idempotency-Key", "Content-Type"],
+        )
     else:
         log.warning("cors.no_origins_configured")
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=trusted_host_names)
@@ -70,6 +72,7 @@ def create_app() -> FastAPI:
     @app.get("/healthz", include_in_schema=False)
     def healthz() -> dict[str, str]:
         return {"status": "ok"}
+
     return app
 
 

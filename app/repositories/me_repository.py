@@ -82,3 +82,19 @@ class MeRepository:
             dict(actor=actor_id),
         )
         return int(result.scalar_one())
+
+    async def persona(self, actor_id: Any) -> str:
+        result = await self._session.execute(text("SELECT fn_persona(:actor)"), dict(actor=actor_id))
+        return str(result.scalar_one())
+
+    async def company_wallet(self) -> int:
+        """Points the company has seeded and not yet spent — the current
+        fiscal period's recognition-budget pool across all recipients."""
+        result = await self._session.execute(
+            text(
+                "SELECT COALESCE(SUM(t.balance), 0) FROM to_recog_points t "
+                "JOIN fiscal_period p ON p.id = t.period_id "
+                "WHERE CURRENT_DATE BETWEEN p.starts AND p.ends"
+            )
+        )
+        return int(result.scalar_one())

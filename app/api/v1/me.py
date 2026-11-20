@@ -1,6 +1,6 @@
-"""GET /me and /me/stats — the Home screen greeting + "My activity" tiles.
+"""GET /me, /me/stats, /me/company-wallet — the Home screen greeting + tiles.
 
-Both endpoints are caller-scoped: the actor comes from the identity
+All three endpoints are caller-scoped: the actor comes from the identity
 dependency (get_actor_id) — never from the request.
 """
 
@@ -15,8 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.actor import get_actor_id
 from app.db.session import get_session
 from app.repositories.me_repository import MeRepository
-from app.schemas.me import MeProfileResponse, MeStatsResponse
-from app.services.me_service import MeRepositoryMissing, MeService
+from app.schemas.me import MeCompanyWalletResponse, MeProfileResponse, MeStatsResponse
+from app.services.me_service import CompanyWalletForbidden, MeRepositoryMissing, MeService
 
 log = structlog.get_logger(__name__)
 
@@ -28,10 +28,10 @@ def me_missing_handler(request: Request, exc: Exception) -> JSONResponse:
     if not isinstance(exc, MeRepositoryMissing):
         raise exc
     resolved_actor_id = getattr(request.state, "actor_id", None)
-    log.warning("me.actor_missing", path=request.url.path,
-                actor_id=str(resolved_actor_id) if resolved_actor_id else None)
-    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND,
-                        content={"detail": "actor_not_found"})
+    log.warning(
+        "me.actor_missing", path=request.url.path, actor_id=str(resolved_actor_id) if resolved_actor_id else None
+    )
+    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": "actor_not_found"})
 
 
 def _service(session: Annotated[AsyncSession, Depends(get_session)]) -> MeService:
@@ -53,3 +53,18 @@ async def me_stats(
     service: Annotated[MeService, Depends(_service)],
 ) -> MeStatsResponse:
     return MeStatsResponse(**await service.stats(actor_id))
+
+
+def company_wallet_forbidden_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Only admins read the company wallet — everyone else is 403."""
+    if not isinstance(exc, CompanyWalletForbidden):
+        raise exc
+    return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content={"detail": "company_wallet_admin_only"})
+
+
+@router.get("/me/company-wallet", response_model=MeCompanyWalletResponse)
+async def me_company_wallet(
+    actor_id: Annotated[UUID, Depends(get_actor_id)],
+    service: Annotated[MeService, Depends(_service)],
+) -> MeCompanyWalletResponse:
+    return MeCompanyWalletResponse(**await service.company_wallet(actor_id))

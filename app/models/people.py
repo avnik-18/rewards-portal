@@ -31,6 +31,7 @@ class Users(Base):
     department: Mapped[str | None] = mapped_column(Text)
     avatar_url: Mapped[str | None] = mapped_column(Text)
     joined_on: Mapped[date | None] = mapped_column(Date)
+    birth_date: Mapped[date | None] = mapped_column(Date)
     manager_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     # migration 0003 declares: date NOT NULL DEFAULT now()
     manager_effective_from: Mapped[date] = mapped_column(Date, server_default=text("now()"))
@@ -74,4 +75,3 @@ class RoleAssignment(Base):
     granted_by: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"))
     granted_at: Mapped[datetime] = mapped_column(DateTime)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime)
-

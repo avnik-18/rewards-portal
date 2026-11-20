@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    celebrations,
     demo_users,
     directory,
     feed,
@@ -40,3 +41,6 @@ api_router.include_router(feed.router)
 # "Recognize a Teammate" — read path (directory picker + values catalog)
 api_router.include_router(directory.router)
 api_router.include_router(values.router)
+
+# Upcoming birthdays + work anniversaries — relevant people per viewer
+api_router.include_router(celebrations.router)
