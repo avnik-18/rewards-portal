@@ -8,3 +8,8 @@ class DemoUserItem(BaseModel):
     full_name: str
     title: str | None = None
     department: str | None = None
+    # role + persona let the login screen group the dropdown by hier_mods:
+    # Admins, then Leaders, then the employee pool — the same mapping /me
+    # resolves for the picked identity (fn_persona mirrors it).
+    role: str = "individual"
+    persona: str = "employee"
