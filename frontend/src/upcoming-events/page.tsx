@@ -12,7 +12,20 @@ const EVENT_LABEL: Record<Celebration['kind'], string> = {
   event: 'Event',
 }
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
 function fullDate(event: Celebration): string {
   const parts = event.event_at.split('-')
@@ -54,7 +67,10 @@ export default function UpcomingEventsPage() {
               className="flex items-center gap-4 border-b border-[#eef3f7] px-5 py-3 last:border-0"
             >
               {event.kind === 'event' ? (
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fdf5e3] text-lg" aria-hidden>
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fdf5e3] text-lg"
+                  aria-hidden
+                >
                   🎉
                 </span>
               ) : (
@@ -68,9 +84,7 @@ export default function UpcomingEventsPage() {
               </div>
               <span
                 className={`tnum shrink-0 rounded-full px-3 py-1 text-[12px] font-bold ${
-                  event.days_until <= 1
-                    ? 'bg-[#e9faf1] text-[#0d8a4b]'
-                    : 'bg-[#f1f5f9] text-[#35506b]'
+                  event.days_until <= 1 ? 'bg-[#e9faf1] text-[#0d8a4b]' : 'bg-[#f1f5f9] text-[#35506b]'
                 }`}
               >
                 {eventDate(event)} · {fullDate(event)}
@@ -101,13 +115,16 @@ export default function UpcomingEventsPage() {
             className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl"
             onClick={(mouseEvent) => mouseEvent.stopPropagation()}
           >
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#fdf5e3] text-2xl" aria-hidden>
+            <span
+              className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#fdf5e3] text-2xl"
+              aria-hidden
+            >
               🎊
             </span>
             <p className="mt-3 text-[17px] font-extrabold text-[#0b2a4a]">Congrats!</p>
             <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#55697d]">
-              The congrats flow is still in implementation — {congratsOpen.full_name.split(' ')[0]} will get a
-              proper shout-out once it ships.
+              The congrats flow is still in implementation — {congratsOpen.full_name.split(' ')[0]} will get a proper
+              shout-out once it ships.
             </p>
             <button
               type="button"

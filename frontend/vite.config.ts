@@ -15,4 +15,14 @@ export default defineConfig({
     outDir: 'dist',
     assetsInlineLimit: 0,
   },
+  server: {
+    // The Entra app registration's redirect URI lives on this dev-server
+    // origin (localhost:5173/api/auth/sso/callback) — the proxy hands SSO
+    // traffic to the dedicated SSO backend on :8100, same paths, so its
+    // session cookie is issued for the 5173 origin the React app runs on.
+    proxy: {
+      '/api/auth': { target: 'http://localhost:8100', changeOrigin: true },
+      '/api/me': { target: 'http://localhost:8100', changeOrigin: true },
+    },
+  },
 })

@@ -7,11 +7,11 @@ import { usePageData } from '@/hooks/use-page-data'
 import { usePageTitle } from '@/hooks/use-page-title'
 
 /**
- * Local sign-in: "Continue with Emids SSO" carries the promise of the Entra
- * rollout (inline note, never a dead-looking disabled state); until then the
- * demo identity is picked from the directory the backend serves. Selecting
- * a person signs in AS them immediately — every actor-scoped call resolves
- * them from then on.
+ * Local sign-in: "Continue with Emids SSO" hands the browser to the Entra
+ * authorization flow (the dedicated SSO backend on :8100, proxied through
+ * this dev server); until then the demo identity is picked from the
+ * directory the backend serves. Selecting a person signs in AS them
+ * immediately — every actor-scoped call resolves them from then on.
  */
 export default function LoginPage() {
   usePageTitle('Sign in')
@@ -19,7 +19,6 @@ export default function LoginPage() {
   // retryN bumps as a dep so a failed load can simply re-run the fetch
   const [retryN, setRetryN] = useState(0)
   const users = usePageData(getDemoUsers, [retryN])
-  const [ssoTouched, setSsoTouched] = useState(false)
   const [picked, setPicked] = useState('')
 
   const signInAs = (employeeCode: string) => {
@@ -78,20 +77,12 @@ export default function LoginPage() {
           <form onSubmit={onSubmit} className="mt-6">
             <button
               type="button"
-              onClick={() => setSsoTouched(true)}
+              onClick={() => window.location.assign('/api/auth/sso/redirect')}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-[14px] font-bold text-white shadow-card transition hover:bg-brand-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
             >
               <LogIn size={16} aria-hidden />
               Continue with Emids SSO
             </button>
-            {ssoTouched && (
-              <p
-                role="status"
-                className="mt-2.5 rounded-xl border border-line bg-gold-soft px-3.5 py-2 text-[12px] leading-relaxed text-gold-ink"
-              >
-                Entra SSO lands with the production rollout — for today&rsquo;s demo, pick a demo identity below.
-              </p>
-            )}
 
             <div className="my-5 flex items-center gap-3 text-[11px] font-extrabold font-mono uppercase tracking-[0.18em] text-muted">
               <span className="h-px flex-1 bg-line" />

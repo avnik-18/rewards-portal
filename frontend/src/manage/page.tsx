@@ -20,9 +20,7 @@ export default function ManagePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[22px] font-extrabold text-[#0b2a4a]">Manage</h1>
-          <p className="mt-0.5 text-[13.5px] text-[#55697d]">
-            Approval queue and the people directory, in one place.
-          </p>
+          <p className="mt-0.5 text-[13.5px] text-[#55697d]">Approval queue and the people directory, in one place.</p>
         </div>
       </div>
 
@@ -44,9 +42,7 @@ export default function ManagePage() {
             <Users size={20} aria-hidden />
           </span>
           <span>
-            <span className="block text-[15px] font-bold text-[#0b2a4a]">
-              Directory · {people.length} people
-            </span>
+            <span className="block text-[15px] font-bold text-[#0b2a4a]">Directory · {people.length} people</span>
             <span className="block text-[13px] text-[#55697d]">Recognizable employees and their managers</span>
           </span>
         </div>

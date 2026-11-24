@@ -4,7 +4,15 @@ import PointsBalanceCard from '@/components/organisms/points-balance-card'
 import UpcomingEventsCard from '@/components/organisms/upcoming-events-card'
 import Leaderboard from '@/components/organisms/Leaderboard'
 import AwardsCard from '@/components/organisms/awards-card'
-import { getMe, getCompanyWallet, getDashboardStats, getLeaderboard, getFeedPosts, getCelebrations, getHeroMedia } from '@/lib/data-api'
+import {
+  getMe,
+  getCompanyWallet,
+  getDashboardStats,
+  getLeaderboard,
+  getFeedPosts,
+  getCelebrations,
+  getHeroMedia,
+} from '@/lib/data-api'
 import { usePageData } from '@/hooks/use-page-data'
 import { usePageTitle } from '@/hooks/use-page-title'
 import { ErrorState, LoadingSkeleton } from './load-ui'
@@ -29,7 +37,14 @@ export default function DashboardPage() {
   // loading phase gates the page
   const hero = usePageData(getHeroMedia, [])
 
-  if (me.isLoading || stats.isLoading || leaderboard.isLoading || posts.isLoading || celebrations.isLoading || hero.isLoading) {
+  if (
+    me.isLoading ||
+    stats.isLoading ||
+    leaderboard.isLoading ||
+    posts.isLoading ||
+    celebrations.isLoading ||
+    hero.isLoading
+  ) {
     return <LoadingSkeleton />
   }
   const failure = me.error ?? stats.error ?? leaderboard.error ?? posts.error ?? celebrations.error

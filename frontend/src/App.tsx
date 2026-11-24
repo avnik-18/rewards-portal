@@ -1,20 +1,20 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import LoginPage from './login/page'
 import AppShell from './AppShell'
 import DashboardPage from './page'
 import TeamPage from './team/page'
-import RewardsPage from './rewards/page'
+import UnderDevelopmentPage from './under-development/page'
 import ApprovalsPage from './approvals/page'
 import ProfilePage from './profile/page'
 import ComposePage from './recognize/page'
 import ManagePage from './manage/page'
 import AwardsCyclePage from './awards-cycle/page'
-import RecognitionHistoryPage from './history/page'
 import UpcomingEventsPage from './upcoming-events/page'
 import NotFound from './not-found'
 import { ErrorBoundary } from './load-ui'
-import { selectedDemoUser } from '@/lib/demo-auth'
+import NotProvisionedPage, { type NotProvisionedIdentity } from './not-provisioned/page'
+import { selectedDemoUser, selectDemoUser } from '@/lib/demo-auth'
 
 /** Search-param changes refetch, so the announcer keys on pathname only. */
 const ROUTE_LABELS: Record<string, string> = {
@@ -42,11 +42,66 @@ function RouteAnnouncer() {
   )
 }
 
-/** Portal routes sign in first: no picked demo identity → the login screen.
- *  (Entra SSO replaces this local-only gate when the rollout lands.) */
-function RequireDemoUser({ children }: { children: ReactNode }) {
-  if (selectedDemoUser() === null) return <Navigate to="/login" replace />
-  return <>{children}</>
+/** Portal routes sign in first — ORDER MATTERS: an Entra SSO session (the
+ *  callback lands on '/' with the session cookie) always wins, so a stale
+ *  picked demo identity in localStorage can't shadow the real sign-in.
+ *  /api/me maps the Entra oid to the portal users.external_id row and the
+ *  visitor signs in AS that person; only with no session at all does the
+ *  picked demo identity apply, and with neither → the login screen. */
+function RequireIdentity({ children }: { children: ReactNode }) {
+  const [stage, setStage] = useState<'checking' | 'ready' | 'blocked' | 'login'>('checking')
+  const [blockedIdentity, setBlockedIdentity] = useState<NotProvisionedIdentity | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      try {
+        const res = await fetch('/api/me')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.signed_in && data.employee_code) {
+            selectDemoUser(data.employee_code)
+            if (!cancelled) setStage('ready')
+            return
+          }
+          // signed in, but their Entra id maps to no users row (option A:
+          // fail-closed) → show the provisioning screen, never a persona
+          if (data.signed_in) {
+            setBlockedIdentity({
+              external_id: (data.claims?.oid as string | undefined) ?? null,
+              tenant_id: (data.claims?.tid as string | undefined) ?? null,
+              email: data.graph_profile?.mail ?? data.user.email,
+              upn: data.user.upn,
+              full_name: data.user.name,
+              job_title: data.graph_profile?.jobTitle ?? data.user.job_title,
+            })
+            if (!cancelled) setStage('blocked')
+            return
+          }
+        }
+      } catch {
+        // SSO backend unreachable (plain local dev without it) → demo gate
+      }
+      if (selectedDemoUser() !== null) {
+        if (!cancelled) setStage('ready')
+        return
+      }
+      if (!cancelled) setStage('login')
+    }
+    run()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (stage === 'ready') return <>{children}</>
+  if (stage === 'blocked' && blockedIdentity) return <NotProvisionedPage identity={blockedIdentity} />
+  if (stage === 'login') return <Navigate to="/login" replace />
+  return (
+    <p className="grid min-h-dvh place-items-center text-[14px] font-semibold text-[#5a6a83]" role="status">
+      Signing you in…
+    </p>
+  )
 }
 
 export default function App() {
@@ -62,21 +117,29 @@ export default function App() {
         */}
         <Route
           element={
-            <RequireDemoUser>
+            <RequireIdentity>
               <AppShell>
                 <ErrorBoundary>
                   <Outlet />
                 </ErrorBoundary>
               </AppShell>
-            </RequireDemoUser>
+            </RequireIdentity>
           }
         >
           <Route path="/" element={<DashboardPage />} />
           <Route path="/team" element={<TeamPage />} />
-          <Route path="/rewards" element={<RewardsPage />} />
+          <Route
+            path="/rewards"
+            element={<UnderDevelopmentPage title="My Rewards" what="The personal rewards wallet and its earned breakdown" />}
+          />
           <Route path="/manage" element={<ManagePage />} />
           <Route path="/awards-cycle" element={<AwardsCyclePage />} />
-          <Route path="/recognition-history" element={<RecognitionHistoryPage />} />
+          <Route
+            path="/recognition-history"
+            element={
+              <UnderDevelopmentPage title="Recognition history" what="The full history of recognitions you gave and received" />
+            }
+          />
           <Route path="/upcoming-events" element={<UpcomingEventsPage />} />
           <Route path="/approvals" element={<ApprovalsPage />} />
           <Route path="/profile" element={<ProfilePage />} />

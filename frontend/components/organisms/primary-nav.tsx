@@ -9,12 +9,12 @@ const NAV_EMPLOYEE = [
   { href: '/recognition-history', label: 'Recognition history', icon: History },
 ]
 
-// Leaders run the cycle AND keep their own history; admins work the portal.
+// Leaders run the cycle AND keep their own lanes; admins work the portal.
+// My Team is off-cycle for now — the award flow leads, then personal lanes.
 const NAV_LEADER = [
   { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/team', label: 'My Team', icon: Users },
-  { href: '/rewards', label: 'My Rewards', icon: Gift },
   { href: '/awards-cycle', label: 'Award cycle', icon: Award },
+  { href: '/rewards', label: 'My Rewards', icon: Gift },
   { href: '/recognition-history', label: 'Recognition history', icon: History },
 ]
 
@@ -22,6 +22,8 @@ const NAV_ADMIN = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/manage', label: 'Manage', icon: Settings },
   { href: '/awards-cycle', label: 'Award cycle', icon: Award },
+  { href: '/rewards', label: 'My Rewards', icon: Gift },
+  { href: '/recognition-history', label: 'Recognition history', icon: History },
 ] as const
 
 type NavItem = (typeof NAV_LEADER)[number]

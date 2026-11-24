@@ -25,9 +25,7 @@ export default function RecognitionHistoryPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-extrabold tracking-tight text-navy md:text-[34px]">Recognition history</h1>
-        <p className="mt-1 text-[15px] text-muted">
-          Every recognition you have received and the points behind it.
-        </p>
+        <p className="mt-1 text-[15px] text-muted">Every recognition you have received and the points behind it.</p>
       </div>
 
       <RecognitionsReceived items={rewards.data.received} />
