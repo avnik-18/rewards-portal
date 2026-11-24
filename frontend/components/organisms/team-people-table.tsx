@@ -99,9 +99,6 @@ export default function TeamPeopleTable({
                       <Trophy size={12} /> Nominate
                     </Btn>
                   )}
-                  <Btn size="sm" variant="primary" className="!h-8 !px-3" onClick={() => onPraise(row.id)}>
-                    <Send size={12} /> Praise
-                  </Btn>
                   <Btn
                     size="sm"
                     variant="outline"
