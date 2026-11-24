@@ -38,7 +38,7 @@ describe('ComposeForm extras (client interactions)', () => {
   it('the typed-email row adds a To chip that can be removed again', async () => {
     render(
       <MemoryRouter>
-        <ComposeForm people={people} />
+        <ComposeForm people={people} canAwardPoints />
       </MemoryRouter>,
     )
     await screen.findByPlaceholderText('Whom do you want to recognise?')
@@ -56,7 +56,7 @@ describe('ComposeForm extras (client interactions)', () => {
   it('typing a non-matching query shows the no-match copy', async () => {
     render(
       <MemoryRouter>
-        <ComposeForm people={people} />
+        <ComposeForm people={people} canAwardPoints />
       </MemoryRouter>,
     )
     await screen.findByPlaceholderText('Whom do you want to recognise?')
@@ -69,7 +69,7 @@ describe('ComposeForm extras (client interactions)', () => {
   it('the CC field picks, labels managers, adds typed emails and removes chips', async () => {
     render(
       <MemoryRouter>
-        <ComposeForm people={people} />
+        <ComposeForm people={people} canAwardPoints />
       </MemoryRouter>,
     )
     const to = screen.getByPlaceholderText('Whom do you want to recognise?')
@@ -93,7 +93,7 @@ describe('ComposeForm extras (client interactions)', () => {
   it('template variant selection and the expanded preview modal open and close', async () => {
     render(
       <MemoryRouter>
-        <ComposeForm people={people} />
+        <ComposeForm people={people} canAwardPoints />
       </MemoryRouter>,
     )
     const to = screen.getByPlaceholderText('Whom do you want to recognise?')

@@ -48,7 +48,7 @@ describe('PrimaryNav', () => {
     expect(screen.getByRole('button', { name: 'Profile menu' })).toBeTruthy()
   })
 
-  it('opens the profile disclosure with the person card and My profile link', () => {
+  it('opens the profile disclosure with the person card and My profile link', async () => {
     render(
       <MemoryRouter>
         <HeaderActions />
@@ -65,7 +65,7 @@ describe('PrimaryNav', () => {
     expect(screen.queryByRole('link', { name: /My profile/ })).toBeNull()
   })
 
-  it('a mousedown inside the disclosure keeps it open; outside closes it', () => {
+  it('a mousedown inside the disclosure keeps it open; outside closes it', async () => {
     render(
       <MemoryRouter>
         <HeaderActions />
