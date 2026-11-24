@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { CalendarCheck, Users } from 'lucide-react'
-import type { TeamTab } from './TeamScreen'
+
+// kept for the archived approvals-tab layout — nothing imports this anymore
+export type TeamTab = 'team' | 'approvals'
 
 interface TeamTabChipsProps {
   tab: TeamTab
