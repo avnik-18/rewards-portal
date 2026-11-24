@@ -42,8 +42,7 @@ export const VALUE_TEMPLATES = Object.fromEntries(
 ) as Record<ValueKey, PraiseTemplate[]>
 export const VALUE_KEYS = Object.keys(STATIC_CORE_VALUES) as ValueKey[]
 
-/** Live value key → backend value UUID, for POST /recognitions (value_id).
- *  Keyed by the string identity — live-only keys extend it past the union. */
+/** Live value key → backend value UUID, for POST /recognitions (value_id). */
 const liveValueIds: Record<string, string> = {}
 
 /** Live directory rows (UUID ids) the static PEOPLE record book doesn't own. */

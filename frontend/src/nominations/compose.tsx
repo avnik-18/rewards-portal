@@ -174,6 +174,8 @@ export default function NominationCompose() {
 
   const openAwards = awards.data ?? []
   const peopleRows = people.data ?? []
+  const nomineeName = nominee ? nominee.full_name : ''
+  const awardNameLocal = award ? award.name : ''
 
   return (
     <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-6 px-4 pt-1 pb-6 lg:px-8">
@@ -183,38 +185,49 @@ export default function NominationCompose() {
         </Link>
         <h1 className="mt-1 text-[22px] font-extrabold text-navy">Nominate for an award</h1>
         <p className="mt-0.5 text-[13.5px] text-muted">
-          Pick the award, the person or team, and tell the story — validation and routing run on submit.
+          {awardParam ? (
+            nomineeName
+              ? <>Nominate <strong className="text-ink">{nomineeName}</strong> for <strong className="text-ink">{awardNameLocal}</strong> — tell the story; validation and routing run on submit.</>
+              : <>Nominate for <strong className="text-ink">{awardNameLocal}</strong> — tell the story; validation and routing run on submit.</>
+          ) : (
+            <>Pick the award, the person or team, and tell the story — validation and routing run on submit.</>
+          )}
         </p>
       </div>
 
       <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="flex flex-col gap-6">
-          <fieldset className="flex flex-col gap-2.5">
-            <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">1 · Award</legend>
-            {openAwards.map((a) => (
-              <AwardTile
-                key={a.award_id}
-                award={a}
-                picked={a.award_id === awardId}
-                onPick={() => {
-                  setAwardId(a.award_id)
-                  setMode(a.allow_team ? 'team' : 'person')
-                  setNomineeId('')
-                  setTeamId('')
-                }}
-              />
-            ))}
-            {openAwards.length === 0 && (
-              <p className="rounded-2xl border border-line bg-white px-4 py-3 text-[13px] text-muted">
-                No awards are open for nomination right now.
-              </p>
-            )}
-          </fieldset>
+          {/* award + nominee are fixed by the My Team handoff — their pickers
+              only show on the standalone entry when nothing is pre-filled */}
+          {!awardParam && (
+            <fieldset className="flex flex-col gap-2.5">
+              <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">1 · Award</legend>
+              {openAwards.map((a) => (
+                <AwardTile
+                  key={a.award_id}
+                  award={a}
+                  picked={a.award_id === awardId}
+                  onPick={() => {
+                    setAwardId(a.award_id)
+                    setMode(a.allow_team ? 'team' : 'person')
+                    setNomineeId('')
+                    setTeamId('')
+                  }}
+                />
+              ))}
+              {openAwards.length === 0 && (
+                <p className="rounded-2xl border border-line bg-white px-4 py-3 text-[13px] text-muted">
+                  No awards are open for nomination right now.
+                </p>
+              )}
+            </fieldset>
+          )}
 
-          <fieldset className="flex flex-col gap-2.5" disabled={!award}>
-            <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">2 · Who</legend>
-            {award?.allow_team && (
-              <div className="flex gap-2">
+          {!awardParam && (
+            <fieldset className="flex flex-col gap-2.5" disabled={!award}>
+              <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">2 · Who</legend>
+              {award?.allow_team && (
+                <div className="flex gap-2">
                 {(['person', 'team'] as const).map((m) => (
                   <button
                     key={m}
@@ -267,10 +280,11 @@ export default function NominationCompose() {
                 )}
               </label>
             )}
-          </fieldset>
+            </fieldset>
+          )}
 
           <fieldset className="flex flex-col gap-2.5" disabled={!award}>
-            <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">3 · The story</legend>
+            <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">The story</legend>
             <label className="flex flex-col gap-1.5">
               <span className="text-[12.5px] font-bold text-ink">Justification <span className="font-medium text-muted">(min 30 chars)</span></span>
               <textarea
