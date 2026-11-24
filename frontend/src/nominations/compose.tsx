@@ -187,7 +187,7 @@ export default function NominationCompose() {
         <p className="mt-0.5 text-[13.5px] text-muted">
           {awardParam ? (
             nomineeName
-              ? <>Nominate <strong className="text-ink">{nomineeName}</strong> for <strong className="text-ink">{awardNameLocal}</strong> — tell the story; validation and routing run on submit.</>
+              ? <><strong className="text-ink">{awardNameLocal}</strong> → <strong className="text-ink">{nomineeName}</strong> — tell the story; validation and routing run on submit.</>
               : <>Nominate for <strong className="text-ink">{awardNameLocal}</strong> — tell the story; validation and routing run on submit.</>
           ) : (
             <>Pick the award, the person or team, and tell the story — validation and routing run on submit.</>
