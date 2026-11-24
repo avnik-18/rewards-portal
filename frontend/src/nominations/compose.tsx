@@ -17,19 +17,15 @@ import { ErrorState, LoadingSkeleton } from '../load-ui'
 /* The backend validates these exact emids_values keys (alembic seed) — the
  * composer sends the snake_case ids; labels here are display-only. */
 const VALUE_KEYS = [
-  'customer_first',
-  'innovation',
-  'collaboration',
-  'ownership',
-  'winning_mindset',
+  'impact_obsessed',
+  'trusted_guides',
+  'inclusive_innovators',
 ] as const
 
 const VALUE_LABELS: Record<string, string> = {
-  customer_first: 'Customer First',
-  innovation: 'Innovation',
-  collaboration: 'Collaboration',
-  ownership: 'Ownership',
-  winning_mindset: 'Winning Mindset',
+  impact_obsessed: 'Impact Obsessed',
+  trusted_guides: 'Trusted Guides',
+  inclusive_innovators: 'Inclusive Innovators',
 }
 
 type SendError = { code: string; message: string }
