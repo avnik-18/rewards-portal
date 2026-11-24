@@ -180,16 +180,32 @@ export default function NominationCompose() {
           <ArrowLeft size={14} aria-hidden /> Award nominations
         </Link>
         <h1 className="mt-1 text-[22px] font-extrabold text-navy">Nominate for an award</h1>
-        <p className="mt-0.5 text-[13.5px] text-muted">
-          {awardParam ? (
-            nomineeName
-              ? <><strong className="text-ink">{awardNameLocal}</strong> → <strong className="text-ink">{nomineeName}</strong> — tell the story; validation and routing run on submit.</>
-              : <>Nominate for <strong className="text-ink">{awardNameLocal}</strong> — tell the story; validation and routing run on submit.</>
-          ) : (
-            <>Pick the award, the person or team, and tell the story — validation and routing run on submit.</>
-          )}
-        </p>
       </div>
+
+      {awardParam && award && (
+        /* the locked hand-off card: award → nominee, medallion + points */
+        <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-gold-soft bg-gold-soft/40 p-5 shadow-card">
+          <span
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f5b324] to-[#c98a00] text-white shadow-card"
+            aria-hidden
+          >
+            <Award size={24} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="flex flex-wrap items-center gap-2 text-[16px] font-extrabold text-navy">
+              {award.name}
+              <span className="text-muted">→</span>
+              {nomineeName ?? (mode === 'team' ? reviewData.team?.name ?? '—' : '—')}
+            </p>
+            <p className="tnum mt-0.5 text-[12.5px] font-semibold text-gold-ink">
+              {award.prize_points.toLocaleString()} pts to the winner · routed: DH first, program admin final say
+            </p>
+          </div>
+          <span className="rounded-full bg-brand/10 px-3 py-1 text-[11.5px] font-extrabold text-brand">
+            Step 3 of 3 · the story
+          </span>
+        </div>
+      )}
 
       <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="flex flex-col gap-6">
@@ -335,27 +351,49 @@ export default function NominationCompose() {
         </div>
 
         {/* Summary / review column */}
-        <aside className="flex flex-col gap-4">
-          <div className="rounded-2xl border border-line bg-white p-5">
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-2xl border border-line bg-white p-5 shadow-card">
             <h2 className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">Summary</h2>
             <dl className="mt-3 flex flex-col gap-2.5 text-[13px]">
               <div className="flex items-start gap-2">
-                <dt className="w-20 shrink-0 font-bold text-ink">Award</dt>
-                <dd className="text-muted">{reviewData.award?.name ?? '—'}</dd>
+                <dt className="w-16 shrink-0 font-bold text-ink">Award</dt>
+                <dd className="min-w-0 font-semibold text-[#0b6e68]">{reviewData.award?.name ?? '—'}</dd>
               </div>
               <div className="flex items-start gap-2">
-                <dt className="w-20 shrink-0 font-bold text-ink">{mode === 'team' ? 'Team' : 'Nominee'}</dt>
-                <dd className="text-muted">
+                <dt className="w-16 shrink-0 font-bold text-ink">{mode === 'team' ? 'Team' : 'Nominee'}</dt>
+                <dd className="min-w-0 font-semibold text-[#0b6e68]">
                   {mode === 'team'
                     ? (reviewData.team ? reviewData.team.name : '—')
                     : (reviewData.nominee?.full_name ?? '—')}
                 </dd>
               </div>
               <div className="flex items-start gap-2">
-                <dt className="w-20 shrink-0 font-bold text-ink">Values</dt>
-                <dd className="text-muted">{values.map((v) => VALUE_LABELS[v]).join(', ') || '—'}</dd>
+                <dt className="w-16 shrink-0 font-bold text-ink">Values</dt>
+                <dd className="min-w-0 text-muted">
+                  {values.length > 0 ? (
+                    <span className="flex flex-wrap gap-1.5">
+                      {values.map((v) => (
+                        <span key={v} className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11.5px] font-bold text-brand">
+                          {VALUE_LABELS[v]}
+                        </span>
+                      ))}
+                    </span>
+                  ) : '—'}
+                </dd>
               </div>
             </dl>
+            <div className="mt-3 border-t border-line pt-2.5">
+              <p className="tnum flex items-center justify-between text-[12px] font-bold text-muted">
+                <span>Prize</span>
+                <span className="text-gold-ink">{reviewData.award?.prize_points.toLocaleString() ?? 0} pts</span>
+              </p>
+              <p className="tnum mt-1 flex items-center justify-between text-[12px] font-bold text-muted">
+                <span>Story length</span>
+                <span className={story.trim().length >= 30 ? 'text-[#0b6e68]' : 'text-amber-600'}>
+                  {story.trim().length} / 30 min
+                </span>
+              </p>
+            </div>
           </div>
 
           {sendError && (
@@ -388,9 +426,10 @@ export default function NominationCompose() {
               ← Back to editing
             </button>
           )}
-          <p className="text-[11.5px] leading-relaxed text-muted">
-            Submitting routes the nomination to the configured approvers (the nominator's manager chain). You'll track
-            the decision and any notes from the nominations list.
+          <p className="rounded-2xl border border-line bg-slate-50 px-4 py-3 text-[11.5px] leading-relaxed text-muted">
+            Submitting routes the nomination to the <strong className="font-bold text-ink">Department Head</strong> first,
+            then <strong className="font-bold text-ink">program admin final say</strong> (a substituted admin if either step
+            collides with you). Track decisions and notes from the nominations list.
           </p>
         </aside>
       </form>
