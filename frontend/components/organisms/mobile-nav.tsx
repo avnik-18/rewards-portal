@@ -28,6 +28,7 @@ type NavItem = (typeof NAV_LEADER)[number]
 
 const NAV_BY_PERSONA: Record<NonNullable<MeProfile['persona']>, readonly NavItem[]> = {
   employee: NAV_EMPLOYEE,
+  dh: NAV_LEADER,
   leader: NAV_LEADER,
   admin: NAV_ADMIN,
 }

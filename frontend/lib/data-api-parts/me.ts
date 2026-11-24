@@ -1,5 +1,4 @@
 import { apiFetch } from '../api-client'
-import { DASH_STATS } from '../mock-data'
 
 /** The signed-in person's profile — verbatim backend names (GET /me is
  *  actor-scoped: the header identity decides whose row resolves). */
@@ -9,8 +8,8 @@ export interface MeProfile {
   email: string | null
   role: string
   /** Feed/composer persona (fn_persona): admins and leaders may attach points;
-   *  plain employees send zero-point peer cheers. */
-  persona: 'admin' | 'leader' | 'employee'
+   *  plain employees send zero-point peer cheers. 'dh' is the Department Head. */
+  persona: 'admin' | 'dh' | 'leader' | 'employee'
   title: string | null
   department: string | null
 }
@@ -27,28 +26,32 @@ export async function getCompanyWallet(): Promise<number> {
   return body.total
 }
 
-/** The mock starting balance the signed-in user carries until the backend
- *  earns it for real — named so the façade carries no magic number. */
+/** Kept only for the profile screen, which stays on mock data until its
+ *  backend endpoints land — the balance the mock-era UI carries. */
 export const WELCOME_BONUS_POINTS = 1240
 
-/** Org-wide APPROVED-recognitions counter, served by the FastAPI backend
- *  (GET /recognitions/count). The remaining stats stay mock until their
- *  APIs exist — the page's all-or-nothing error state is honest about it. */
-async function fetchRecognitionsCount(): Promise<number> {
-  const body = await apiFetch<{ total: number }>('/recognitions/count')
-  return body.total
-}
-
-export async function getDashboardStats(): Promise<{
+export interface MeStats {
   balance: number
   given: number
   got: number
   orgRecognitions: number
-}> {
+}
+
+/** Dashboard tiles: the actor-scoped /me/stats figures alongside the
+ *  org-wide APPROVED-recognitions counter (GET /recognitions/count). */
+export async function getDashboardStats(): Promise<MeStats> {
+  const [stats, orgCount] = await Promise.all([
+    apiFetch<{
+      points_balance: number
+      recognitions_given: number
+      recognitions_received: number
+    }>('/me/stats'),
+    apiFetch<{ total: number }>('/recognitions/count'),
+  ])
   return {
-    balance: WELCOME_BONUS_POINTS,
-    given: DASH_STATS.given,
-    got: DASH_STATS.got,
-    orgRecognitions: await fetchRecognitionsCount(),
+    balance: stats.points_balance,
+    given: stats.recognitions_given,
+    got: stats.recognitions_received,
+    orgRecognitions: orgCount.total,
   }
 }

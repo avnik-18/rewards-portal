@@ -11,6 +11,9 @@ import ComposePage from './recognize/page'
 import ManagePage from './manage/page'
 import AwardsCyclePage from './awards-cycle/page'
 import UpcomingEventsPage from './upcoming-events/page'
+import NominationsPage from './nominations/page'
+import NominationCompose from './nominations/compose'
+import NominationDetailPage from './nominations/detail'
 import NotFound from './not-found'
 import { ErrorBoundary } from './load-ui'
 import NotProvisionedPage, { type NotProvisionedIdentity } from './not-provisioned/page'
@@ -26,6 +29,8 @@ const ROUTE_LABELS: Record<string, string> = {
   '/recognition-history': 'Recognition history',
   '/upcoming-events': 'Upcoming events',
   '/approvals': 'Approvals',
+  '/nominations': 'Award nominations',
+  '/nominations/new': 'Nominate for an award',
   '/profile': 'Profile',
   '/recognize': 'Recognize a teammate',
   '/login': 'Sign in',
@@ -142,6 +147,9 @@ export default function App() {
           />
           <Route path="/upcoming-events" element={<UpcomingEventsPage />} />
           <Route path="/approvals" element={<ApprovalsPage />} />
+          <Route path="/nominations" element={<NominationsPage />} />
+          <Route path="/nominations/new" element={<NominationCompose />} />
+          <Route path="/nominations/:id" element={<NominationDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/recognize" element={<ComposePage />} />
           <Route path="*" element={<NotFound />} />

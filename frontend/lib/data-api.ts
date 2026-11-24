@@ -3,7 +3,13 @@
 // each function becomes one fetch call (e.g. `${API_BASE}/leaderboard`) and
 // no component changes.
 
-export { getMe, getCompanyWallet, WELCOME_BONUS_POINTS, getDashboardStats, type MeProfile } from './data-api-parts/me'
+export {
+  getMe,
+  getCompanyWallet,
+  WELCOME_BONUS_POINTS,
+  getDashboardStats,
+  type MeProfile,
+} from './data-api-parts/me'
 export { getDemoUsers, type AuthUser } from './data-api-parts/auth-users'
 export { getHeroMedia, type HeroMedia } from './data-api-parts/hero'
 export {
@@ -18,7 +24,16 @@ export {
   type RecognitionTreeData,
   type TeamRow,
 } from './data-api-parts/directory'
-export { getApprovals, getNotifications, getFeedPosts, type FeedPost } from './data-api-parts/activity'
+export {
+  getApprovals,
+  getNotifications,
+  getFeedPosts,
+  getUnreadCount,
+  getUnreadFeed,
+  markAllNotificationsRead,
+  decideApproval,
+  type FeedPost,
+} from './data-api-parts/activity'
 export { getCelebrations, type Celebration } from './data-api-parts/celebrations'
 export { getAwardsCycle, type AwardsCycle } from './data-api-parts/showcase'
 export { getAwards, type AwardRow, type AwardGuideline, type AwardCadence } from './data-api-parts/awards'
@@ -51,4 +66,30 @@ export {
   type ValueKey,
   type ValueLived,
 } from './data-api-parts/lookups'
-export { sendRecognition, type RecognitionPayload, type CreatedRecognition } from './data-api-parts/recognitions'
+export { sendRecognition, SendRejected, type RecognitionPayload, type CreatedRecognition } from './data-api-parts/recognitions'
+export {
+  getOpenAwards,
+  getTeamChoices,
+  getDraftAwards,
+  releaseAward,
+  getMyNominations,
+  getManagedNominations,
+  getPendingEndorsements,
+  getNomination,
+  createNominationDraft,
+  updateNominationDraft,
+  discardNominationDraft,
+  submitNomination,
+  decideNomination,
+  type NominatedAward,
+  type TeamChoice,
+  type DraftAwardRow,
+  type NominationRow,
+  type NominationDetail,
+  type NominationStatus,
+  type PendingEndorsement,
+  type ApprovalHistoryEntry,
+  type AwardQuotaStatus,
+  type NomineeRow,
+} from './data-api-parts/nominations-data'
+export { ensureLookupsLive, registerLivePeople } from './data-api-parts/lookups'

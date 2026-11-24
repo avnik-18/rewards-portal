@@ -22,9 +22,14 @@ export interface TeamScreenProps {
   approvalsCount: number
   /** Recognition tree data for the overlay. */
   tree: RecognitionTreeData
+  /** Set when an award card said "Nominate Employee" — the roster rows
+   *  carry a nominate action for this award (My Team → member → compose). */
+  awardName?: string | null
+  /** Completes the award → My Team handoff: href for a member's nominate action. */
+  nominateHref?: (memberRosterId: string) => string
 }
 
-export default function TeamScreen({ rows, approvals, approvalsCount, tree }: TeamScreenProps) {
+export default function TeamScreen({ rows, approvals, approvalsCount, tree, awardName, nominateHref }: TeamScreenProps) {
   const navigate = useNavigate()
   const [tab, setTab] = useState<TeamTab>('team')
   const [teamFilter, setTeamFilter] = useState<'all' | 'humana' | 'dev'>('humana')
@@ -38,6 +43,7 @@ export default function TeamScreen({ rows, approvals, approvalsCount, tree }: Te
 
   const openProfile = (id: string) => navigate(`/profile?id=${id}`)
   const onPraise = (id: string) => navigate(`/recognize?to=${id}`)
+  const onNominate = nominateHref ? (id: string) => navigate(nominateHref(id)) : undefined
 
   const visibleRows = teamFilter === 'all' ? rows : rows.filter((row) => row.team === teamFilter)
   const quarterTotal = visibleRows.reduce((sum, row) => sum + row.given + row.received, 0)
@@ -95,6 +101,8 @@ export default function TeamScreen({ rows, approvals, approvalsCount, tree }: Te
             onOpenProfile={openProfile}
             onPraise={onPraise}
             onOpenInfo={setViewId}
+            onNominate={onNominate}
+            awardName={awardName ?? null}
           />
         </div>
       )}

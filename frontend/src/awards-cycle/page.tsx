@@ -163,7 +163,7 @@ export default function AwardsCyclePage() {
       {/* Filters row */}
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex flex-wrap gap-2">
-          {(['all'] as const).concat(presentKinds).map((k) => (
+          {(['all', ...presentKinds] as const).map((k) => (
             <button
               key={k}
               type="button"
@@ -299,8 +299,7 @@ export default function AwardsCyclePage() {
               </div>
 
               <Link
-                to="/recognize"
-                state={{ award: row.id }}
+                to={`/team?award=${row.id}`}
                 className={`group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-card transition ${
                   closing ? 'bg-[#0f7757] hover:bg-[#0b6e4f]' : 'bg-[#153B5A] hover:brightness-110'
                 }`}
@@ -382,8 +381,7 @@ export default function AwardsCyclePage() {
               </div>
             ))}
             <Link
-              to="/recognize"
-              state={{ award: guidelines.id }}
+              to={`/team?award=${guidelines.id}`}
               onClick={() => setGuidelines(null)}
               className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-[#153B5A] py-2.5 text-[13.5px] font-bold text-white transition hover:brightness-110"
             >

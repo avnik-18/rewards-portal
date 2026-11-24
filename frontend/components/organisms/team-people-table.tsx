@@ -1,4 +1,4 @@
-import { Eye, Send } from 'lucide-react'
+import { Eye, Send, Trophy } from 'lucide-react'
 import type { RefObject } from 'react'
 import { Avatar, Btn, Card, Chip } from '@/components/atoms'
 import { CORE_VALUES } from '@/lib/data-api'
@@ -22,6 +22,9 @@ interface TeamPeopleTableProps {
   onOpenProfile: (id: string) => void
   onPraise: (id: string) => void
   onOpenInfo: (id: string) => void
+  /** Award-nominating from the roster (present while an award is pending). */
+  onNominate?: (id: string) => void
+  awardName?: string | null
 }
 
 /** The team roster table — sticky head, scroll-synced rows per member. */
@@ -34,6 +37,8 @@ export default function TeamPeopleTable({
   onOpenProfile,
   onPraise,
   onOpenInfo,
+  onNominate,
+  awardName,
 }: TeamPeopleTableProps) {
   return (
     <Card className="p-0">
@@ -41,7 +46,7 @@ export default function TeamPeopleTable({
         ref={headRef}
         className="sticky top-16 z-10 rounded-t-2xl border-b border-line bg-slate-50/95 backdrop-blur-sm"
       >
-        <div className="grid min-w-[780px] grid-cols-[56px_minmax(230px,1.35fr)_minmax(200px,1fr)_170px_210px] items-center gap-4 px-5 py-3 text-[10.5px] font-extrabold font-mono uppercase tracking-[0.12em] text-muted">
+        <div className="grid min-w-[780px] grid-cols-[56px_minmax(230px,1.35fr)_minmax(200px,1fr)_170px_280px] items-center gap-4 px-5 py-3 text-[10.5px] font-extrabold font-mono uppercase tracking-[0.12em] text-muted">
           <span>S.no</span>
           <span>Name</span>
           <span>Designation</span>
@@ -56,7 +61,7 @@ export default function TeamPeopleTable({
             return (
               <div
                 key={row.id}
-                className={`grid grid-cols-[56px_minmax(230px,1.35fr)_minmax(200px,1fr)_170px_210px] items-center gap-4 border-b border-line px-5 py-3.5 transition hover:bg-brand-soft/25 ${index === visible.length - 1 ? 'rounded-b-2xl border-b-0' : ''}`}
+                className={`grid grid-cols-[56px_minmax(230px,1.35fr)_minmax(200px,1fr)_170px_280px] items-center gap-4 border-b border-line px-5 py-3.5 transition hover:bg-brand-soft/25 ${index === visible.length - 1 ? 'rounded-b-2xl border-b-0' : ''}`}
                 style={{ animation: `rise .35s ${index * 40}ms both` }}
               >
                 <span className="tnum text-[13px] font-extrabold text-muted">{String(index + 1).padStart(2, '0')}</span>
@@ -83,6 +88,17 @@ export default function TeamPeopleTable({
                   <Chip className={`${memberValue.soft} ${memberValue.ink}`}>{memberValue.label}</Chip>
                 </span>
                 <span className="flex items-center justify-center gap-2.5">
+                  {onNominate && (
+                    <Btn
+                      size="sm"
+                      variant="primary"
+                      className="!h-8 !px-3 bg-[#0f7757] hover:!bg-[#0b6e4f]"
+                      onClick={() => onNominate(row.id)}
+                      title={awardName ? `Nominate for ${awardName}` : 'Nominate'}
+                    >
+                      <Trophy size={12} /> Nominate
+                    </Btn>
+                  )}
                   <Btn size="sm" variant="primary" className="!h-8 !px-3" onClick={() => onPraise(row.id)}>
                     <Send size={12} /> Praise
                   </Btn>
