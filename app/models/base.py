@@ -44,6 +44,10 @@ cycle_phase = PgEnum(
     "draft", "nominations", "voting", "result", "closed", "cancelled",
     name="cycle_phase", create_type=False,
 )
+award_cadence = PgEnum(
+    "monthly", "quarterly", "annual",
+    name="award_cadence", create_type=False,
+)
 nomination_status = PgEnum(
     "submitted", "endorsed", "under_review", "returned", "result", "not_selected",
     name="nomination_status", create_type=False,

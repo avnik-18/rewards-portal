@@ -9,7 +9,7 @@ from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, SmallIntege
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, cycle_phase, nomination_status
+from app.models.base import Base, award_cadence, cycle_phase, nomination_status
 
 
 class Awards(Base):
@@ -19,6 +19,8 @@ class Awards(Base):
     period_id: Mapped[UUID] = mapped_column(ForeignKey("fiscal_period.id", ondelete="RESTRICT"))
     name: Mapped[str] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)
+    cadence: Mapped[str] = mapped_column(award_cadence, default="quarterly")
+    guidelines: Mapped[list[dict[str, object]] | None] = mapped_column(JSONB)
     value_id: Mapped[UUID | None] = mapped_column(ForeignKey("emids_values.id"))
     prize_points: Mapped[int] = mapped_column(Integer)
     max_nominations_per_nominator: Mapped[int] = mapped_column(Integer)

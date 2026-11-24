@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    awards,
     celebrations,
     demo_users,
     directory,
@@ -31,6 +32,8 @@ api_router.include_router(media.router)
 # Dashboard deliverables 4-6 — leaderboard, awards showcase, badge count
 api_router.include_router(leaderboard.router)
 api_router.include_router(showcase.router)
+# Admin-authored awards catalog — the /awards list behind the leader tab
+api_router.include_router(awards.router)
 api_router.include_router(notifications.router)
 # Bell panel list + mark-read (deliverable #6 depth)
 api_router.include_router(notifications_list.router)

@@ -257,23 +257,63 @@ WHERE rh.source_ref = 'leaderboard-demo-C-01'
   AND NOT EXISTS (
     SELECT 1 FROM recognition_recipients r WHERE r.recognition_id = rh.id);
 
--- ===== awards showcase demo: three live Q4 categories (7,500 pts in the
--- ===== pool, nominations closing for the quarter) =====
--- `awards` keys on (period_id, name) via UNIQUE, so re-running is safe. The
--- showcase slide composes from live_awards(): categories count + prize sum +
--- the nearest nominations_end, so the card lights up without extra state.
-INSERT INTO awards (period_id, name, description, value_id, prize_points, phase, nominations_end, voting_end)
-SELECT f.id, v.name, v.d, (SELECT id FROM emids_values WHERE key = v.ek),
-       2500, 'nominations'::cycle_phase,
-       (f.ends - INTERVAL '26 days')::date, (f.ends - INTERVAL '16 days')::date
-FROM fiscal_period f
-CROSS JOIN (VALUES
-  ('Employee of the Quarter — Ownership', 'Ships it, owns it end to end', 'ownership'),
-  ('Employee of the Quarter — Customer First', 'Puts the customer need first', 'customer_first'),
-  ('Employee of the Quarter — Team Spirit', 'Lifts the whole team', 'collaboration')
-) AS v(name, d, ek)
-WHERE now()::date BETWEEN f.starts AND f.ends
-ON CONFLICT (period_id, name) DO NOTHING;
+-- ===== awards catalog (admin-authored; /awards + /awards/showcase) =====
+-- `awards` keys on (period_id, name) via UNIQUE, so re-running is safe.
+-- The demo's stand-in for the admin authoring flow: cadence, quota and the
+-- Guidelines sections (eligibility / applicability) are all row data.
+-- Timelines are CURRENT_DATE-relative mocks so every re-run shows the same
+-- urgency states (Pat on the Back = the closing-soon rack item).
+-- demo's three original EoQ rows stay retired (cancelled) — historical rows.
+UPDATE awards SET phase = 'cancelled' WHERE name LIKE 'Employee of the Quarter%';
+
+-- the annual window the three squad awards run in
+INSERT INTO fiscal_period (id, name, starts, ends)
+VALUES ('11111111-1111-1111-1111-111111111102', 'FY27', '2027-01-01', '2027-12-31')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO awards (period_id, name, description, cadence, prize_points,
+                    max_nominations_per_nominator,
+                    requires_jury, phase, nominations_end, guidelines)
+VALUES
+  ((SELECT id FROM fiscal_period WHERE name = 'FY26 Q4'), 'Pat on the Back',
+   'A cheer for the teammate whose everyday work deserves applause — recognised fast, city by city.',
+   'quarterly'::award_cadence, 2500, 1, false, 'nominations'::cycle_phase,
+   (CURRENT_DATE + 4),
+   '[{"title":"Eligibility","lines":["All emidsians"]},
+     {"title":"Applicability","lines":["Delivery","Sales","Practices","CP groups","Corporate Function"]}]'::jsonb),
+  ((SELECT id FROM fiscal_period WHERE name = 'FY26 Q4'), 'Powerhouse Performer',
+   'For the engine room — consistent, relentless delivery from individual contributors up to Lead L2.',
+   'quarterly'::award_cadence, 2500, 1, false, 'nominations'::cycle_phase,
+   (CURRENT_DATE + 16),
+   '[{"title":"Eligibility","lines":["Up to Lead L2"]},
+     {"title":"Applicability","lines":["Delivery","Sales","Practices","CP groups","Corporate Function"]}]'::jsonb),
+  ((SELECT id FROM fiscal_period WHERE name = 'FY27'), 'Super Squad',
+   'Honoring teams of five or more that ship as one unit — the squad takes the podium together.',
+   'annual'::award_cadence, 10000, 8, false, 'nominations'::cycle_phase,
+   (CURRENT_DATE + 22),
+   '[{"title":"Eligibility","lines":["Teams with 5 or more team members"]},
+     {"title":"Applicability","lines":["Delivery","Sales","Practices","CP groups","Corporate Function"]}]'::jsonb),
+  ((SELECT id FROM fiscal_period WHERE name = 'FY27'), 'CEO Award',
+   'The CEO''s personal recognition for the team that best represents EMIDS''s values and outcomes.',
+   'annual'::award_cadence, 20000, 1, true, 'nominations'::cycle_phase,
+   (CURRENT_DATE + 120),
+   '[{"title":"Eligibility","lines":["Teams with 5 or more team members"]},
+     {"title":"Applicability","lines":["Delivery","Sales","Practices","CP groups","Corporate Function"]}]'::jsonb),
+  ((SELECT id FROM fiscal_period WHERE name = 'FY27'), 'Stellar Squad',
+   'Celebrating a squad that shone all year — measurable results, mentorship and team spirit.',
+   'annual'::award_cadence, 10000, 1, true, 'nominations'::cycle_phase,
+   (CURRENT_DATE + 60),
+   '[{"title":"Eligibility","lines":["Teams with 5 or more team members"]},
+     {"title":"Applicability","lines":["Delivery","Sales","Practices","CP groups","Corporate Function"]}]'::jsonb)
+ON CONFLICT (period_id, name) DO UPDATE
+  SET description = EXCLUDED.description,
+      cadence = EXCLUDED.cadence,
+      prize_points = EXCLUDED.prize_points,
+      max_nominations_per_nominator = EXCLUDED.max_nominations_per_nominator,
+      requires_jury = EXCLUDED.requires_jury,
+      phase = EXCLUDED.phase,
+      nominations_end = EXCLUDED.nominations_end,
+      guidelines = EXCLUDED.guidelines;
 
 -- ===== bell demo: the recipient's unread praise rows =====
 -- The live fn_notify copies each recipient's SHARE into payload->>'points';
