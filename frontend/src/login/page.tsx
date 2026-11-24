@@ -6,6 +6,15 @@ import { selectDemoUser } from '@/lib/demo-auth'
 import { usePageData } from '@/hooks/use-page-data'
 import { usePageTitle } from '@/hooks/use-page-title'
 
+// dropdown order mirrors the production flow: who releases, who approves,
+// who nominates, who watches
+const USER_GROUPS = [
+  { persona: 'admin', label: 'Admins' },
+  { persona: 'dh', label: 'Department Heads' },
+  { persona: 'leader', label: 'Leaders & Managers' },
+  { persona: 'employee', label: 'Employees' },
+] as const
+
 /**
  * Local sign-in: "Continue with Emids SSO" hands the browser to the Entra
  * authorization flow (the dedicated SSO backend on :8100, proxied through
@@ -20,6 +29,12 @@ export default function LoginPage() {
   const [retryN, setRetryN] = useState(0)
   const users = usePageData(getDemoUsers, [retryN])
   const [picked, setPicked] = useState('')
+
+  // the demo directory is grouped into the roles that matter for the live
+  // flow — admins run the cycle, the department head approves, leaders
+  // nominate their teams, everyone else just views
+  const usersByGroup = (persona: string) =>
+    (users.data ?? []).filter((u) => u.persona === persona)
 
   const signInAs = (employeeCode: string) => {
     selectDemoUser(employeeCode)
@@ -103,12 +118,19 @@ export default function LoginPage() {
               >
                 {/* picker anchor: choosing an option signs in immediately */}
                 <option value="">{users.isLoading ? 'Loading member directory…' : 'Select a person'}</option>
-                {users.data?.map((u) => (
-                  <option key={u.employee_code} value={u.employee_code}>
-                    {u.full_name}
-                    {u.title ? ` — ${u.title}` : ''}
-                  </option>
-                ))}
+                {USER_GROUPS.map(
+                  (group) =>
+                    usersByGroup(group.persona).length > 0 && (
+                      <optgroup key={group.label} label={group.label}>
+                        {usersByGroup(group.persona).map((u) => (
+                          <option key={u.employee_code} value={u.employee_code}>
+                            {u.full_name}
+                            {u.title ? ` — ${u.title}` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ),
+                )}
               </select>
               <ChevronDown
                 size={16}

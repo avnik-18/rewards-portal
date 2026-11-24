@@ -7,6 +7,7 @@ export interface AuthUser {
   full_name: string
   title: string | null
   department: string | null
+  persona?: string
 }
 
 export async function getDemoUsers(): Promise<AuthUser[]> {
