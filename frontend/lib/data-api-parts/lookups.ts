@@ -34,6 +34,13 @@ const STATIC_KEY_BY_NORM: Record<string, string> = Object.fromEntries(
 )
 
 export const CORE_VALUES = { ...STATIC_CORE_VALUES } as Record<ValueKey, CoreValue>
+
+// the three Excellence values (award nominations); green/blue/violet chips
+Object.assign(CORE_VALUES, {
+  impact_obsessed: { label: 'Impact Obsessed', ink: 'text-[#0b6e68]', soft: 'bg-[#e6f6f4]', solid: '#0f7757' },
+  trusted_guides: { label: 'Trusted Guides', ink: 'text-[#35506b]', soft: 'bg-[#eaf3fa]', solid: '#35506b' },
+  inclusive_innovators: { label: 'Inclusive Innovators', ink: 'text-[#0f6b60]', soft: 'bg-[#e2f3ec]', solid: '#0b6e68' },
+})
 export const VALUE_TEMPLATES = Object.fromEntries(
   Object.entries(STATIC_TEMPLATES).map(([key, templates]) => [
     key,

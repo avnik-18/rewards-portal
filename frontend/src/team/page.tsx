@@ -8,6 +8,7 @@ import {
   registerLivePeople,
   personDisplayName,
   type TeamRow,
+  type ValueKey,
 } from '@/lib/data-api'
 import { usePageData } from '@/hooks/use-page-data'
 import { usePageTitle } from '@/hooks/use-page-title'
@@ -40,7 +41,7 @@ export default function TeamPage() {
         given: 0,
         received: 0,
         lastRecognized: '',
-        valuesTop: (['ownership', 'innovation', 'collaboration', 'customerFirst', 'winningMindset'] as const)[index % 5],
+        valuesTop: (['impact_obsessed', 'trusted_guides', 'inclusive_innovators'] as unknown as Array<ValueKey>)[index % 3],
       }))
     }
     const award = awardId ? awards.find((a) => a.id === awardId) ?? null : null

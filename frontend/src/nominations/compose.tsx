@@ -184,7 +184,7 @@ export default function NominationCompose() {
 
       {awardParam && award && (
         /* the locked hand-off card: award → nominee, medallion + points */
-        <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-gold-soft bg-gold-soft/40 p-5 shadow-card">
+        <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-brand/25 bg-gradient-to-br from-[#e7f6f2] via-white to-[#eaf3fa] p-5 shadow-card">
           <span
             className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f5b324] to-[#c98a00] text-white shadow-card"
             aria-hidden
@@ -197,11 +197,13 @@ export default function NominationCompose() {
               <span className="text-muted">→</span>
               {nomineeName ?? (mode === 'team' ? reviewData.team?.name ?? '—' : '—')}
             </p>
-            <p className="tnum mt-0.5 text-[12.5px] font-semibold text-gold-ink">
-              {award.prize_points.toLocaleString()} pts to the winner · routed: DH first, program admin final say
+            <p className="tnum mt-0.5 flex flex-wrap items-center gap-x-2 text-[12.5px] font-semibold">
+              <span className="text-gold-ink">{award.prize_points.toLocaleString()} pts to the winner</span>
+              <span className="text-[#c9d3dc]">·</span>
+              <span className="text-[#35506b]">routed: Department Head first → program admin final say</span>
             </p>
           </div>
-          <span className="rounded-full bg-brand/10 px-3 py-1 text-[11.5px] font-extrabold text-brand">
+          <span className="rounded-full bg-[#153B5A] px-3 py-1 text-[11.5px] font-extrabold text-white shadow-card">
             Step 3 of 3 · the story
           </span>
         </div>
