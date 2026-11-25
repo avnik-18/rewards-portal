@@ -174,37 +174,39 @@ export default function NominationCompose() {
   const awardNameLocal = award ? award.name : ''
 
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-6 px-4 pt-1 pb-6 lg:px-8">
-      <div>
-        <Link to="/nominations" className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-muted hover:text-ink">
-          <ArrowLeft size={14} aria-hidden /> Award nominations
-        </Link>
-        <h1 className="mt-1 text-[22px] font-extrabold text-navy">Nominate for an award</h1>
-      </div>
+    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-7 px-4 pt-1 pb-6 lg:px-8">
+      <Link to="/nominations" className="inline-flex w-fit items-center gap-1.5 text-[12.5px] font-semibold text-muted hover:text-ink">
+        <ArrowLeft size={14} aria-hidden /> Award nominations
+      </Link>
 
       {awardParam && award && (
-        /* the locked hand-off card: award → nominee, medallion + points */
-        <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-brand/25 bg-gradient-to-br from-[#e7f6f2] via-white to-[#eaf3fa] p-5 shadow-card">
+        /* the medal plate — the page's one bold surface: award → nominee in
+           large type, gold only where it means a medal */
+        <div className="relative flex flex-wrap items-center gap-5 overflow-hidden rounded-2xl bg-[#0f2c42] px-7 py-6 shadow-card">
           <span
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#f5b324] to-[#c98a00] text-white shadow-card"
+            aria-hidden
+            className="absolute right-0 top-0 h-full w-1/3"
+            style={{ background: 'linear-gradient(100deg, rgba(15,44,66,0) 0%, rgba(245,179,36,0.10) 100%)' }}
+          />
+          <span
+            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#f7c85c] to-[#d99a00] text-[#5c3d00] shadow-card"
             aria-hidden
           >
-            <Award size={24} />
+            <Award size={26} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="flex flex-wrap items-center gap-2 text-[16px] font-extrabold text-navy">
+            <h1 className="text-[24px] font-extrabold tracking-tight text-white">
               {award.name}
-              <span className="text-muted">→</span>
-              {nomineeName ?? (mode === 'team' ? reviewData.team?.name ?? '—' : '—')}
-            </p>
-            <p className="tnum mt-0.5 flex flex-wrap items-center gap-x-2 text-[12.5px] font-semibold">
-              <span className="text-gold-ink">{award.prize_points.toLocaleString()} pts to the winner</span>
-              <span className="text-[#c9d3dc]">·</span>
-              <span className="text-[#35506b]">routed: Department Head first → program admin final say</span>
+              <span className="mx-2.5 font-medium text-[#7fa3ba]">→</span>
+              <span className="text-[#f7c85c]">{nomineeName ?? (mode === 'team' ? reviewData.team?.name ?? '—' : '—')}</span>
+            </h1>
+            <p className="tnum mt-2 text-[13px] leading-relaxed text-[#b7cddc]">
+              {award.prize_points.toLocaleString()} points ride with the winner. Your story goes to the department head
+              first, and the program admin has the last word.
             </p>
           </div>
-          <span className="rounded-full bg-[#153B5A] px-3 py-1 text-[11.5px] font-extrabold text-white shadow-card">
-            Step 3 of 3 · the story
+          <span className="rounded-full border border-[#2c4d66] px-3 py-1 text-[11.5px] font-bold text-[#cfe0ec]">
+            Step 3 of 3: the story
           </span>
         </div>
       )}
@@ -212,10 +214,16 @@ export default function NominationCompose() {
       <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="flex flex-col gap-6">
           {/* award + nominee are fixed by the My Team handoff — their pickers
-              only show on the standalone entry when nothing is pre-filled */}
-          {!awardParam && (
+              also fall back open whenever the linked award is not actually
+              in the open set (e.g. the card pointed at a draft award) */}
+          {awardParam && !award && (
+            <p className="rounded-2xl border border-[#f2c7c3] bg-[#fdefee] px-4 py-3 text-[13px] font-semibold text-[#b3261e]">
+              The award you came from is not open for nominations — pick an open one below.
+            </p>
+          )}
+          {(!awardParam || !award) && (
             <fieldset className="flex flex-col gap-2.5">
-              <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">1 · Award</legend>
+              <legend className="text-[14px] font-extrabold text-ink">Choose the award</legend>
               {openAwards.map((a) => (
                 <AwardTile
                   key={a.award_id}
@@ -237,9 +245,9 @@ export default function NominationCompose() {
             </fieldset>
           )}
 
-          {!awardParam && (
+          {(!awardParam || !award) && (
             <fieldset className="flex flex-col gap-2.5" disabled={!award}>
-              <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">2 · Who</legend>
+              <legend className="text-[14px] font-extrabold text-ink">Who are you nominating</legend>
               {award?.allow_team && (
                 <div className="flex gap-2">
                 {(['person', 'team'] as const).map((m) => (
@@ -298,20 +306,31 @@ export default function NominationCompose() {
           )}
 
           <fieldset className="flex flex-col gap-2.5" disabled={!award}>
-            <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">The story</legend>
+            <legend className="text-[14px] font-extrabold text-ink">The story</legend>
             <label className="flex flex-col gap-1.5">
-              <span className="text-[12.5px] font-bold text-ink">Justification <span className="font-medium text-muted">(min 30 chars)</span></span>
+              <span className="text-[13px] font-semibold text-ink">Why do they deserve it?</span>
               <textarea
-                rows={4}
+                rows={5}
                 value={story}
                 onChange={(e) => setStory(e.target.value)}
-                className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-[14px] text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                placeholder="What did they do, and what changed because of it?"
+                className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-[14px] leading-relaxed text-ink placeholder:text-[#9db3c4] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
               />
-              <span className="tnum text-[11.5px] text-muted">{story.trim().length}/30 min</span>
+              <span
+                aria-hidden
+                className="h-1 w-full overflow-hidden rounded-full bg-[#e9eef4]"
+              >
+                <span
+                  className={`block h-full transition-all ${story.trim().length >= 30 ? 'bg-[#0f7757]' : 'bg-[#f5b324]'}`}
+                  style={{ width: `${Math.min(100, (story.trim().length / 30) * 100)}%` }}
+                />
+              </span>
             </label>
 
             <div className="flex flex-col gap-1.5">
-              <span className="text-[12.5px] font-bold text-ink">Core values <span className="font-medium text-muted">(up to 5)</span></span>
+              <span className="text-[13px] font-semibold text-ink">
+                Core values{values.length > 0 ? ` — ${5 - values.length} of 5 left` : ''}
+              </span>
               <div className="flex flex-wrap gap-2">
                 {VALUE_KEYS.map((key) => (
                   <button
@@ -330,17 +349,18 @@ export default function NominationCompose() {
             </div>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-[12.5px] font-bold text-ink">Achievements & impact <span className="font-medium text-muted">(optional)</span></span>
+              <span className="text-[13px] font-semibold text-ink">Achievements and impact <span className="font-medium text-muted">— optional</span></span>
               <textarea
                 rows={3}
                 value={achievements}
                 onChange={(e) => setAchievements(e.target.value)}
-                className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-[14px] text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                placeholder="Numbers, saves, deadlines met — the receipts behind the story"
+                className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-[14px] text-ink placeholder:text-[#9db3c4] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
               />
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-[12.5px] font-bold text-ink">Supporting document link <span className="font-medium text-muted">(optional)</span></span>
+              <span className="text-[13px] font-semibold text-ink">Supporting document <span className="font-medium text-muted">— optional link</span></span>
               <input
                 type="url"
                 value={docUrl}
@@ -352,49 +372,72 @@ export default function NominationCompose() {
           </fieldset>
         </div>
 
-        {/* Summary / review column */}
+        {/* The citation preview — what the department head will read */}
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-line bg-white p-5 shadow-card">
-            <h2 className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">Summary</h2>
-            <dl className="mt-3 flex flex-col gap-2.5 text-[13px]">
-              <div className="flex items-start gap-2">
-                <dt className="w-16 shrink-0 font-bold text-ink">Award</dt>
-                <dd className="min-w-0 font-semibold text-[#0b6e68]">{reviewData.award?.name ?? '—'}</dd>
-              </div>
-              <div className="flex items-start gap-2">
-                <dt className="w-16 shrink-0 font-bold text-ink">{mode === 'team' ? 'Team' : 'Nominee'}</dt>
-                <dd className="min-w-0 font-semibold text-[#0b6e68]">
+          <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-card">
+            <span aria-hidden className="block h-1.5 w-full bg-gradient-to-r from-[#f5b324] via-[#f7c85c] to-[#d99a00]" />
+            <div className="p-5">
+              <p className="text-[12px] font-semibold text-muted">
+                {review ? 'This is what the department head will read.' : 'As it will read when submitted.'}
+              </p>
+
+              <p className="mt-3 text-[17px] font-extrabold leading-snug text-navy">
+                {reviewData.award ? reviewData.award.name : <span className="text-[#9db3c4]">Choose an award</span>}
+              </p>
+              {reviewData.nominee || reviewData.team ? (
+                <p className="mt-1 text-[14px] font-bold text-[#0b6e68]">
                   {mode === 'team'
-                    ? (reviewData.team ? reviewData.team.name : '—')
-                    : (reviewData.nominee?.full_name ?? '—')}
-                </dd>
-              </div>
-              <div className="flex items-start gap-2">
-                <dt className="w-16 shrink-0 font-bold text-ink">Values</dt>
-                <dd className="min-w-0 text-muted">
-                  {values.length > 0 ? (
-                    <span className="flex flex-wrap gap-1.5">
-                      {values.map((v) => (
-                        <span key={v} className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11.5px] font-bold text-brand">
-                          {VALUE_LABELS[v]}
-                        </span>
-                      ))}
+                    ? `${reviewData.team?.name} — ${reviewData.team?.member_count} people`
+                    : reviewData.nominee?.full_name}
+                </p>
+              ) : (
+                <p className="mt-1 text-[14px] text-[#9db3c4]">No one picked yet</p>
+              )}
+
+              {values.length > 0 && (
+                <span className="mt-2.5 flex flex-wrap gap-1.5">
+                  {values.map((v) => (
+                    <span key={v} className="rounded-full bg-brand-soft px-2.5 py-0.5 text-[11.5px] font-bold text-brand">
+                      {VALUE_LABELS[v]}
                     </span>
-                  ) : '—'}
-                </dd>
-              </div>
-            </dl>
-            <div className="mt-3 border-t border-line pt-2.5">
-              <p className="tnum flex items-center justify-between text-[12px] font-bold text-muted">
-                <span>Prize</span>
-                <span className="text-gold-ink">{reviewData.award?.prize_points.toLocaleString() ?? 0} pts</span>
-              </p>
-              <p className="tnum mt-1 flex items-center justify-between text-[12px] font-bold text-muted">
-                <span>Story length</span>
-                <span className={story.trim().length >= 30 ? 'text-[#0b6e68]' : 'text-amber-600'}>
-                  {story.trim().length} / 30 min
+                  ))}
                 </span>
+              )}
+
+              <p className="mt-3 min-h-[84px] rounded-xl border border-line bg-[#f8fafc] px-3.5 py-3 text-[13px] leading-relaxed text-ink">
+                {reviewData.story || <span className="text-[#9db3c4]">Your story shows up here as you type…</span>}
               </p>
+              {reviewData.achievements && (
+                <p className="tnum mt-2 text-[12px] leading-relaxed text-muted">
+                  Achievements: {reviewData.achievements}
+                </p>
+              )}
+              {reviewData.docUrl && (
+                <p className="tnum mt-1 truncate text-[12px] text-[#35506b]">
+                  Attached: {reviewData.docUrl}
+                </p>
+              )}
+
+              <div className="mt-3.5 border-t border-line pt-3">
+                <p className="tnum flex items-center justify-between text-[12.5px] font-bold text-muted">
+                  <span>Prize</span>
+                  <span className="text-gold-ink">
+                    {reviewData.award ? `${reviewData.award.prize_points.toLocaleString()} pts` : '—'}
+                  </span>
+                </p>
+                <p className="tnum mt-1.5 flex items-center gap-2 text-[12px] font-semibold text-muted">
+                  <span className="h-1 flex-1 overflow-hidden rounded-full bg-[#e9eef4]">
+                    <span
+                      aria-hidden
+                      className={`block h-full transition-all ${story.trim().length >= 30 ? 'bg-[#0f7757]' : 'bg-[#f5b324]'}`}
+                      style={{ width: `${Math.min(100, (story.trim().length / 30) * 100)}%` }}
+                    />
+                  </span>
+                  <span className={story.trim().length >= 30 ? 'tnum text-[#0b6e68]' : 'tnum text-amber-600'}>
+                    {story.trim().length}/30
+                  </span>
+                </p>
+              </div>
             </div>
           </div>
 
@@ -404,7 +447,7 @@ export default function NominationCompose() {
             </div>
           )}
           {problems.length > 0 && !sendError && (
-            <ul className="rounded-2xl border border-line bg-amber-50 px-4 py-3 text-[12.5px] text-amber-800">
+            <ul className="rounded-2xl border border-line bg-[#fdf6e7] px-4 py-3 text-[12.5px] text-[#7a5900]">
               {problems.map((p) => <li key={p}>{p}</li>)}
             </ul>
           )}
@@ -417,7 +460,7 @@ export default function NominationCompose() {
             {sendState === 'sending'
               ? <Loader2 size={16} className="animate-spin" aria-hidden />
               : <Award size={16} aria-hidden />}
-            {review ? 'Confirm and submit' : 'Review nomination'}
+            {review ? 'Submit nomination' : 'Review nomination'}
           </button>
           {review && (
             <button
@@ -425,13 +468,12 @@ export default function NominationCompose() {
               onClick={() => setReview(false)}
               className="text-[12.5px] font-semibold text-muted hover:text-ink"
             >
-              ← Back to editing
+              Not quite — back to editing
             </button>
           )}
-          <p className="rounded-2xl border border-line bg-slate-50 px-4 py-3 text-[11.5px] leading-relaxed text-muted">
-            Submitting routes the nomination to the <strong className="font-bold text-ink">Department Head</strong> first,
-            then <strong className="font-bold text-ink">program admin final say</strong> (a substituted admin if either step
-            collides with you). Track decisions and notes from the nominations list.
+          <p className="text-[11.5px] leading-relaxed text-muted">
+            The Department Head decides first, and the program admin has the last word (a substituted admin steps in if
+            either collides with you). Decisions and notes appear on your nominations list.
           </p>
         </aside>
       </form>
