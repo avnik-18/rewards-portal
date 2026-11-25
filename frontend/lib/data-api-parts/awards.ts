@@ -15,6 +15,9 @@ export interface AwardRow {
   name: string
   description: string | null
   cadence: AwardCadence
+  /** lifecycle of the row: 'draft' until the admin releases it
+   *  (undefined on older API responses — treated as open) */
+  phase?: string
   period_name: string
   period_start: string
   period_end: string

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { ArrowRight, CalendarDays, ChevronDown, Clock, FileText, Filter, Search, X } from 'lucide-react'
-import { getMe, getAwards, type AwardRow, type AwardCadence } from '@/lib/data-api'
+import { getMe, getAwards, releaseAward, type AwardRow, type AwardCadence } from '@/lib/data-api'
 import { usePageData } from '@/hooks/use-page-data'
 import { usePageTitle } from '@/hooks/use-page-title'
 import { AwardMedallion } from '@/components/organisms/awards-illustrations'
@@ -64,6 +64,17 @@ export default function AwardsCyclePage() {
   // The tab only exists for leaders and admins; deep links from elsewhere bounce.
   if (me.data && me.data.persona === 'employee') return <Navigate to="/" replace />
   if (!me.data || !awards.data) return null
+
+  /** admin-only release — the catalog re-reads by remounting the page hook
+   *  (the backend flips phase and the card swaps to the pocket with a CTA). */
+  const release = async (awardId: string) => {
+    try {
+      await releaseAward(awardId)
+      window.location.reload()
+    } catch {
+      // the service raises on repeated releases — the card just stays
+    }
+  }
 
   const rows = [...awards.data].sort((a, b) => deadlineDays(a) - deadlineDays(b))
   const presentKinds = (['monthly', 'quarterly', 'annual'] as const).filter(
@@ -238,6 +249,9 @@ export default function AwardsCyclePage() {
         {visible.map((row) => {
           const left = deadlineDays(row)
           const closing = left >= 0 && left <= 7
+          // drafts ride the catalog for visibility but accept neither the
+          // CTA nor release until the admin releases the cycle for them
+          const isOpen = row.phase === undefined || row.phase !== 'draft'
           return (
             <div
               key={row.id}
@@ -298,15 +312,29 @@ export default function AwardsCyclePage() {
                 )}
               </div>
 
-              <Link
-                to={`/team?award=${row.id}`}
-                className={`group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-card transition ${
-                  closing ? 'bg-[#0f7757] hover:bg-[#0b6e4f]' : 'bg-[#153B5A] hover:brightness-110'
-                }`}
-              >
-                Nominate Employee
-                <ArrowRight size={14} aria-hidden className="transition group-hover:translate-x-0.5" />
-              </Link>
+              {isOpen ? (
+                <Link
+                  to={`/team?award=${row.id}`}
+                  className={`group inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-[13px] font-bold text-white shadow-card transition ${
+                    closing ? 'bg-[#0f7757] hover:bg-[#0b6e4f]' : 'bg-[#153B5A] hover:brightness-110'
+                  }`}
+                >
+                  Nominate Employee
+                  <ArrowRight size={14} aria-hidden className="transition group-hover:translate-x-0.5" />
+                </Link>
+              ) : me.data?.persona === 'admin' ? (
+                <button
+                  type="button"
+                  onClick={() => void release(row.id)}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[#0f6b60] px-4 py-2.5 text-[13px] font-bold text-white shadow-card transition hover:bg-[#0b584f]"
+                >
+                  Release for nominations
+                </button>
+              ) : (
+                <span className="inline-flex items-center justify-center whitespace-nowrap rounded-xl border border-[#e3ebf2] bg-white px-4 py-2.5 text-[12.5px] font-bold text-[#55697d]">
+                  Not open yet
+                </span>
+              )}
             </div>
           )
         })}
@@ -380,14 +408,16 @@ export default function AwardsCyclePage() {
                 </ul>
               </div>
             ))}
-            <Link
-              to={`/team?award=${guidelines.id}`}
-              onClick={() => setGuidelines(null)}
-              className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-[#153B5A] py-2.5 text-[13.5px] font-bold text-white transition hover:brightness-110"
-            >
-              Nominate Employee
-              <ArrowRight size={15} aria-hidden />
-            </Link>
+            {(guidelines.phase === undefined || guidelines.phase !== 'draft') && (
+              <Link
+                to={`/team?award=${guidelines.id}`}
+                onClick={() => setGuidelines(null)}
+                className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-[#153B5A] py-2.5 text-[13.5px] font-bold text-white transition hover:brightness-110"
+              >
+                Nominate Employee
+                <ArrowRight size={15} aria-hidden />
+              </Link>
+            )}
           </div>
         </div>
       )}
