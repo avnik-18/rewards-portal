@@ -58,11 +58,11 @@ function AwardTile({ award, picked, onPick }: { award: NominatedAward; picked: b
       onClick={onPick}
       aria-pressed={picked}
       className={`w-full rounded-2xl border p-4 text-left transition ${
-        picked ? 'border-brand bg-brand-soft/40 ring-2 ring-brand/30' : 'border-line bg-white hover:border-gold-soft'
+        picked ? 'border-[#0f6b60] bg-[#edf8f1] ring-2 ring-[#0e9384]/25' : 'border-[#e3ebf2] bg-white hover:border-[#0e9384]'
       }`}
     >
       <span className="flex items-center gap-2">
-        {picked && <Check size={15} aria-hidden className="text-brand" />}
+        {picked && <Check size={15} aria-hidden className="text-[#0f6b60]" />}
         <span className="text-[14.5px] font-bold text-ink">{award.name}</span>
         <span className="tnum ml-auto text-[12px] font-black text-gold-ink">{award.prize_points.toLocaleString()} pts</span>
       </span>
@@ -175,11 +175,35 @@ export default function NominationCompose() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-6 px-4 pt-1 pb-6 lg:px-8">
-      <div>
-        <Link to="/nominations" className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-muted hover:text-ink">
-          <ArrowLeft size={14} aria-hidden /> Award nominations
-        </Link>
-        <h1 className="mt-1 text-[22px] font-extrabold text-navy">Nominate for an award</h1>
+      {/* Photo ribbon header — same band + scrim language as Award cycle */}
+      <div className="relative flex min-h-[148px] flex-col justify-center overflow-hidden rounded-2xl px-7 py-5 text-white shadow-card">
+        <img
+          src="/awards-hero-band.png"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: '65% 50%' }}
+          draggable={false}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(92deg, rgba(9,34,42,0.62) 0%, rgba(9,34,42,0.34) 42%, rgba(9,34,42,0) 72%)',
+          }}
+        />
+        <div className="relative">
+          <Link to="/nominations" className="inline-flex items-center gap-1.5 text-[12px] font-bold text-white/85 hover:text-white">
+            <ArrowLeft size={14} aria-hidden /> Award nominations
+          </Link>
+          <h1 className="mt-0.5 text-[26px] font-extrabold tracking-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+            Nominate for an award
+          </h1>
+          <p className="mt-1 max-w-[560px] text-[13.5px] leading-relaxed text-white/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+            Lock the pick, tell the story — it routes to the department head first, then the program admin.
+          </p>
+        </div>
       </div>
 
       {awardParam && award && (
@@ -215,7 +239,7 @@ export default function NominationCompose() {
               only show on the standalone entry when nothing is pre-filled */}
           {!awardParam && (
             <fieldset className="flex flex-col gap-2.5">
-              <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">1 · Award</legend>
+              <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted"><span aria-hidden>🏆</span> Award</legend>
               {openAwards.map((a) => (
                 <AwardTile
                   key={a.award_id}
@@ -239,7 +263,7 @@ export default function NominationCompose() {
 
           {!awardParam && (
             <fieldset className="flex flex-col gap-2.5" disabled={!award}>
-              <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">2 · Who</legend>
+              <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted"><span aria-hidden>👥</span> Who</legend>
               {award?.allow_team && (
                 <div className="flex gap-2">
                 {(['person', 'team'] as const).map((m) => (
@@ -249,7 +273,7 @@ export default function NominationCompose() {
                     onClick={() => { setMode(m); setNomineeId(''); setTeamId('') }}
                     aria-pressed={mode === m}
                     className={`rounded-xl px-3.5 py-2 text-[13px] font-bold transition ${
-                      mode === m ? 'bg-brand text-white' : 'border border-line bg-white text-ink hover:border-gold-soft'
+                      mode === m ? 'bg-[#0f6b60] text-white' : 'border border-[#e3ebf2] bg-white text-[#35506b] hover:border-[#0e9384]'
                     }`}
                   >
                     {m === 'person' ? 'A person' : 'A team'}
@@ -264,7 +288,7 @@ export default function NominationCompose() {
                 <select
                   value={nomineeId}
                   onChange={(e) => setNomineeId(e.target.value)}
-                  className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-[14px] font-semibold text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                  className="rounded-xl border border-[#e3ebf2] bg-white px-3.5 py-2.5 text-[14px] font-semibold text-[#16324f] transition focus:border-[#0e9384] focus:outline-none focus:ring-2 focus:ring-[#0e9384]/30"
                 >
                   <option value="">Select a person</option>
                   {peopleRows.map((p) => (
@@ -280,7 +304,7 @@ export default function NominationCompose() {
                 <select
                   value={teamId}
                   onChange={(e) => setTeamId(e.target.value)}
-                  className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-[14px] font-semibold text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                  className="rounded-xl border border-[#e3ebf2] bg-white px-3.5 py-2.5 text-[14px] font-semibold text-[#16324f] transition focus:border-[#0e9384] focus:outline-none focus:ring-2 focus:ring-[#0e9384]/30"
                 >
                   <option value="">Select a team</option>
                   {(teams.data ?? []).map((t) => (
@@ -298,14 +322,14 @@ export default function NominationCompose() {
           )}
 
           <fieldset className="flex flex-col gap-2.5" disabled={!award}>
-            <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted">The story</legend>
+            <legend className="text-[13px] font-bold uppercase tracking-[0.14em] text-muted"><span aria-hidden>✍️</span> The story</legend>
             <label className="flex flex-col gap-1.5">
               <span className="text-[12.5px] font-bold text-ink">Justification <span className="font-medium text-muted">(min 30 chars)</span></span>
               <textarea
                 rows={4}
                 value={story}
                 onChange={(e) => setStory(e.target.value)}
-                className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-[14px] text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                className="rounded-xl border border-[#e3ebf2] bg-white px-3.5 py-2.5 text-[14px] font-medium text-[#16324f] transition focus:border-[#0e9384] focus:outline-none focus:ring-2 focus:ring-[#0e9384]/30"
               />
               <span className="tnum text-[11.5px] text-muted">{story.trim().length}/30 min</span>
             </label>
@@ -320,7 +344,7 @@ export default function NominationCompose() {
                     onClick={() => toggleValue(key)}
                     aria-pressed={values.includes(key)}
                     className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition ${
-                      values.includes(key) ? 'bg-brand text-white' : 'border border-line bg-white text-ink hover:border-gold-soft'
+                      values.includes(key) ? 'bg-[#0f6b60] text-white' : 'border border-[#e3ebf2] bg-white text-[#35506b] hover:border-[#0e9384]'
                     }`}
                   >
                     {VALUE_LABELS[key]}
@@ -335,7 +359,7 @@ export default function NominationCompose() {
                 rows={3}
                 value={achievements}
                 onChange={(e) => setAchievements(e.target.value)}
-                className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-[14px] text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                className="rounded-xl border border-[#e3ebf2] bg-white px-3.5 py-2.5 text-[14px] font-medium text-[#16324f] transition focus:border-[#0e9384] focus:outline-none focus:ring-2 focus:ring-[#0e9384]/30"
               />
             </label>
 
@@ -346,7 +370,7 @@ export default function NominationCompose() {
                 value={docUrl}
                 onChange={(e) => setDocUrl(e.target.value)}
                 placeholder="https://…"
-                className="rounded-xl border border-line bg-white px-3.5 py-2.5 text-[14px] text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                className="rounded-xl border border-[#e3ebf2] bg-white px-3.5 py-2.5 text-[14px] font-medium text-[#16324f] transition focus:border-[#0e9384] focus:outline-none focus:ring-2 focus:ring-[#0e9384]/30"
               />
             </label>
           </fieldset>
@@ -404,15 +428,19 @@ export default function NominationCompose() {
             </div>
           )}
           {problems.length > 0 && !sendError && (
-            <ul className="rounded-2xl border border-line bg-amber-50 px-4 py-3 text-[12.5px] text-amber-800">
+            <ul className="rounded-2xl border border-[#f2c7c3] bg-[#fdefee] px-4 py-3 text-[12.5px] font-semibold text-[#b3261e]">
               {problems.map((p) => <li key={p}>{p}</li>)}
             </ul>
+          )}
+          {problems.length === 0 && !sendError && (
+            <div className="rounded-2xl border border-[#d5ece1] bg-[#edf8f1] px-4 py-3 text-[12.5px] font-bold text-[#0b6e68]">
+              Everything is set — ready to review.</div>
           )}
 
           <button
             type="submit"
             disabled={sendState === 'sending' || problems.length > 0}
-            className="flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-[14px] font-bold text-white shadow-card transition hover:bg-brand-deep disabled:opacity-50"
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#0f6b60] px-5 py-3 text-[14px] font-bold text-white shadow-card transition hover:bg-[#0b584f] disabled:opacity-50"
           >
             {sendState === 'sending'
               ? <Loader2 size={16} className="animate-spin" aria-hidden />
@@ -428,9 +456,9 @@ export default function NominationCompose() {
               ← Back to editing
             </button>
           )}
-          <p className="rounded-2xl border border-line bg-slate-50 px-4 py-3 text-[11.5px] leading-relaxed text-muted">
-            Submitting routes the nomination to the <strong className="font-bold text-ink">Department Head</strong> first,
-            then <strong className="font-bold text-ink">program admin final say</strong> (a substituted admin if either step
+          <p className="rounded-2xl border border-[#d5ece1] bg-[#edf8f1] px-4 py-3 text-[11.5px] leading-relaxed text-[#3e5a70]">
+            Submitting routes the nomination to the <strong className="font-bold text-[#0b2a4a]">Department Head</strong> first,
+            then <strong className="font-bold text-[#0b2a4a]">program admin final say</strong> (a substituted admin if either step
             collides with you). Track decisions and notes from the nominations list.
           </p>
         </aside>
