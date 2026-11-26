@@ -87,14 +87,13 @@ def test_recognitions_count_flow() -> None:
                 db_exec("UPDATE recognition_history SET status = 'approved' "
                         "WHERE id = :probe", {"probe": discriminating})
 
-        # 3) delta: one auto-band submission moves the total by exactly +1
-        # (points 5 = the cheapest auto-band send: a repeated run on a
-        # partially-consumed seeded allowance still succeeds)
+        # 3) delta: one zero-point peer-cheer submission (0030: Recognize is
+        # a points-free send) moves the total by exactly +1
         giver, recipient = "E-PR", "E-BR"
         recipient_id = db_exec(f"SELECT id FROM users WHERE employee_code='{recipient}'")
         r = client.post("/api/v1/recognitions", headers={"X-Demo-User": giver}, json={
-            "to_user_ids": [recipient_id], "points": 5,
-            "message": "recognitions-count delta fixture — auto band"})
+            "to_user_ids": [recipient_id],
+            "message": "recognitions-count delta fixture — peer cheer"})
         assert r.status_code == 200, r.text
         r = client.get("/api/v1/recognitions/count", headers={"X-Demo-User": "E-PR"})
         assert r.json()["total"] == truth + 1

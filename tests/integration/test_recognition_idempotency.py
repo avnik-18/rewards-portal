@@ -37,11 +37,11 @@ def test_retry_with_same_key_replays_original() -> None:
     key = "11111111-2222-3333-4444-555555555555"
 
     with TestClient(create_app()) as client:
-        # deterministic allowance for both actors
-        db_exec("UPDATE to_recog_points SET balance = allocated")
+        # 0030: Recognize is a zero-point peer cheer — the replay contract
+        # still dedupes by Idempotency-Key; balances never move
         first_key = key
-        body = {"to_user_ids": [recipient_id], "points": 30,
-                "message": "idempotency fixture — auto band"}
+        body = {"to_user_ids": [recipient_id],
+                "message": "idempotency fixture — zero-point cheer"}
 
         r1 = client.post("/api/v1/recognitions", headers={
             "X-Demo-User": "E-PR", "Idempotency-Key": first_key,

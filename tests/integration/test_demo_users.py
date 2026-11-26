@@ -47,8 +47,11 @@ def test_demo_users_local_listing() -> None:
         assert len(items) == truth, "one item per seeded user, no padding"
 
         for item in items:
+            # the login demo carousel also carries fn_persona + role to tag
+            # the chips (persona badge / role dot); one item per seeded user
             assert set(item.keys()) == {
-                "employee_code", "full_name", "title", "department"}
+                "employee_code", "full_name", "title", "department",
+                "persona", "role"}
             # db_exec returns "name|title|department" shaped truth via a
             # single-column trick-free join: compare column by column with
             # separate scalar reads (params bound, never interpolated)

@@ -1,6 +1,6 @@
 """Leaderboard service rules — repository stubbed; no DB needed.
 
-The SQL-side invariants (pending excluded, ledger-only credits excluded,
+The SQL-side invariants (award-only kind='award' scoring, approved-only,
 rank() over ties with the name tiebreaker, TEAM-scoped candidate pool) are
 enforced by the query itself in LeaderboardRepository; these unit tests pin
 the service contracts the SQL can not: the actor pass-through (the team pool

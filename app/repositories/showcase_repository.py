@@ -1,12 +1,14 @@
 """Repository for the awards showcase — SQL only, never HTTP errors.
 
-The "live cycle" definition lives in the WHERE clause and binds the phase on
-BOTH branches: an award is part of the running collection only while its
-phase is `nominations`/`voting` (end date still present or still in the
-future), or `draft` with a future nominations end. A past/cancelled award
-with a stale future end date can never leak back in, and neither can a draft
-with a pre-set date unless it is still ahead of today. Closed/cancelled
-awards never appear.
+The "live cycle" definition lives in the WHERE clause and stays IDENTICAL to
+fn_awards_tile's predicate (0033, no voting): an award is part of the running
+collection only while its phase is `nominations` with an open-or-unbounded
+window (close still future, and for the cross-bound predicate an open date
+already passed or unset), or `draft` with a future nominations end. The read
+ticks fn_awards_auto_phase() FIRST so a draft whose window opens is live
+immediately; a past/cancelled award with a stale future end date can never
+leak back in, and neither can a draft with a pre-set date unless it is still
+ahead of today. Closed/cancelled awards never appear.
 """
 
 from typing import Any
@@ -23,14 +25,16 @@ class ShowcaseRepository:
         self._session = session
 
     async def live_awards(self) -> list[dict[str, Any]]:
-        """Rows of every award in the live collection with its close date."""
+        """Rows of every award in the live collection with its close date —
+        predicate cross-bound to fn_awards_tile (0033)."""
+        await self._session.execute(text("SELECT fn_awards_auto_phase()"))
         result = await self._session.execute(
             text(
                 "SELECT a.id, a.name, a.nominations_end, a.prize_points "
                 "FROM awards a "
-                "WHERE (a.phase IN ('nominations', 'voting') "
-                "         AND (a.nominations_end IS NULL OR a.nominations_end >= CURRENT_DATE)) "
-                "   OR (a.phase = 'draft' AND a.nominations_end >= CURRENT_DATE)"
+                "WHERE a.phase = 'nominations' "
+                "   AND (a.nominations_start IS NULL OR a.nominations_start <= CURRENT_DATE) "
+                "   AND (a.nominations_end IS NULL OR a.nominations_end >= CURRENT_DATE)"
             ),
         )
         return [

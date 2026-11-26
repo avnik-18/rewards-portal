@@ -91,24 +91,15 @@ _SQL = text(
         FROM people s
         {_CANDIDATE.format(base="s.joined_on", tag="A")}
         WHERE s.joined_on IS NOT NULL
-    ),
-    org_event AS (
-        -- Org-wide events admins post (festivals, town halls): no person,
-        -- the title IS the line, detail carries the description. The CTE
-        -- must not share the table's name under WITH RECURSIVE.
-        SELECT NULL::text AS employee_code, e.title AS full_name,
-               'event'::text AS kind, e.event_at,
-               (e.event_at - CURRENT_DATE) AS days_until, e.detail
-        FROM admin_event e
-        WHERE e.event_at >= CURRENT_DATE
     )
+    -- PERSONAL milestones ONLY: birthdays + work anniversaries. The admin-posted
+    -- org events (festivals / town halls) are retired from this read; the
+    -- admin_event table stays for whatever the next content lane needs.
     SELECT employee_code, full_name, kind, event_at, days_until, detail
     FROM (
         SELECT employee_code, full_name, kind, event_at, days_until, detail FROM birthday
         UNION ALL
         SELECT employee_code, full_name, kind, event_at, days_until, detail FROM anniversary
-        UNION ALL
-        SELECT employee_code, full_name, kind, event_at, days_until, detail FROM org_event
     ) ev
     WHERE ev.days_until >= 0 AND ev.days_until <= :window_days
     ORDER BY ev.days_until, ev.full_name

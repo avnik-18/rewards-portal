@@ -6,7 +6,7 @@ actor-resolution rule, one place. The actor is excluded from the results so
 nobody recognizes themselves from the picker.
 """
 
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.actor import get_actor_id
 from app.db.session import get_session
 from app.repositories.directory_repository import DirectoryRepository
+from app.repositories.team_directory_repository import TeamDirectoryRepository
 from app.schemas.directory import PersonRowResponse
 from app.services.directory_service import DirectoryService
 
@@ -34,3 +35,14 @@ async def people(
 ) -> list[PersonRowResponse]:
     rows = await service.list_people(actor_id=actor_id, limit=limit, search=search)
     return [PersonRowResponse(**row) for row in rows]
+
+
+@router.get("/teams/directory")
+async def team_directory(
+    actor_id: Annotated[UUID, Depends(get_actor_id)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> list[dict[str, Any]]:
+    """The Team screen's roster, scoped to the caller's lanes: a member's
+    own team, a DM's owned teams, a DH's headed teams, admin sees all —
+    each with its current members and their recognition stats."""
+    return await TeamDirectoryRepository(session).directory(actor_id)

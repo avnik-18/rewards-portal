@@ -73,7 +73,8 @@ def test_values_returns_active_values_and_tolerates_zero_templates() -> None:
         assert r.status_code == 200, r.text
         body = r.json()
         keys = {v["key"] for v in body}
-        assert {"customer_first", "innovation", "collaboration", "ownership", "winning_mindset"} <= keys
+        # 0030: the three live program values (the old five retired)
+        assert {"impact_obsessed", "trusted_guides", "inclusive_innovators"} == keys
         # the shape holds even while the template seed has not landed yet
         for value in body:
             assert set(value) == {"id", "key", "label", "templates"}

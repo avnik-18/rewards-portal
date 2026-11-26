@@ -13,8 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.actor import get_actor_id
 from app.db.session import get_session
+from app.repositories.admin_awards_repository import AdminAwardsRepository
 from app.repositories.showcase_repository import ShowcaseRepository
+from app.schemas.admin_awards import AwardsTileResponse
 from app.schemas.showcase import JuryStatus, ShowcaseResponse
+from app.services.admin_awards_service import AdminAwardsService
 from app.services.showcase_service import ShowcaseService
 
 router = APIRouter(tags=["awards"])
@@ -22,6 +25,19 @@ router = APIRouter(tags=["awards"])
 
 def _service(session: Annotated[AsyncSession, Depends(get_session)]) -> ShowcaseService:
     return ShowcaseService(ShowcaseRepository(session))
+
+
+@router.get("/awards/tile", response_model=AwardsTileResponse)
+async def awards_tile(
+    actor_id: Annotated[UUID, Depends(get_actor_id)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> AwardsTileResponse:
+    """Portal "Quarterly awards" tile content — admin-authored, live-cycle
+    derived (fn_awards_tile in 0028_awards_cycle_content). Authenticated but
+    persona-AGNOSTIC: every employee sees the same tile; the UI keeps its own
+    display gate. All fields None ⇔ no live cycle (frontend renders its
+    built-in fallback copy)."""
+    return await AdminAwardsService(AdminAwardsRepository(session)).awards_tile()
 
 
 @router.get("/awards/showcase", response_model=ShowcaseResponse)

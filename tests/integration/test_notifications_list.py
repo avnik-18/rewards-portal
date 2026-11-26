@@ -65,23 +65,33 @@ def test_notifications_unread_feed_and_mark_read() -> None:
         )
 
         for row in rows:
-            assert set(row.keys()) == {"id", "type", "giver_name", "points", "message", "created_at"}
+            # 0023 notify_parties: praise rows also carry the share surface
+            # (receiver_name + receiver_count) beside giver enrichment
+            assert set(row.keys()) == {"id", "type", "giver_name", "receiver_name",
+                                       "receiver_count", "points", "message",
+                                       "created_at"}
             # caller-owned truth (params bound, never interpolated)
             owner = db_exec("SELECT user_id FROM notification WHERE id = :n", {"n": row["id"]})
             assert owner == actor_id
 
         # praise enrichment: the giver's live full_name via the dedupe key
-        praise_rows = [row for row in rows if row["points"] is not None]
+        # (0023 shapes: 'praise:<recog>:', 'praise_sent:<recog>:<to>:' and
+        # 'praise_cc:<recog>:<cc>:' — the FIRST uuid is the recognition)
+        praise_rows = [row for row in rows
+                       if row["points"] is not None and row["type"].startswith("praise")]
         for row in praise_rows:
             giver_truth = db_exec(
                 "SELECT u.full_name FROM notification n"
                 ", recognition_history rh"
                 " JOIN users u ON u.id = rh.from_user_id"
                 " WHERE n.id = :n"
-                "   AND rh.id = (substring(n.dedupe_key from '^praise:([0-9a-f-]+):'))::uuid",
+                "   AND rh.id = (substring(n.dedupe_key from ':([0-9a-f-]+):'))::uuid",
                 {"n": row["id"]},
             )
-            if giver_truth is not None:
+            # a truthy join pins the enrichment; an empty join is a demo-DB
+            # orphan (the recognition row was cleaned after the notification
+            # was written) — skip those rather than pin nothing
+            if giver_truth:
                 assert row["giver_name"] == giver_truth, row["id"]
 
         # mark-all read: the count afterwards matches zero for THIS caller

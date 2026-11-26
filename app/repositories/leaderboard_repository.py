@@ -1,19 +1,22 @@
 """Repository for the dashboard leaderboard — SQL only, never HTTP errors.
 
-GROUP-SCOPED reading (feature/leaderboard-teams): the caller only sees the
-board of the team(s) they belong to. Three groups (6/5/3) seeded in
-team_members drive the candidate pool; members with zero received points
-appear with 0 pts (LEFT JOIN), so a fresh team shows its whole roster.
+AWARD-ONLY scoring: the board counts award win points (recognition_history
+kind='award' recipient points = the award's prize_points) and nothing else —
+peer cheers and welcome/anniversary gift rows never enter the sum even if a
+future rule starts granting points again.
 
-- Caller in no team at all → org-wide fallback that keeps the pre-teams
-  semantic: this quarter's receivers plus the caller themselves (an unscoped
-  org roster would wall-of-zeros the card for people like E-BR who sit in no
-  team yet).
-- Allowance/EoQ/system credits still never appear (ledger-only rows).
+GROUP-SCOPED reading (feature/leaderboard-teams): the caller only sees the
+board of the team(s) they belong to. Candidates come from team_members;
+members with zero award points appear with 0 pts (LEFT JOIN), so a fresh
+team shows its whole roster. Wins are NOT quarter-scoped — an award is a
+cumulative honour.
+
+- Caller in no team at all → org-wide fallback: award receivers plus the
+  caller themselves (an unscoped org roster would wall-of-zeros the card
+  for people who sit in no team yet).
 - Equal points share the same rank (rank(), not row_number()) and the order
   is deterministic (points DESC, then full_name). Keep both invariants.
-- The recipient-side quarter/year scoping stays the same; the caller is
-  always an implicit candidate even with zero gifts.
+- The caller is always an implicit candidate even with zero wins.
 """
 
 from typing import Any
@@ -51,14 +54,13 @@ class LeaderboardRepository:
                 "    ON rr.user_id = u.id AND rr.kind = 'to'"
                 "  LEFT JOIN recognition_history rh"
                 "    ON rh.id = rr.recognition_id AND rh.status = 'approved'"
-                "    AND rh.occurred_at >= date_trunc('quarter', now())"
+                "    AND rh.kind = 'award'"
                 "  WHERE u.id IN (SELECT user_id FROM candidates)"
                 "     OR ( (SELECT count(*) FROM my_teams) = 0"
                 "          AND ( u.id = :actor_id"
                 "                OR EXISTS (SELECT 1 FROM recognition_recipients rr2"
                 "                   JOIN recognition_history rh2 ON rh2.id = rr2.recognition_id"
-                "                    AND rh2.status = 'approved'"
-                "                    AND rh2.occurred_at >= date_trunc('quarter', now())"
+                "                    AND rh2.status = 'approved' AND rh2.kind = 'award'"
                 "                   WHERE rr2.user_id = u.id AND rr2.kind = 'to') ) )"
                 "  GROUP BY u.id, u.full_name"
                 ")"

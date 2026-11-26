@@ -32,6 +32,8 @@ class Users(Base):
     avatar_url: Mapped[str | None] = mapped_column(Text)
     joined_on: Mapped[date | None] = mapped_column(Date)
     birth_date: Mapped[date | None] = mapped_column(Date)
+    # free text grade ('L0'..'L6','VP','SVP') — eligibility for awards (0035)
+    grade: Mapped[str | None] = mapped_column(Text)
     manager_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     # migration 0003 declares: date NOT NULL DEFAULT now()
     manager_effective_from: Mapped[date] = mapped_column(Date, server_default=text("now()"))
@@ -51,6 +53,10 @@ class Teams(Base):
     code: Mapped[str | None] = mapped_column(Text, unique=True)
     project_name: Mapped[str | None] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text)
+    # the DM/DH leadership lanes (0036): the DM nominates the team's people,
+    # the team's DH owns the approval lane
+    dm_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    dh_id: Mapped[UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime)
     updated_at: Mapped[datetime] = mapped_column(DateTime)
 

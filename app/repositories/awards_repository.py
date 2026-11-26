@@ -1,8 +1,8 @@
 """Repository for the /awards catalog read — SQL only, never HTTP errors.
 
-The live definition mirrors ShowcaseRepository.live_awards exactly (phase on
-BOTH branches) so the two reads can never disagree about what an award in the
-running cycle is.
+The live definition mirrors ShowcaseRepository.live_awards exactly (0033,
+no voting; the read ticks fn_awards_auto_phase first) so the two reads can
+never disagree about what an award in the running cycle is.
 """
 
 from typing import Any
@@ -17,6 +17,7 @@ class AwardsRepository:
 
     async def list_live(self) -> list[dict[str, Any]]:
         """Every award in the running cycle, ranked by nearest close."""
+        await self._session.execute(text("SELECT fn_awards_auto_phase()"))
         result = await self._session.execute(
             text(
                 "SELECT a.id, a.name, a.description, a.cadence, "
@@ -25,9 +26,9 @@ class AwardsRepository:
                 "       f.name AS period_name, f.starts AS period_start, f.ends AS period_end "
                 "FROM awards a "
                 "JOIN fiscal_period f ON f.id = a.period_id "
-                "WHERE (a.phase IN ('nominations', 'voting') "
-                "         AND (a.nominations_end IS NULL OR a.nominations_end >= CURRENT_DATE)) "
-                "   OR (a.phase = 'draft' AND a.nominations_end >= CURRENT_DATE) "
+                "WHERE a.phase = 'nominations' "
+                "   AND (a.nominations_start IS NULL OR a.nominations_start <= CURRENT_DATE) "
+                "   AND (a.nominations_end IS NULL OR a.nominations_end >= CURRENT_DATE) "
                 "ORDER BY a.nominations_end ASC NULLS LAST"
             ),
         )

@@ -38,7 +38,8 @@ CREATE OR REPLACE FUNCTION fn_feed_posts(
 RETURNS TABLE (
   recognition_id uuid, tier text, score double precision, occurred_at timestamptz,
   giver_id uuid, giver_name text, giver_avatar text,
-  message text, points integer, value_label text, kind text, recipients jsonb)
+  message text, points integer, value_label text, kind text, recipients jsonb,
+  award_name text)
 AS $$
 BEGIN
   RETURN QUERY
@@ -77,6 +78,7 @@ BEGIN
            rh.message,
            rh.base_points,
            rh.value_id,
+           rh.award_id,
            rh.kind AS rec_kind,
            extract(epoch FROM (now() - fp.occurred_at)) / 3600.0 AS age_hours,
            CASE
@@ -125,20 +127,15 @@ BEGIN
              THEN 35.0
              ELSE 15.0
            END AS tier_weight,
-           CASE rh.kind
-                WHEN 'milestone' THEN power(1.0 / (extract(epoch FROM (now() - fp.occurred_at)) / 3600.0 + 72), 0.5)
-                WHEN 'welcome'   THEN power(1.0 / (extract(epoch FROM (now() - fp.occurred_at)) / 3600.0 + 48), 0.5)
-                ELSE                  power(1.0 / (extract(epoch FROM (now() - fp.occurred_at)) / 3600.0 + 2),  0.6)
-           END AS decay
+           power(1.0 / (extract(epoch FROM (now() - fp.occurred_at)) / 3600.0 + 2), 0.6) AS decay
       FROM feed_post fp
       INNER JOIN recognition_history rh ON rh.id = fp.entity_id
      WHERE fp.is_public AND fp.entity_type = 'recognition'
+       AND rh.kind IN ('praise', 'award')  -- cheers-for-peers + award winners ONLY
   ),
   post_final AS (
     SELECT fr.*,
-           (fr.tier_weight * fr.decay
-           + CASE WHEN fr.rec_kind = 'milestone' AND fr.occurred_at::date = now()::date
-                  THEN 25.0 ELSE 0.0 END)::double precision AS final_score
+           (fr.tier_weight * fr.decay)::double precision AS final_score
       FROM post_scored fr
   )
   SELECT fr.entity_id,
@@ -157,9 +154,11 @@ BEGIN
          fr.base_points,
          ev.label,
          fr.rec_kind::text,
-         COALESCE(agg.recipients, '[]'::jsonb)
+         COALESCE(agg.recipients, '[]'::jsonb),
+         aw.name
     FROM post_final fr
     LEFT JOIN users gv ON gv.id = fr.actor_id
+    LEFT JOIN awards aw ON aw.id = fr.award_id
     LEFT JOIN emids_values ev ON ev.id = fr.value_id
     LEFT JOIN LATERAL (
       SELECT jsonb_agg(

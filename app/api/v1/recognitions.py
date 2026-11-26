@@ -30,9 +30,6 @@ from app.core.actor import get_actor_id
 from app.db.session import get_session
 from app.repositories.applause_repository import ApplauseRepository
 from app.schemas.recognition import (
-    DecideRequest,
-    DecisionResponse,
-    PendingApprovalRow,
     RecognitionsCountResponse,
     RecognizeRequest,
     RecognizeResponse,
@@ -44,13 +41,19 @@ router = APIRouter(tags=["recognitions"])
 log = structlog.get_logger(__name__)
 
 CONFLICT = {"insufficient_points", "person_inactive", "double_refund_blocked",
-            "self_recognition_blocked"}
+            "self_recognition_blocked",
+            # awards nomination submission (0029): window/cap rejections
+            "nomination_window_closed", "nomination_limit_reached"}
 UNPROCESSABLE = {"no_approval_route", "decline_note_required", "recipient_total_mismatch",
                  "guest_cannot_receive", "no_allowance_for_period", "allocation_below_spent",
                  "points_out_of_range", "template_value_mismatch"}
 NOT_FOUND = {"recipient_not_found", "item_not_found", "person_not_found", "prize_pool_empty",
              "account_not_found", "value_not_found", "template_not_found"}
-FORBIDDEN = {"not_pending_for_decider", "self_admin_blocked", "insufficient_privilege"}
+FORBIDDEN = {"not_pending_for_decider", "self_admin_blocked", "insufficient_privilege",
+             "not_your_lane"}
+# admin-slice codes (contract added with 0028): request / window faults
+# that 422 does not describe
+BAD_REQUEST = {"admin_validation", "award_locked"}
 # coded for log detail, but these are DB integrity/config faults — always 500
 INTEGRITY_FAULTS = frozenset({"hold_journal_missing", "hold_lines_missing", "no_budget_policy"})
 
@@ -58,6 +61,8 @@ INTEGRITY_FAULTS = frozenset({"hold_journal_missing", "hold_lines_missing", "no_
 def _code_status(code: str) -> int:
     if code in FORBIDDEN:
         return status.HTTP_403_FORBIDDEN
+    if code in BAD_REQUEST:
+        return status.HTTP_400_BAD_REQUEST
     if any(code.startswith(prefix) for prefix in ("approver_unresolvable",)):
         return status.HTTP_404_NOT_FOUND
     if any(code.startswith(prefix) for prefix in ("item_already_",)):
@@ -117,28 +122,6 @@ async def recognize(
         routed_to=routed,
         approval_item_id=item,
     )
-
-
-@router.post("/recognitions/approval/{item_id}/decide", response_model=DecisionResponse)
-async def decide(
-    item_id: UUID,
-    body: DecideRequest,
-    actor_id: Annotated[UUID, Depends(get_actor_id)],
-    service: Annotated[RecognitionService, Depends(_service)],
-    request: Request,
-) -> DecisionResponse:
-    request.state.actor_id = actor_id
-    result = await service.decide(item_id, actor_id, body.approve, body.note)
-    return DecisionResponse(approval_item_id=item_id, status=result)
-
-
-@router.get("/recognitions/approvals", response_model=list[PendingApprovalRow])
-async def pending_approvals(
-    actor_id: Annotated[UUID, Depends(get_actor_id)],
-    service: Annotated[RecognitionService, Depends(_service)],
-) -> list[PendingApprovalRow]:
-    rows = await service.pending_for(actor_id)
-    return [PendingApprovalRow.model_validate(r) for r in rows]
 
 
 @router.get("/recognitions/count", response_model=RecognitionsCountResponse)

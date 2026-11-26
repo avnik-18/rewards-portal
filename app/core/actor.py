@@ -25,6 +25,7 @@ from app.core.config import get_settings
 from app.core.security import validate_entra_jwt
 from app.db.session import get_session
 from app.repositories.applause_repository import ApplauseRepository
+from app.repositories.me_repository import MeRepository
 
 
 async def get_actor_id(
@@ -62,3 +63,39 @@ async def get_actor_id(
             )
     request.state.actor_id = UUID(str(actor))
     return UUID(str(actor))
+
+
+async def get_leader_id(
+    request: Request,
+    actor_id: Annotated[UUID, Depends(get_actor_id)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> UUID:
+    """Leader/admin gate — THE approvals-lane dependency (DH nomination
+    review). Resolves the actor the same two ways as get_actor_id (one
+    identity rule), then requires fn_persona != 'employee' — leaders and
+    admins pass, plain employees get 403. fn_persona (0023) classes a
+    viewer: active lead-role team membership, non-separated direct reports,
+    or the admin role_assignment grant."""
+    persona = await MeRepository(session).persona(actor_id)
+    if persona not in ("leader", "admin"):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "leader or admin persona required")
+    request.state.actor_id = actor_id
+    return actor_id
+
+
+async def get_admin_id(
+    request: Request,
+    actor_id: Annotated[UUID, Depends(get_actor_id)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> UUID:
+    """Admin persona gate — THE admin dependency for every /admin/* route.
+
+    Resolves the actor the same two ways as get_actor_id (one identity rule),
+    then requires fn_persona='admin' (an open role_assignment admin grant).
+    403 for every non-admin; the fn bodies keep their own C549Q gate as
+    defence-in-depth (never the primary gate)."""
+    persona = await MeRepository(session).persona(actor_id)
+    if persona != "admin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "admin persona required")
+    request.state.actor_id = actor_id
+    return actor_id

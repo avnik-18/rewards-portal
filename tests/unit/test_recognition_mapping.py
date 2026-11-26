@@ -115,6 +115,7 @@ def test_every_sqlstate_code_maps_to_http() -> None:
         assert _code_status(code) != status.HTTP_500_INTERNAL_SERVER_ERROR, code
         assert _code_status(code) in {
             status.HTTP_403_FORBIDDEN,
+            status.HTTP_400_BAD_REQUEST,
             status.HTTP_409_CONFLICT,
             status.HTTP_422_UNPROCESSABLE_ENTITY,
             status.HTTP_404_NOT_FOUND,

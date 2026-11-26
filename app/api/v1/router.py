@@ -3,7 +3,9 @@
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    admin_awards,
     awards,
+    awards_cycles,
     celebrations,
     demo_users,
     directory,
@@ -12,6 +14,7 @@ from app.api.v1 import (
     leaderboard,
     me,
     media,
+    nominations,
     notifications,
     notifications_list,
     recognitions,
@@ -34,6 +37,13 @@ api_router.include_router(leaderboard.router)
 api_router.include_router(showcase.router)
 # Admin-authored awards catalog — the /awards list behind the leader tab
 api_router.include_router(awards.router)
+# Admin console — cycles & categories (Work Item #1); persona-gated routes
+api_router.include_router(admin_awards.router)
+# "Award cycles" section + nomination submission (Work Item #3)
+api_router.include_router(awards_cycles.router)
+# Excellence nomination compose lifecycle (team's myteam-nominations merge
+# — draft → our awards-lane approval chain)
+api_router.include_router(nominations.router)
 api_router.include_router(notifications.router)
 # Bell panel list + mark-read (deliverable #6 depth)
 api_router.include_router(notifications_list.router)

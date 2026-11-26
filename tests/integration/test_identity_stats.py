@@ -69,10 +69,11 @@ def test_identity_and_stats_flow() -> None:
         assert client.get("/api/v1/me/stats").status_code == 400
         assert client.get("/api/v1/me", headers={"X-Demo-User": "NOBODY-HERE"}).status_code == 404
 
-        # 3) stats move with one auto-band recognition (delta assertions)
+        # 3) stats move with one zero-point peer cheer (0030: Recognize is a
+        # points-free send — the counts move, the balances do not)
         giver, recipient = "E-PR", "E-BR"
         recipient_id = db_exec(f"SELECT id FROM users WHERE employee_code='{recipient}'")
-        points = 25
+
         def stats(code: str) -> dict:
             r = client.get("/api/v1/me/stats", headers={"X-Demo-User": code})
             assert r.status_code == 200
@@ -82,18 +83,20 @@ def test_identity_and_stats_flow() -> None:
         before_recipient = stats(recipient)
 
         r = client.post("/api/v1/recognitions", headers={"X-Demo-User": giver}, json={
-            "to_user_ids": [recipient_id], "points": points,
-            "message": "identity-stats delta fixture — auto band"})
+            "to_user_ids": [recipient_id],
+            "message": "identity-stats delta fixture — zero-point peer cheer"})
         assert r.status_code == 200, r.text
-        assert r.json()["status"] == "approved"
+        body = r.json()
+        assert body["status"] == "approved"
+        assert body["routed_to"] == 0 and body["approval_item_id"] is None
 
         after_giver = stats(giver)
         after_recipient = stats(recipient)
 
         assert after_giver["recognitions_given"] == before_giver["recognitions_given"] + 1
-        if before_giver["allowance_left"] is not None:
-            assert after_giver["allowance_left"] == before_giver["allowance_left"] - points
+        # zero points: the wallet and the allowance never move
+        assert after_giver["allowance_left"] == before_giver["allowance_left"]
         received_delta = (after_recipient["recognitions_received"]
                           - before_recipient["recognitions_received"])
         assert received_delta == 1
-        assert after_recipient["points_balance"] == before_recipient["points_balance"] + points
+        assert after_recipient["points_balance"] == before_recipient["points_balance"]

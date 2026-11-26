@@ -45,6 +45,7 @@ class FeedRepository:
                 points=row["points"],
                 value_label=row["value_label"],
                 recipients=row["recipients"],
+                award_name=row["award_name"],
             )
             for row in result.mappings().all()
         ]

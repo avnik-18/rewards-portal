@@ -13,7 +13,6 @@ Function surface used here (see docs/db/design-source/README.md §4):
   fn_allowance_seed(period)
 """
 
-from collections.abc import AsyncIterator
 from typing import Any
 
 from sqlalchemy import text
@@ -149,48 +148,3 @@ class ApplauseRepository:
                 "internal projection fault (must surface as 500, not a status)"
             )
         return str(row["status"]), int(row["pending"]), row["approval_item_id"]
-
-    async def decide_approval(
-        self,
-        item: Any,
-        decider: Any,
-        approve: bool,
-        note: str | None,
-    ) -> str:
-        """Call fn_item_decide; returns the post-decision approval_item.status.
-
-        DB failures propagate as raised (DBAPIError) — service translates."""
-        await self._session.execute(
-            text(
-                "SELECT fn_item_decide("
-                "CAST(:item AS uuid), CAST(:decider AS uuid), :approve, :note)"
-            ),
-            dict(item=item, decider=decider, approve=approve, note=note),
-        )
-        status = await self._session.execute(
-            text("SELECT status::text FROM approval_item WHERE id = CAST(:item AS uuid)"),
-            dict(item=item),
-        )
-        return str(status.scalar())
-
-    async def pending_approvals(self, referent: Any) -> AsyncIterator[dict[str, Any]]:
-
-        """Approvals currently pending on a person's inbox, shaped exactly as
-        the PendingApprovalRow DTO expects (alias ai.id -> approval_item_id;
-        snapshot.base_points may be absent for items whose approval snapshot
-        carries no pricing — COALESCE to 0 so the DTO's non-optional points
-        field can never blow up on a NULL cast)."""
-        rows = await self._session.execute(
-            text(
-                "SELECT ai.id AS approval_item_id, ai.kind::text, s.seq, s.level::text AS level, "
-                "s.mode::text, s.owner_id, sub.full_name AS submitter_name, "
-                "COALESCE((ai.snapshot->>'base_points')::int, 0) AS points, s.note "
-                "FROM approval_item_step s JOIN approval_item ai ON ai.id = s.approval_item_id "
-                "JOIN users sub ON sub.id = ai.submitter_id "
-                "WHERE s.owner_id = :referent AND s.status = 'pending' AND ai.status = 'pending' "
-                "ORDER BY ai.created_at"
-            ),
-            dict(referent=referent),
-        )
-        for row in rows.mappings():
-            yield dict(row)

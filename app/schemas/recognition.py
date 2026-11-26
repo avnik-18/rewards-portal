@@ -1,4 +1,4 @@
-"""Recognition + approval DTOs — XxxRequest / XxxResponse convention.
+"""Recognition DTOs — XxxRequest / XxxResponse convention.
 
 The actor identity is NEVER part of these DTOs — it comes from the auth
 dependency (app.core.actor.get_actor_id), never from the body.
@@ -11,14 +11,15 @@ from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_va
 
 
 class RecognizeRequest(BaseModel):
-    """POST /recognitions — send a praise (value/template optional, message ≤ chars 2000)."""
+    """POST /recognitions — a cheers-for-peers send: zero points, published
+    to the feed in the same transaction (points live only in the award lane)."""
 
     to_user_ids: list[UUID] = Field(min_length=1, max_length=25)
     cc_user_ids: list[UUID] = Field(default_factory=list, max_length=50)
     value_id: UUID | None = None
     template_id: UUID | None = None
     art_url: str | None = Field(default=None, max_length=2048)
-    points: int = Field(ge=0, le=9999)
+    points: int = Field(default=0, ge=0, le=0)
     message: str = Field(default="", max_length=2000)
 
     @field_validator("to_user_ids", "cc_user_ids")
@@ -52,36 +53,13 @@ class RecognizeRequest(BaseModel):
 
 
 class RecognizeResponse(BaseModel):
-    """What fn_submit_recognition reports back to the caller."""
+    """What fn_submit_recognition reports back to the caller — a direct
+    publish: status is 'approved', routed_to 0, approval_item_id None."""
 
     recognition_id: UUID
     status: str
-    routed_to: int  # 0 = auto-approved in-transaction, else number of pending steps
+    routed_to: int
     approval_item_id: UUID | None = None
-
-
-class DecideRequest(BaseModel):
-    """POST /recognitions/approval/{item_id}/decide — approve|decline (+ mandatory note on decline)."""
-
-    approve: bool
-    note: str | None = Field(default=None, max_length=500)
-
-
-class DecisionResponse(BaseModel):
-    approval_item_id: UUID
-    status: str
-
-
-class PendingApprovalRow(BaseModel):
-    approval_item_id: UUID
-    kind: str
-    seq: int
-    level: str
-    mode: str
-    owner_id: UUID
-    submitter_name: str
-    points: int
-    note: str | None = None
 
 
 class RecognitionsCountResponse(BaseModel):

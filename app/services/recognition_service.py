@@ -98,9 +98,14 @@ _SQLSTATE_TO_CODE = {
     "C549S": "hold_journal_missing",
     "C549T": "hold_lines_missing",
     "C549U": "no_budget_policy",
+    "C549W": "admin_validation",
+    "C549X": "award_locked",
+    "C5490": "nomination_window_closed",
+    "C549J": "nomination_limit_reached",
     "C5497": "value_not_found",
     "C5498": "template_not_found",
     "C5499": "template_value_mismatch",
+    "C549V": "not_your_lane",
 }
 
 
@@ -196,30 +201,7 @@ class RecognitionService:
             log.info("recognition.replayed_by_key",
                      actor_id=str(actor_id), recognition_id=str(rid))
 
-        # status + routing depth: pending means the chain is frozen and waiting;
-        # routed_to = how many steps await; item id matches the pending approval
+        # status + routing depth: direct publish means approved at insert;
+        # routed_to is always 0 and item id always None (no approval chain)
         status, routed, item = await self._repo.recognition_replay(rid)
         return rid, status, routed, item
-
-    async def decide(
-        self,
-        item_id: UUID,
-        approver_id: UUID,
-        approve: bool,
-        note: str | None,
-    ) -> str:
-        """approver_id is the RESOLVED caller (never body-supplied)."""
-        if not approve and not (note and note.strip()):
-            raise RecognitionDomainError(
-                "decline_note_required", "declining requires a note"
-            )
-        try:
-            return await self._repo.decide_approval(item_id, approver_id, approve, note)
-        except DBAPIError as e:
-            raise RecognitionDomainError(_error_code(e), _pg_message(e.orig)) from e
-
-    async def pending_for(self, approver_id: UUID) -> list[dict[str, object]]:
-        rows: list[dict[str, object]] = []
-        async for row in self._repo.pending_approvals(approver_id):
-            rows.append(row)
-        return rows

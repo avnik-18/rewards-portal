@@ -39,6 +39,7 @@ class FeedPostResponse(BaseModel):
     points: int
     value_label: str | None
     recipients: list[FeedRecipientResponse] = Field(default_factory=list)
+    award_name: str | None = None
 
 
 class FeedCursor(BaseModel):

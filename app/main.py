@@ -7,14 +7,18 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
+from app.api.v1.admin_awards import admin_awards_domain_handler
 from app.api.v1.me import company_wallet_forbidden_handler, me_missing_handler
+from app.api.v1.nominations import nomination_domain_handler
 from app.api.v1.recognitions import recognition_domain_handler
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.core.otel import setup_tracing
 from app.core.security import require_identity_configured
+from app.services.admin_awards_service import AdminAwardsDomainError
 from app.services.me_service import CompanyWalletForbidden, MeRepositoryMissing
+from app.services.nominations_service import NominationDomainError
 from app.services.recognition_service import RecognitionDomainError
 
 log = structlog.get_logger(__name__)
@@ -41,6 +45,11 @@ def create_app() -> FastAPI:
     app.add_exception_handler(RecognitionDomainError, recognition_domain_handler)
     app.add_exception_handler(MeRepositoryMissing, me_missing_handler)
     app.add_exception_handler(CompanyWalletForbidden, company_wallet_forbidden_handler)
+    # (AdminAwardsDomainError subclasses it; the more specific admin handler
+    # wins for the admin codes per Starlette's MRO lookup)
+    app.add_exception_handler(AdminAwardsDomainError, admin_awards_domain_handler)
+    # /nominations compose domain codes (quota_exhausted, ineligible, …)
+    app.add_exception_handler(NominationDomainError, nomination_domain_handler)
     # Host-header validation driven by config: explicit list outside local
     # (the start-up guard refuses to boot otherwise); local defaults to "*"
     # for dev convenience.
@@ -62,7 +71,7 @@ def create_app() -> FastAPI:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=origins,
-            allow_methods=["GET", "POST", "PATCH", "DELETE"],
+            allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
             allow_headers=["X-Demo-User", "Authorization", "Idempotency-Key", "Content-Type"],
         )
     else:

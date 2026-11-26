@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .approvals import ApprovalItem, ApprovalItemStep, ApprovalRule, ApprovalRuleStep
-from .awards import Awards, AwardsNominations, Ballot, JuryAssignment
+from .awards import AwardQuotas, Awards, AwardsNominations, Ballot, JuryAssignment
 from .base import Base  # noqa: F401
 from .feed import FeedPost
 from .media import MediaAsset, media_kind
@@ -42,6 +42,7 @@ __all__ = [
     "AuditLog",
     "Awards",
     "AwardsNominations",
+    "AwardQuotas",
     "Ballot",
     "BudgetPolicy",
     "EmidsValues",

@@ -1,4 +1,5 @@
-"""GET /leaderboard — top peer-point receivers this quarter (dashboard #4).
+"""GET /leaderboard — top award-point winners, board scoped to the caller's
+teams (dashboard #4). Award wins only (see LeaderboardRepository).
 
 Identity: the shared app.core.actor actor dependency (Entra-enforced in
 production, X-Demo-User only in the local dev environment) — one
@@ -33,6 +34,7 @@ async def leaderboard(
     rows = await service.top(actor_id=actor_id, limit=limit)
     entries = [
         LeaderboardEntryResponse(
+            user_id=row["user_id"],
             rank=row["rank"],
             name=row["name"],
             points=row["points"],
