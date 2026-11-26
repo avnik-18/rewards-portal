@@ -46,3 +46,14 @@ async def team_directory(
     own team, a DM's owned teams, a DH's headed teams, admin sees all —
     each with its current members and their recognition stats."""
     return await TeamDirectoryRepository(session).directory(actor_id)
+
+
+@router.get("/people/tree")
+async def people_tree(
+    actor_id: Annotated[UUID, Depends(get_actor_id)],
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> dict[str, Any]:
+    """The Recognition Tree subtree under the caller: two levels of reports
+    where they manage people, their lane teams' roster otherwise, admin
+    sees all teams — points follow the team leaderboard's award-wins."""
+    return await TeamDirectoryRepository(session).org_tree(actor_id)
