@@ -26,17 +26,13 @@ _MEMBERS_SQL = """
               JOIN recognition_history rh ON rh.id = rr.recognition_id
                AND rh.status = 'approved'
              WHERE rr.user_id = tm.user_id AND rr.kind = 'to') AS last_recognized,
-           COALESCE(
-             (SELECT e.key
-                FROM recognition_recipients rr
-                JOIN recognition_history rh ON rh.id = rr.recognition_id
-                 AND rh.status = 'approved' AND rh.value_id IS NOT NULL
-                JOIN emids_values e ON e.id = rh.value_id
-               WHERE rr.user_id = tm.user_id AND rr.kind = 'to'
-               GROUP BY e.key ORDER BY count(*) DESC LIMIT 1),
-             (ARRAY['impact_obsessed','trusted_guides','inclusive_innovators'])
-               [1 + ascii(md5(tm.user_id::text)) % 3]
-           ) AS top_value
+           (SELECT e.key
+              FROM recognition_recipients rr
+              JOIN recognition_history rh ON rh.id = rr.recognition_id
+               AND rh.status = 'approved' AND rh.value_id IS NOT NULL
+              JOIN emids_values e ON e.id = rh.value_id
+             WHERE rr.user_id = tm.user_id AND rr.kind = 'to'
+             GROUP BY e.key ORDER BY count(*) DESC LIMIT 1) AS top_value
       FROM team_members tm
       JOIN users u ON u.id = tm.user_id
      WHERE tm.team_id = :tid AND tm.valid_to IS NULL
