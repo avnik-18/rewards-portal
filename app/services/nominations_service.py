@@ -19,6 +19,7 @@ from typing import Any
 from uuid import UUID
 
 import structlog
+from sqlalchemy.exc import IntegrityError
 
 from app.repositories.nominations_repository import NominationsRepository
 
@@ -169,7 +170,10 @@ class NominationsService:
     async def draft(
         self, actor_id: UUID, award_id: UUID, nominee_id: UUID | None,
         team_id: UUID | None, story: str, core_values: list[str],
-        achievements: str | None, support_doc_url: str | None) -> dict[str, Any]:
+        achievements: str | None, support_doc_url: str | None,
+        supporting_docs: list[dict[str, str]] | None = None) -> dict[str, Any]:
+        docs = supporting_docs or ([{"label": "Supporting document", "url": support_doc_url}]
+                                   if support_doc_url and support_doc_url.strip() else None)
         await self._validate_core_values(core_values)
         period = await self._repo.current_period()
         if period is None:
@@ -207,9 +211,14 @@ class NominationsService:
         user = await self._repo.user_row(nominee_id)
         if user is None:
             raise NominationDomainError("person_not_found", "that person is not in the directory")
-        return await self._repo.create_draft(
-            actor_id, award_id, nominee_id, team_id, story, core_values,
-            achievements, support_doc_url)
+        try:
+            return await self._repo.create_draft(
+                actor_id, award_id, nominee_id, team_id, story, core_values,
+                achievements, docs)
+        except IntegrityError as exc:
+            raise NominationDomainError(
+                "duplicate_nomination",
+                "this person or team already has a nomination for this award") from exc
 
     async def update(
         self, actor_id: UUID, nomination_id: UUID,
@@ -221,10 +230,18 @@ class NominationsService:
         if str(owner["nominator_id"]) != str(actor_id):
             raise NominationDomainError("not_yours", "only the nominator can edit this nomination")
         await self._ensure_lane(actor_id, body["nominee_id"], body["team_id"])
-        updated = await self._repo.update_draft(
-            nomination_id, actor_id, body["story"], body["core_values"],
-            body["achievements"], body["support_doc_url"],
-            body["nominee_id"], body["team_id"])
+        docs = body.get("supporting_docs") or (
+            [{"label": "Supporting document", "url": body["support_doc_url"]}]
+            if body.get("support_doc_url") and body["support_doc_url"].strip() else None)
+        try:
+            updated = await self._repo.update_draft(
+                nomination_id, actor_id, body["story"], body["core_values"],
+                body["achievements"], docs,
+                body["nominee_id"], body["team_id"])
+        except IntegrityError as exc:
+            raise NominationDomainError(
+                "duplicate_nomination",
+                "this person or team already has a nomination for this award") from exc
         if not updated:
             raise NominationDomainError("nomination_not_editable", "the nomination left the editable states")
         await self._repo.clear_returned_notes(nomination_id)

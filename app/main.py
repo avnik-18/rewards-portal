@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api.v1.admin_awards import admin_awards_domain_handler
+from app.api.v1.media_admin import media_admin_domain_handler
 from app.api.v1.me import company_wallet_forbidden_handler, me_missing_handler
 from app.api.v1.nominations import nomination_domain_handler
 from app.api.v1.recognitions import recognition_domain_handler
@@ -17,6 +18,7 @@ from app.core.logging import configure_logging
 from app.core.otel import setup_tracing
 from app.core.security import require_identity_configured
 from app.services.admin_awards_service import AdminAwardsDomainError
+from app.services.media_admin_service import MediaAdminDomainError
 from app.services.me_service import CompanyWalletForbidden, MeRepositoryMissing
 from app.services.nominations_service import NominationDomainError
 from app.services.recognition_service import RecognitionDomainError
@@ -50,6 +52,8 @@ def create_app() -> FastAPI:
     app.add_exception_handler(AdminAwardsDomainError, admin_awards_domain_handler)
     # /nominations compose domain codes (quota_exhausted, ineligible, …)
     app.add_exception_handler(NominationDomainError, nomination_domain_handler)
+    # admin media registry + feed-post ops codes (media_validation, …)
+    app.add_exception_handler(MediaAdminDomainError, media_admin_domain_handler)
     # Host-header validation driven by config: explicit list outside local
     # (the start-up guard refuses to boot otherwise); local defaults to "*"
     # for dev convenience.
@@ -81,6 +85,14 @@ def create_app() -> FastAPI:
     @app.get("/healthz", include_in_schema=False)
     def healthz() -> dict[str, str]:
         return {"status": "ok"}
+
+    # stored supporting documents (nominations compose uploads) — mounted at
+    # the API root so the stored /files/... URLs open in approval readers
+    from fastapi.staticfiles import StaticFiles
+    from pathlib import Path
+    _uploads = Path(__file__).resolve().parents[1] / "uploads"
+    _uploads.mkdir(parents=True, exist_ok=True)
+    app.mount("/files", StaticFiles(directory=str(_uploads)), name="files")
 
     return app
 

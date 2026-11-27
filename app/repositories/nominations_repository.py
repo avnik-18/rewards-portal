@@ -49,10 +49,26 @@ def _ach_from_jsonb(value: Any) -> str | None:
     return "\n".join(v for v in (_parse_jsonb(value) or []) if v) or None
 
 
+def _docs_to_jsonb(docs: list[dict[str, str]] | None) -> str:
+    if not docs:
+        return "[]"
+    rows = [{"label": (d.get("label") or "Supporting document").strip() or "Supporting document",
+             "url": str(d.get("url", "")).strip()}
+            for d in docs if str(d.get("url", "") or "").strip()]
+    return json.dumps(rows)
+
+
 def _doc_url_to_jsonb(url: str | None) -> str:
     if not url or not url.strip():
         return "[]"
     return json.dumps([{"label": "Supporting document", "url": url.strip()}])
+
+
+def _docs_from_jsonb(docs: Any) -> list[dict[str, str]]:
+    return [{"label": str(d.get("label") or "Supporting document"),
+             "url": str(d["url"])}
+            for d in (_parse_jsonb(docs) or [])
+            if d and d.get("url")]
 
 
 def _doc_url_from_jsonb(docs: Any) -> str | None:
@@ -65,6 +81,7 @@ def _doc_url_from_jsonb(docs: Any) -> str | None:
 def _with_view_styles(n: dict[str, Any]) -> dict[str, Any]:
     n["achievements"] = _ach_from_jsonb(n.get("achievements"))
     n["support_doc_url"] = _doc_url_from_jsonb(n.get("supporting_docs"))
+    n["supporting_docs"] = _docs_from_jsonb(n.get("supporting_docs"))
     return n
 
 
@@ -363,7 +380,7 @@ class NominationsRepository:
     async def create_draft(
         self, actor_id: UUID, award_id: UUID, nominee_id: UUID, team_id: UUID | None,
         story: str, core_values: list[str], achievements: str | None,
-        support_doc_url: str | None) -> dict[str, Any]:
+        supporting_docs: list[dict[str, str]] | None) -> dict[str, Any]:
         res = await self._session.execute(_TEXT(
             """
             INSERT INTO awards_nominations
@@ -376,12 +393,13 @@ class NominationsRepository:
             dict(award=str(award_id), nominee=str(nominee_id), actor=str(actor_id),
                  story=story, self_nom=bool(nominee_id and nominee_id == actor_id),
                  cvals=json.dumps(core_values or []),
-                 ach=_ach_to_jsonb(achievements), docs=_doc_url_to_jsonb(support_doc_url)))
+                 ach=_ach_to_jsonb(achievements), docs=_docs_to_jsonb(supporting_docs)))
         return {"id": str((res.one())[0]), "status": "draft"}
 
     async def update_draft(
         self, nomination_id: UUID, actor_id: UUID, story: str,
-        core_values: list[str], achievements: str | None, support_doc_url: str | None,
+        core_values: list[str], achievements: str | None,
+        supporting_docs: list[dict[str, str]] | None,
         nominee_id: UUID | None, team_id: UUID | None) -> bool:
         res = await self._session.execute(_TEXT(
             """
@@ -398,7 +416,7 @@ class NominationsRepository:
             """),
             dict(nid=str(nomination_id), actor=str(actor_id), story=story,
                  cvals=json.dumps(core_values or []),
-                 ach=_ach_to_jsonb(achievements), docs=_doc_url_to_jsonb(support_doc_url),
+                 ach=_ach_to_jsonb(achievements), docs=_docs_to_jsonb(supporting_docs),
                  nominee=str(nominee_id) if nominee_id else None,
                  team=str(team_id) if team_id else None))
         return int(cast(Any, res).rowcount or 0) > 0

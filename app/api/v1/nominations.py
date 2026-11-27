@@ -35,6 +35,7 @@ from app.schemas.nominations import (
     NominationSubmitResponse,
     NomineeRow,
     OpenAwardsResponse,
+    SupportDocLink,
 )
 from app.services.nominations_service import (
     NominationDomainError,
@@ -139,7 +140,8 @@ async def create_draft(
     request.state.actor_id = actor_id
     return await service.draft(
         actor_id, body.award_id, body.nominee_id, body.team_id,
-        body.story, body.core_values, body.achievements, body.support_doc_url)
+        body.story, body.core_values, body.achievements, body.support_doc_url,
+        [d.model_dump() for d in body.supporting_docs] if body.supporting_docs else None)
 
 
 @router.put("/nominations/{nomination_id}")
@@ -253,6 +255,7 @@ def _row_dto(r: dict[str, Any]) -> NominationRow:
         core_values=list(r.get("core_values") or []),
         achievements=r.get("achievements"),
         support_doc_url=r.get("support_doc_url"),
+        supporting_docs=[SupportDocLink(**d) for d in r.get("supporting_docs") or []],
         is_self_nomination=bool(r.get("is_self_nomination")),
         returned_notes=r.get("returned_notes"),
         created_at=r["created_at"],

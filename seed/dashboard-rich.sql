@@ -73,10 +73,10 @@ INSERT INTO recognition_history (kind, from_user_id, value_id, message, base_poi
 SELECT v.kind::recognition_kind, u.id, (SELECT id FROM emids_values WHERE key = v.val),
        v.msg, v.base, 'approved'::recognition_status, now(), v.ref
 FROM (VALUES
-  ('praise','E-HD','ownership','Vikram carried the platform cut-over without a single roll-back.',60,'rank-dh-fresh'),
-  ('praise','E-MP','innovation','Tara rewrote the sprint board automation the team now refuses to lose.',30,'rank-pm-fresh'),
-  ('praise','E-GX','customer_first','Aarav owned the client war-room call end to end.',120,'rank-dm-stale'),
-  ('praise','E-HD','winning_mindset','Meher kept the release checklist immaculate for two quarters.',80,'rank-dh-stale'),
+  ('praise','E-HD','ownership','Vikram carried the platform cut-over without a single roll-back.',0,'rank-dh-fresh'),
+  ('praise','E-MP','innovation','Tara rewrote the sprint board automation the team now refuses to lose.',0,'rank-pm-fresh'),
+  ('praise','E-GX','customer_first','Aarav owned the client war-room call end to end.',0,'rank-dm-stale'),
+  ('praise','E-HD','winning_mindset','Meher kept the release checklist immaculate for two quarters.',0,'rank-dh-stale'),
   ('praise','E-TN','collaboration','Jatin ran the coding-gym buddy hours for the whole mobile squad.',0,'rank-cheer-fresh'),
   ('praise','E-ZK','ownership','Zoya picked up Aarav''s oncall hand-off without blinking.',0,'rank-cheer-mid'),
   ('praise','E-AC','winning_mindset','Meher documented the whole API surface over one weekend.',0,'rank-cheer-stale')
@@ -109,18 +109,18 @@ INSERT INTO recognition_history (kind, from_user_id, value_id, message, base_poi
 SELECT v.kind::recognition_kind, u.id, (SELECT id FROM emids_values WHERE key = v.val),
        v.msg, v.base, 'approved'::recognition_status, now(), v.ref
 FROM (VALUES
-  ('praise','E-009','ownership','Rahul turned the client escalations around in one sprint.',50,'rank-own-fresh'),
-  ('praise','E-L2','customer_first','Rahul fielded the delivery demo himself while the squad was out.',200,'rank-own-stale'),
-  ('praise','E-L1','collaboration','Erica kept the flaky migration honest — no shortcuts on rollback tests.',30,'rank-chain-fresh'),
-  ('praise','E-L2','ownership','Arjun closed every open security finding before the audit call.',75,'rank-chain-stale'),
-  ('praise','E-AJ','innovation','Priya scripted the retry harness that cut our flaky-suite count in half.',40,'rank-team-fresh'),
-  ('praise','E-PR','collaboration','Gautam picked up the pairing sessions nobody wanted on their plate.',25,'rank-team-stale'),
-  ('welcome','E-FT','collaboration','Welcome Divya — joining the Mobile squad this week. Say hi!',15,'rank-bu-welcome'),
+  ('praise','E-009','ownership','Rahul turned the client escalations around in one sprint.',0,'rank-own-fresh'),
+  ('praise','E-L2','customer_first','Rahul fielded the delivery demo himself while the squad was out.',0,'rank-own-stale'),
+  ('praise','E-L1','collaboration','Erica kept the flaky migration honest — no shortcuts on rollback tests.',0,'rank-chain-fresh'),
+  ('praise','E-L2','ownership','Arjun closed every open security finding before the audit call.',0,'rank-chain-stale'),
+  ('praise','E-AJ','innovation','Priya scripted the retry harness that cut our flaky-suite count in half.',0,'rank-team-fresh'),
+  ('praise','E-PR','collaboration','Gautam picked up the pairing sessions nobody wanted on their plate.',0,'rank-team-stale'),
+  ('welcome','E-FT','collaboration','Welcome Divya — joining the Mobile squad this week. Say hi!',0,'rank-bu-welcome'),
   ('milestone','E-L2','winning_mindset','Happy 5-year anniversary, Rahul — half a decade of shipping.',0,'rank-mile-own-4d'),
-  ('praise','E-009','customer_first','Hema straightened out the quarterly reconciliation report.',40,'rank-related-fresh'),
-  ('praise','E-HK','collaboration','Ivan rebuilt the chargeback workbook from scratch.',90,'rank-related-stale'),
-  ('welcome','E-AJ','collaboration','Welcome Kiran — joining the Platform crew on the flaky-suite fix!',10,'rank-welcome-2'),
-  ('welcome','E-L2','ownership','Welcome Ivan to the delivery floor — say hi when you pass by.',10,'rank-welcome-3')
+  ('praise','E-009','customer_first','Hema straightened out the quarterly reconciliation report.',0,'rank-related-fresh'),
+  ('praise','E-HK','collaboration','Ivan rebuilt the chargeback workbook from scratch.',0,'rank-related-stale'),
+  ('welcome','E-AJ','collaboration','Welcome Kiran — joining the Platform crew on the flaky-suite fix!',0,'rank-welcome-2'),
+  ('welcome','E-L2','ownership','Welcome Ivan to the delivery floor — say hi when you pass by.',0,'rank-welcome-3')
 ) AS v(kind, code, val, msg, base, ref)
 JOIN users u ON u.employee_code = v.code
 ON CONFLICT (kind, source_ref) DO NOTHING;
@@ -129,12 +129,12 @@ INSERT INTO recognition_recipients (recognition_id, user_id, points, kind)
 SELECT rh.id, ru.id, v.pts, 'to'
 FROM recognition_history rh
 JOIN (VALUES
-  ('rank-own-fresh','E-PR',50), ('rank-own-stale','E-PR',200),
-  ('rank-chain-fresh','E-ES',30), ('rank-chain-stale','E-AJ',75),
-  ('rank-team-fresh','E-PR',40), ('rank-team-stale','E-GI',25),
-  ('rank-bu-welcome','E-DN',15), ('rank-mile-own-4d','E-PR',0),
-  ('rank-related-fresh','E-HK',40), ('rank-related-stale','E-IC',90),
-  ('rank-welcome-2','E-KM',10), ('rank-welcome-3','E-IC',10)
+  ('rank-own-fresh','E-PR',0), ('rank-own-stale','E-PR',0),
+  ('rank-chain-fresh','E-ES',0), ('rank-chain-stale','E-AJ',0),
+  ('rank-team-fresh','E-PR',0), ('rank-team-stale','E-GI',0),
+  ('rank-bu-welcome','E-DN',0), ('rank-mile-own-4d','E-PR',0),
+  ('rank-related-fresh','E-HK',0), ('rank-related-stale','E-IC',0),
+  ('rank-welcome-2','E-KM',0), ('rank-welcome-3','E-IC',0)
 ) AS v(ref_code, rec_code, pts)
   ON v.ref_code = rh.source_ref
 JOIN users ru ON ru.employee_code = v.rec_code

@@ -14,6 +14,13 @@ class AwardQuotaStatus(BaseModel):
     used: int
 
 
+class SupportDocLink(BaseModel):
+    """One supporting-document link: a human label plus its URL."""
+
+    label: str = Field(default="Supporting document", max_length=200)
+    url: str = Field(max_length=1000, pattern=r"^https?://\S+$")
+
+
 class NominatedAward(BaseModel):
     """One award open for nomination, as the compose flow needs it."""
 
@@ -42,10 +49,11 @@ class NominationDraftBody(BaseModel):
     award_id: UUID
     nominee_id: UUID | None = None
     team_id: UUID | None = None
-    story: str = Field(min_length=30, max_length=4000)
+    story: str = Field(min_length=1, max_length=4000)
     core_values: list[str] = Field(default_factory=list, max_length=5)
     achievements: str | None = Field(default=None, max_length=4000)
     support_doc_url: str | None = Field(default=None, max_length=1000)
+    supporting_docs: list[SupportDocLink] | None = Field(default=None, max_length=5)
 
     @model_validator(mode="after")
     def _exactly_one_target(self) -> "NominationDraftBody":
@@ -104,6 +112,7 @@ class NominationRow(BaseModel):
     core_values: list[str] = Field(default_factory=list)
     achievements: str | None = None
     support_doc_url: str | None = None
+    supporting_docs: list[SupportDocLink] = Field(default_factory=list)
     is_self_nomination: bool = False
     returned_notes: str | None = None
     created_at: datetime
@@ -137,6 +146,7 @@ class PendingApprovalRow(BaseModel):
     core_values: list[str] = Field(default_factory=list)
     achievements: str | None = None
     support_doc_url: str | None = None
+    supporting_docs: list[SupportDocLink] = Field(default_factory=list)
     arrived_at: datetime
 
 

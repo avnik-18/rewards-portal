@@ -554,7 +554,7 @@ ON CONFLICT (entity_type, entity_id) DO NOTHING;
 INSERT INTO recognition_history (kind, from_user_id, value_id, message, base_points, status, occurred_at, source_ref)
 SELECT 'milestone', u.id, (SELECT id FROM emids_values WHERE key='impact_obsessed'),
        'Business-unit town hall: FY26 Q4 opens with the highest customer-excellence renewal rate on record.',
-       250, 'approved'::recognition_status, now(), 'feed-demo-BU-01'
+       0, 'approved'::recognition_status, now(), 'feed-demo-BU-01'
   FROM users u
  WHERE u.employee_code = 'E-009'
 ON CONFLICT (kind, source_ref) DO NOTHING;

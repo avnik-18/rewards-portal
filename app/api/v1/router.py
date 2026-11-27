@@ -14,11 +14,13 @@ from app.api.v1 import (
     leaderboard,
     me,
     media,
+    media_admin,
     nominations,
     notifications,
     notifications_list,
     recognitions,
     showcase,
+    uploads,
     values,
 )
 
@@ -31,6 +33,8 @@ api_router.include_router(demo_users.router)
 api_router.include_router(me.router)
 api_router.include_router(recognitions.router)
 api_router.include_router(media.router)
+# Admin console — hero/banner media registry + feed-post moderation ops
+api_router.include_router(media_admin.router)
 
 # Dashboard deliverables 4-6 — leaderboard, awards showcase, badge count
 api_router.include_router(leaderboard.router)
@@ -54,6 +58,9 @@ api_router.include_router(feed.router)
 # "Recognize a Teammate" — read path (directory picker + values catalog)
 api_router.include_router(directory.router)
 api_router.include_router(values.router)
+
+# Supporting-document file uploads (compose) — reads happen through /files
+api_router.include_router(uploads.router)
 
 # Upcoming birthdays + work anniversaries — relevant people per viewer
 api_router.include_router(celebrations.router)
