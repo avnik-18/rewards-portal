@@ -264,6 +264,27 @@ WHERE rh.source_ref = 'leaderboard-demo-C-01'
 -- demo's three original EoQ rows stay retired (cancelled) — historical rows.
 UPDATE awards SET phase = 'cancelled' WHERE name LIKE 'Employee of the Quarter%';
 
+-- retired "legacy rack" awards the lifetime-wins block below references
+-- (Rising Star + the three original EoQ rows) — created as cancelled so the
+-- seed is self-contained on a fresh DB instead of requiring a prior demo.
+-- No points: recognitions carry zero points now; only awards carry numbers.
+INSERT INTO awards (period_id, name, description, cadence, prize_points,
+                    max_nominations_per_nominator, requires_jury, phase)
+VALUES
+  ((SELECT id FROM fiscal_period WHERE name = 'FY26 Q4'), 'Rising Star',
+   'Retired quarterly award kept for lifetime win history.',
+   'quarterly'::award_cadence, 3000, 1, false, 'cancelled'::cycle_phase),
+  ((SELECT id FROM fiscal_period WHERE name = 'FY26 Q4'), 'Employee of the Quarter — Customer First',
+   'Retired EoQ award kept for lifetime win history.',
+   'quarterly'::award_cadence, 4000, 1, false, 'cancelled'::cycle_phase),
+  ((SELECT id FROM fiscal_period WHERE name = 'FY26 Q4'), 'Employee of the Quarter — Ownership',
+   'Retired EoQ award kept for lifetime win history.',
+   'quarterly'::award_cadence, 4000, 1, false, 'cancelled'::cycle_phase),
+  ((SELECT id FROM fiscal_period WHERE name = 'FY26 Q4'), 'Employee of the Quarter — Team Spirit',
+   'Retired EoQ award kept for lifetime win history.',
+   'quarterly'::award_cadence, 4000, 1, false, 'cancelled'::cycle_phase)
+ON CONFLICT (period_id, name) DO NOTHING;
+
 -- the annual window the three squad awards run in
 INSERT INTO fiscal_period (id, name, starts, ends)
 VALUES ('11111111-1111-1111-1111-111111111102', 'FY27', '2027-01-01', '2027-12-31')
