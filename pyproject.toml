@@ -17,6 +17,7 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.50b0",
     "httpx>=0.28",
     "pyjwt[crypto]>=2.8",
+    "python-multipart>=0.0.20",
 ]
 
 [project.optional-dependencies]
